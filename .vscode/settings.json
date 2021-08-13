@@ -1,0 +1,12 @@
+{
+	"emeraldwalk.runonsave": {
+		"commands": [
+			{
+				"match": "(component..*?\\.go)|(gen.codegen.main.go)$",
+				"notMatch": "gen\\.go$",
+				"cmd": "cd ${workspaceFolder} && go run ${workspaceFolder}/gen/codegen ${workspaceFolder}",
+			},
+		],
+		"autoClearConsole": true,
+	}
+}
