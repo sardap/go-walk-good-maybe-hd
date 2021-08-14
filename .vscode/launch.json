@@ -16,14 +16,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceFolder}/gen/codegen"
-		},
-		{
-			"name": "Launch gen gen Package",
-			"type": "go",
-			"request": "launch",
-			"mode": "debug",
-			"program": "${workspaceFolder}/gen/codegengen",
+			"program": "${workspaceFolder}/gen",
 			"args": [
 				"${workspaceFolder}"
 			]

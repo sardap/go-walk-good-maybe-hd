@@ -1,0 +1,7 @@
+[[Targets]]
+name="whale"
+scaleFactor=1
+dirs=[
+    "whale",
+]
+
