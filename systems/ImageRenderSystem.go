@@ -23,7 +23,15 @@ func (s *ImageRenderImageSystem) Update(dt float32) {
 
 func (s *ImageRenderImageSystem) Render(screen *ebiten.Image) {
 	for _, ent := range s.ents {
-		screen.DrawImage(ent.GetImageComponent().Image, ent.GetTransformComponent().DrawImageOptions)
+		op := ent.GetTransformComponent().DrawImageOptions
+		img := ent.GetImageComponent()
+
+		if img.SubRect == nil {
+			screen.DrawImage(img.Image, op)
+		} else {
+			screen.DrawImage(img.Image.SubImage(*img.SubRect).(*ebiten.Image), op)
+		}
+
 	}
 }
 
@@ -32,7 +40,7 @@ func (s *ImageRenderImageSystem) Add(r ImageRenderable) {
 }
 
 func (s *ImageRenderImageSystem) Remove(e ecs.BasicEntity) {
-
+	delete(s.ents, e.ID())
 }
 
 type ImageRenderable interface {

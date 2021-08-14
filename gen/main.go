@@ -44,6 +44,8 @@ func genComGetFunction(f *jen.File, name string) {
 }
 
 func genComCode() {
+	fmt.Printf("Generating components\n")
+
 	jf := jen.NewFile("components")
 
 	jf.Comment(warning)
@@ -129,6 +131,7 @@ func genAssetFile(jf *jen.File, path string) {
 }
 
 func genAssets() {
+	fmt.Printf("Generating assets\n")
 
 	buildFile, err := os.ReadFile(filepath.Join(workspacePath, "configs", "assets.toml"))
 	if err != nil {

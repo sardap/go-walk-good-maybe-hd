@@ -15,6 +15,8 @@ type Game struct {
 }
 
 func addSystems(world *ecs.World) {
+	var animeable *systems.Animeable
+	world.AddSystemInterface(systems.CreateAnimeSystem(), animeable, nil)
 	var renderable *systems.ImageRenderable
 	world.AddSystemInterface(systems.CreateRenderSystem(), renderable, nil)
 }
@@ -33,7 +35,7 @@ func CreateGame() *Game {
 
 func (g *Game) Update() error {
 	dt := time.Since(g.lastTime)
-	g.world.Update(float32(dt * time.Second))
+	g.world.Update(float32(dt / time.Millisecond))
 	g.lastTime = time.Now()
 	return nil
 }
@@ -44,13 +46,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			rendSys.Render(screen)
 		}
 	}
-
-	// op := &ebiten.DrawImageOptions{}
-	// op.GeoM.Translate(-float64(frameWidth)/2, -float64(frameHeight)/2)
-	// op.GeoM.Translate(screenWidth/2, screenHeight/2)
-	// i := (g.count / 5) % frameNum
-	// sx, sy := frameOX+i*frameWidth, frameOY
-	// screen.DrawImage(runnerImage.SubImage(image.Rect(sx, sy, sx+frameWidth, sy+frameHeight)).(*ebiten.Image), op)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

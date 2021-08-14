@@ -4,10 +4,16 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "build-rom",
+			"label": "gennerate assets",
 			"type": "process",
 			"runOptions": {},
-			"command": "docker run --rm -v ${PWD}:/app wgm-builder:latest",
+			"command": "go",
+			"args": [
+				"run",
+				"${workspaceFolder}/gen",
+				"${workspaceFolder}",
+				"assets"
+			],
 			"group": {
 				"kind": "build",
 				"isDefault": true
