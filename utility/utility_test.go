@@ -9,7 +9,7 @@ import (
 
 func TestWrapInt(t *testing.T) {
 	result := utility.WrapInt(1, 0, 10)
-	assert.Equal(t, result, int(1), "should have not wrapped")
+	assert.Equal(t, result, int(5), "should have not wrapped")
 
 	result = utility.WrapInt(-1, 0, 10)
 	assert.Equal(t, result, int(9), "should have wrapped min")
