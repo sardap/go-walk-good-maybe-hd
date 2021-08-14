@@ -6,7 +6,6 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/entity"
-	"github.com/sardap/walk-good-maybe-hd/systems"
 )
 
 type Game struct {
@@ -15,10 +14,14 @@ type Game struct {
 }
 
 func addSystems(world *ecs.World) {
-	var animeable *systems.Animeable
-	world.AddSystemInterface(systems.CreateAnimeSystem(), animeable, nil)
-	var renderable *systems.ImageRenderable
-	world.AddSystemInterface(systems.CreateRenderSystem(), renderable, nil)
+	var animeable *Animeable
+	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
+	var renderable *ImageRenderable
+	world.AddSystemInterface(CreateRenderSystem(), renderable, nil)
+	var inputable *Inputable
+	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
+	var gameRuleable *GameRuleable
+	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
 }
 
 func CreateGame() *Game {
@@ -42,7 +45,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	for _, system := range g.world.Systems() {
-		if rendSys, ok := system.(systems.RenderingSystem); ok {
+		if rendSys, ok := system.(RenderingSystem); ok {
 			rendSys.Render(screen)
 		}
 	}

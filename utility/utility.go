@@ -17,3 +17,15 @@ func WrapInt(x, min, max int) int {
 	}
 	return x
 }
+
+func ClampFloat64(x, min, max float64) float64 {
+	if x > max {
+		return max
+	}
+
+	if x < min {
+		return min
+	}
+
+	return x
+}

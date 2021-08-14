@@ -1,7 +1,12 @@
 package components
 
-import "github.com/hajimehoshi/ebiten/v2"
+import (
+	"image"
+
+	"github.com/hajimehoshi/ebiten/v2"
+)
 
 type TransformComponent struct {
-	*ebiten.DrawImageOptions
+	*ebiten.GeoM
+	Vel *image.Point
 }

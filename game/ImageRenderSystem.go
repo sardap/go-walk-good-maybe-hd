@@ -1,4 +1,4 @@
-package systems
+package game
 
 import (
 	"github.com/EngoEngine/ecs"
@@ -6,25 +6,28 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
-type ImageRenderImageSystem struct {
+type ImageRenderSystem struct {
 	ents map[uint64]ImageRenderable
 }
 
-func CreateRenderSystem() *ImageRenderImageSystem {
-	return &ImageRenderImageSystem{}
+func CreateRenderSystem() *ImageRenderSystem {
+	return &ImageRenderSystem{}
 }
 
-func (s *ImageRenderImageSystem) New(world *ecs.World) {
+func (s *ImageRenderSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]ImageRenderable)
 }
 
-func (s *ImageRenderImageSystem) Update(dt float32) {
+func (s *ImageRenderSystem) Update(dt float32) {
 }
 
-func (s *ImageRenderImageSystem) Render(screen *ebiten.Image) {
+func (s *ImageRenderSystem) Render(screen *ebiten.Image) {
 	for _, ent := range s.ents {
-		op := ent.GetTransformComponent().DrawImageOptions
+		trans := ent.GetTransformComponent()
 		img := ent.GetImageComponent()
+
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM = *trans.GeoM
 
 		if img.SubRect == nil {
 			screen.DrawImage(img.Image, op)
@@ -35,11 +38,11 @@ func (s *ImageRenderImageSystem) Render(screen *ebiten.Image) {
 	}
 }
 
-func (s *ImageRenderImageSystem) Add(r ImageRenderable) {
+func (s *ImageRenderSystem) Add(r ImageRenderable) {
 	s.ents[r.GetBasicEntity().ID()] = r
 }
 
-func (s *ImageRenderImageSystem) Remove(e ecs.BasicEntity) {
+func (s *ImageRenderSystem) Remove(e ecs.BasicEntity) {
 	delete(s.ents, e.ID())
 }
 
@@ -49,6 +52,6 @@ type ImageRenderable interface {
 	components.ImageFace
 }
 
-func (s *ImageRenderImageSystem) AddByInterface(o ecs.Identifier) {
+func (s *ImageRenderSystem) AddByInterface(o ecs.Identifier) {
 	s.Add(o.(ImageRenderable))
 }

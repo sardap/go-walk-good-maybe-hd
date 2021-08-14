@@ -14,6 +14,7 @@ type Player struct {
 	*components.TransformComponent
 	*components.ImageComponent
 	*components.AnimeComponent
+	*components.MovementComponent
 }
 
 func Createplayer() *Player {
@@ -23,7 +24,7 @@ func Createplayer() *Player {
 
 	result := &Player{
 		TransformComponent: &components.TransformComponent{
-			DrawImageOptions: &ebiten.DrawImageOptions{},
+			GeoM: &ebiten.GeoM{},
 		},
 		ImageComponent: &components.ImageComponent{
 			Image: ebiten.NewImageFromImage(img),
@@ -33,6 +34,7 @@ func Createplayer() *Player {
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
+		MovementComponent: &components.MovementComponent{},
 	}
 
 	return result

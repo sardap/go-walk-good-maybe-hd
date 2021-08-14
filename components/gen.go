@@ -18,6 +18,14 @@ type ImageFace interface {
 	GetImageComponent() *ImageComponent
 }
 
+func (m *MovementComponent) GetMovementComponent() *MovementComponent {
+	return m
+}
+
+type MovementFace interface {
+	GetMovementComponent() *MovementComponent
+}
+
 func (t *TransformComponent) GetTransformComponent() *TransformComponent {
 	return t
 }
