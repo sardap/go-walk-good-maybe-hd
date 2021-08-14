@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"log"
 	"math"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
 const (
@@ -19,14 +21,26 @@ const (
 type inputMode int
 
 const (
-	inputModeGamepad = iota
+	inputModeGamepad inputMode = iota
 	inputModeKeyboard
 )
+
+func (i inputMode) String() string {
+	switch i {
+	case inputModeGamepad:
+		return "gamepad"
+	case inputModeKeyboard:
+		return "keyboard"
+	}
+
+	return "unknown"
+}
 
 type InputSystem struct {
 	ents          map[uint64]Inputable
 	playerGamepad ebiten.GamepadID
 	inputMode     inputMode
+	infoEnt       *entity.InputInfo
 }
 
 func CreateInputSystem() *InputSystem {
@@ -35,20 +49,29 @@ func CreateInputSystem() *InputSystem {
 
 func (s *InputSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Inputable)
+
+	s.infoEnt = entity.CreateInputInfo()
+	entity.CreateInputInfo().TransformComponent.GeoM.Translate(0, 0)
+	s.infoEnt.Text = inputModeGamepad.String()
+	s.infoEnt.Translate(0, 10)
+	s.infoEnt.Scale(2, 2)
+	world.AddEntity(s.infoEnt)
+
+	s.setInputMode(inputModeKeyboard)
+}
+
+func (s *InputSystem) setInputMode(mode inputMode) {
+	s.inputMode = mode
+	s.infoEnt.TextComponent.Text = fmt.Sprintf("Current:%s Change with K or G", mode.String())
 }
 
 func (s *InputSystem) processGamepad() {
 	if inpututil.IsGamepadJustDisconnected(s.playerGamepad) {
 		if len(inpututil.JustConnectedGamepadIDs()) <= 0 {
-			s.inputMode = inputModeKeyboard
+			s.setInputMode(inputModeKeyboard)
 			return
 		}
 		s.playerGamepad = inpututil.JustConnectedGamepadIDs()[0]
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
-		s.inputMode = inputModeKeyboard
-		return
 	}
 
 	id := s.playerGamepad
@@ -88,11 +111,6 @@ func (s *InputSystem) processGamepad() {
 }
 
 func (s *InputSystem) processKeyboard() {
-	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
-		s.inputMode = inputModeGamepad
-		return
-	}
-
 	for _, ent := range s.ents {
 		move := ent.GetMovementComponent()
 		if inpututil.KeyPressDuration(ebiten.KeyLeft) > 0 {
@@ -114,6 +132,15 @@ func (s *InputSystem) processKeyboard() {
 }
 
 func (s *InputSystem) Update(dt float32) {
+	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		s.setInputMode(inputModeGamepad)
+		return
+	}
+	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
+		s.setInputMode(inputModeKeyboard)
+		return
+	}
+
 	switch s.inputMode {
 	case inputModeGamepad:
 		s.processGamepad()

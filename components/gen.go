@@ -26,6 +26,14 @@ type MovementFace interface {
 	GetMovementComponent() *MovementComponent
 }
 
+func (t *TextComponent) GetTextComponent() *TextComponent {
+	return t
+}
+
+type TextFace interface {
+	GetTextComponent() *TextComponent
+}
+
 func (t *TransformComponent) GetTransformComponent() *TransformComponent {
 	return t
 }

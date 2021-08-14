@@ -10,7 +10,7 @@ type ImageRenderSystem struct {
 	ents map[uint64]ImageRenderable
 }
 
-func CreateRenderSystem() *ImageRenderSystem {
+func CreateImageRenderSystem() *ImageRenderSystem {
 	return &ImageRenderSystem{}
 }
 

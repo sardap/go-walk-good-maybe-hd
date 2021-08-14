@@ -17,7 +17,7 @@ type Player struct {
 	*components.MovementComponent
 }
 
-func Createplayer() *Player {
+func CreatePlayer() *Player {
 	img, _ := assets.LoadImage(assets.ImageWhaleAir)
 
 	img = assets.ScaleImage(img)

@@ -1,6 +1,7 @@
 package game
 
 import (
+	"image/color"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -17,7 +18,9 @@ func addSystems(world *ecs.World) {
 	var animeable *Animeable
 	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
 	var renderable *ImageRenderable
-	world.AddSystemInterface(CreateRenderSystem(), renderable, nil)
+	world.AddSystemInterface(CreateImageRenderSystem(), renderable, nil)
+	var textRenderable *TextRenderable
+	world.AddSystemInterface(CreateTextRenderSystem(), textRenderable, nil)
 	var inputable *Inputable
 	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
 	var gameRuleable *GameRuleable
@@ -28,7 +31,7 @@ func CreateGame() *Game {
 	world := &ecs.World{}
 	addSystems(world)
 
-	world.AddEntity(entity.Createplayer())
+	world.AddEntity(entity.CreatePlayer())
 
 	return &Game{
 		world:    world,
@@ -44,6 +47,7 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	screen.Fill(color.White)
 	for _, system := range g.world.Systems() {
 		if rendSys, ok := system.(RenderingSystem); ok {
 			rendSys.Render(screen)
