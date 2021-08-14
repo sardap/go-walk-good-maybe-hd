@@ -12,5 +12,6 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/oov/psd v0.0.0-20210618170533-9fb823ddb631
+	github.com/stretchr/testify v1.7.0 // indirect
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
 )

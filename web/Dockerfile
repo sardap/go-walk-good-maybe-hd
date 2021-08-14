@@ -1,6 +1,6 @@
 # Only build with docker compose
 
-FROM golang:1.17-rc as builder
+FROM golang:1.16 as builder
 
 RUN mkdir /app
 WORKDIR /app

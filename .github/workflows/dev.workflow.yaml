@@ -14,7 +14,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: run
+      - name: Run tests
         uses: cedrickring/golang-action@1.6.0
         env:
-          PROJECT_PATH: "./bot"
+          PROJECT_PATH: "."
+      - name: Build conatiner
+        run: docker build -f web/Dockerfile . -t wgmhd-web:latest
+      - name: Build wasm version
+        run: docker run wgmhd-web:latest
