@@ -1,0 +1,25 @@
+name: Upload Release Asset
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    name: Upload Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Run tests and make sure builds
+        run: docker run -v ${PWD}:/app --entrypoint="bash" golang:1.16 /app/build.sh
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          files: |
+            bin/walk-good-maybe-hd-amd64-linux.zip
+            bin/walk-good-maybe-hd-amd64-windows.zip
+            bin/walk-good-maybe-hd-wasm.zip
