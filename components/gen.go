@@ -26,6 +26,14 @@ type MovementFace interface {
 	GetMovementComponent() *MovementComponent
 }
 
+func (s *SoundComponent) GetSoundComponent() *SoundComponent {
+	return s
+}
+
+type SoundFace interface {
+	GetSoundComponent() *SoundComponent
+}
+
 func (t *TextComponent) GetTextComponent() *TextComponent {
 	return t
 }

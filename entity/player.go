@@ -23,6 +23,7 @@ func CreatePlayer() *Player {
 	img = assets.ScaleImage(img)
 
 	result := &Player{
+		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
 		},

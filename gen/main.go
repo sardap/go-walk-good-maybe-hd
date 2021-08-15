@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,6 +81,26 @@ func genComCode() {
 	jf.Render(f)
 }
 
+func compressAsset(data []byte) ([]byte, int) {
+	compressed := &bytes.Buffer{}
+	func() {
+		zw := gzip.NewWriter(compressed)
+		defer zw.Close()
+
+		_, err := zw.Write(data)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	return compressed.Bytes(), len(data) - compressed.Len()
+}
+
+func genByteArray(jf *jen.File, data []byte, name string) {
+	jf.Var().Id(name).Op("=").Index().Byte().Params(jen.Lit(string(data)))
+	jf.Line()
+}
+
 type GraphicsOutput struct {
 	Name        string
 	ScaleFactor int
@@ -87,7 +108,11 @@ type GraphicsOutput struct {
 	Dirs        []string
 }
 
-func genAssetFile(jf *jen.File, path string) {
+func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Image" + name
+
 	f, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -99,35 +124,57 @@ func genAssetFile(jf *jen.File, path string) {
 		panic(err)
 	}
 
-	name := strings.TrimSuffix(filepath.Base(f.Name()), filepath.Ext(f.Name()))
-	name = strcase.ToCamel(name)
-	name = "Image" + name
-
 	buffer := &bytes.Buffer{}
-	err = png.Encode(buffer, img)
+	png.Encode(buffer, img)
+
+	compressed, diff := compressAsset(buffer.Bytes())
+
+	fmt.Printf("Reduced %s by %d bytes\n", path, diff)
+
+	genByteArray(jf, compressed, name)
+}
+
+func genImagesAssets(jf *jen.File, images []GraphicsOutput, assetsPath string) {
+	for _, target := range images {
+		filepath.Walk(assetsPath, func(path string, info os.FileInfo, err error) error {
+			if info.IsDir() || strings.Contains(filepath.Base(info.Name()), ".go") {
+				return nil
+			}
+
+			target.Files = append(target.Files, strings.TrimPrefix(path, assetsPath+string(filepath.Separator)))
+			return nil
+		})
+
+		for _, fPath := range target.Files {
+			target.genImageAssetFromFile(jf, filepath.Join(assetsPath, fPath))
+		}
+	}
+}
+
+type SoundOutput struct {
+	Name string
+	File string
+}
+
+func (s *SoundOutput) genSouundAssetFromFile(jf *jen.File, path string) {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	compressed := &bytes.Buffer{}
-	func() {
-		zw := gzip.NewWriter(compressed)
-		defer zw.Close()
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Music" + name
 
-		_, err = zw.Write(buffer.Bytes())
-		if err != nil {
-			panic(err)
-		}
-	}()
+	genByteArray(jf, data, name)
+}
 
-	fmt.Printf("Reduced %d by %d bytes\n", buffer.Len(), compressed.Len()-buffer.Len())
+func genMusicAssets(jf *jen.File, sounds []SoundOutput, assetsPath string) {
+	jf.Const().Id("Mp3SampleRate").Op("=").Lit(48000)
 
-	jf.Var().Id(name).Op("=").Index().Byte().ValuesFunc(func(g *jen.Group) {
-		for _, b := range compressed.Bytes() {
-			g.LitByte(b)
-		}
-	})
-	jf.Line()
+	for _, target := range sounds {
+		target.genSouundAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+	}
 }
 
 func genAssets() {
@@ -139,7 +186,8 @@ func genAssets() {
 	}
 
 	var config struct {
-		Targets []GraphicsOutput
+		Images []GraphicsOutput
+		Music  []SoundOutput
 	}
 	if err := toml.Unmarshal(buildFile, &config); err != nil {
 		panic(err)
@@ -152,20 +200,8 @@ func genAssets() {
 	jf.Comment(warning)
 	jf.Line()
 
-	for _, target := range config.Targets {
-		filepath.Walk(assetsPath, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() || strings.Contains(filepath.Base(info.Name()), ".go") {
-				return nil
-			}
-
-			target.Files = append(target.Files, strings.TrimPrefix(path, assetsPath+string(filepath.Separator)))
-			return nil
-		})
-
-		for _, fPath := range target.Files {
-			genAssetFile(jf, filepath.Join(assetsPath, fPath))
-		}
-	}
+	genImagesAssets(jf, config.Images, filepath.Join(assetsPath, "images"))
+	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
 
 	f, err := os.Create(filepath.Join(workspacePath, "assets", "gen.go"))
 	if err != nil {

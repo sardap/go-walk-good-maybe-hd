@@ -1,7 +1,11 @@
-[[Targets]]
+[[Images]]
 name="whale"
 scaleFactor=1
 dirs=[
     "whale",
 ]
+
+[[Music]]
+name="city"
+file="pd_city_0.mp3"
 

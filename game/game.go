@@ -23,6 +23,8 @@ func addSystems(world *ecs.World) {
 	world.AddSystemInterface(CreateTextRenderSystem(), textRenderable, nil)
 	var inputable *Inputable
 	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
+	var soundable *Soundable
+	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 	var gameRuleable *GameRuleable
 	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
 }
@@ -32,6 +34,8 @@ func CreateGame() *Game {
 	addSystems(world)
 
 	world.AddEntity(entity.CreatePlayer())
+
+	world.AddEntity(entity.CreateCityMusic())
 
 	return &Game{
 		world:    world,

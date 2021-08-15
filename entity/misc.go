@@ -16,6 +16,7 @@ type InputInfo struct {
 
 func CreateInputInfo() *InputInfo {
 	return &InputInfo{
+		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
 			Vel:  &image.Point{},
