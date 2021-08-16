@@ -9,4 +9,5 @@ import (
 type ImageComponent struct {
 	Image   *ebiten.Image
 	SubRect *image.Rectangle
+	Layer   ImageLayer
 }

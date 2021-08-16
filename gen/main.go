@@ -54,7 +54,7 @@ func genComCode() {
 
 	err := filepath.Walk(filepath.Join(workspacePath, "components"),
 		func(path string, info os.FileInfo, err error) error {
-			if err != nil || info.IsDir() || info.Name() == "gen.go" {
+			if err != nil || info.IsDir() || !strings.HasSuffix(info.Name(), "Component.go") {
 				return err
 			}
 
@@ -104,15 +104,11 @@ func genByteArray(jf *jen.File, data []byte, name string) {
 type GraphicsOutput struct {
 	Name        string
 	ScaleFactor int
-	Files       []string
-	Dirs        []string
+	FrameWidth  int
+	File        string
 }
 
 func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
-	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-	name = strcase.ToCamel(name)
-	name = "Image" + name
-
 	f, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -131,23 +127,30 @@ func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
 
 	fmt.Printf("Reduced %s by %d bytes\n", path, diff)
 
-	genByteArray(jf, compressed, name)
+	var fields []jen.Code
+	fields = append(fields, jen.Id("Data").String())
+
+	if g.FrameWidth > 0 {
+		fields = append(fields, jen.Id("FrameWidth").Int())
+	}
+
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Image" + name
+
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("Data").Op(":").Lit(string(compressed)).Op(",")
+
+		if g.FrameWidth > 0 {
+			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
+		}
+	})
+	jf.Line()
 }
 
 func genImagesAssets(jf *jen.File, images []GraphicsOutput, assetsPath string) {
 	for _, target := range images {
-		filepath.Walk(assetsPath, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() || strings.Contains(filepath.Base(info.Name()), ".go") {
-				return nil
-			}
-
-			target.Files = append(target.Files, strings.TrimPrefix(path, assetsPath+string(filepath.Separator)))
-			return nil
-		})
-
-		for _, fPath := range target.Files {
-			target.genImageAssetFromFile(jf, filepath.Join(assetsPath, fPath))
-		}
+		target.genImageAssetFromFile(jf, filepath.Join(assetsPath, target.File))
 	}
 }
 

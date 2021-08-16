@@ -1,13 +1,13 @@
 package entity
 
 import (
-	"image"
 	"time"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type CityMusic struct {
@@ -21,7 +21,6 @@ func CreateCityMusic() *CityMusic {
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
-			Vel:  &image.Point{},
 		},
 		SoundComponent: &components.SoundComponent{
 			Sound: components.Sound{
@@ -31,6 +30,30 @@ func CreateCityMusic() *CityMusic {
 			Active: true,
 			Loop:   true,
 			Intro:  time.Duration(8) * time.Second,
+		},
+	}
+}
+
+type CityBackground struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.ImageComponent
+	*components.VelocityComponent
+}
+
+func CreateCityBackground() *CityBackground {
+	img, _ := assets.LoadImage([]byte(assets.ImageBackgroundCity.Data))
+
+	return &CityBackground{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			GeoM: &ebiten.GeoM{},
+		},
+		ImageComponent: &components.ImageComponent{
+			Image: ebiten.NewImageFromImage(img),
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: &math.Vector2{},
 		},
 	}
 }

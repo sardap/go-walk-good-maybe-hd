@@ -1,6 +1,7 @@
 package game
 
 import (
+	"container/heap"
 	"image/color"
 	"log"
 
@@ -49,7 +50,7 @@ func (s *TextRenderSystem) New(world *ecs.World) {
 func (s *TextRenderSystem) Update(dt float32) {
 }
 
-func (s *TextRenderSystem) Render(screen *ebiten.Image) {
+func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
 		textCom := ent.GetTextComponent()
@@ -59,7 +60,12 @@ func (s *TextRenderSystem) Render(screen *ebiten.Image) {
 
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM = *trans.GeoM
-		screen.DrawImage(img, op)
+
+		heap.Push(cmds, &RenderCmd{
+			Image:   img,
+			Options: op,
+			Layer:   textCom.Layer,
+		})
 	}
 }
 

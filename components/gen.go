@@ -18,6 +18,14 @@ type ImageFace interface {
 	GetImageComponent() *ImageComponent
 }
 
+func (m *MainGamePlayerComponent) GetMainGamePlayerComponent() *MainGamePlayerComponent {
+	return m
+}
+
+type MainGamePlayerFace interface {
+	GetMainGamePlayerComponent() *MainGamePlayerComponent
+}
+
 func (m *MovementComponent) GetMovementComponent() *MovementComponent {
 	return m
 }
@@ -48,4 +56,12 @@ func (t *TransformComponent) GetTransformComponent() *TransformComponent {
 
 type TransformFace interface {
 	GetTransformComponent() *TransformComponent
+}
+
+func (v *VelocityComponent) GetVelocityComponent() *VelocityComponent {
+	return v
+}
+
+type VelocityFace interface {
+	GetVelocityComponent() *VelocityComponent
 }

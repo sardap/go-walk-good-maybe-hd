@@ -8,6 +8,7 @@
 			"name": "Launch Package",
 			"type": "go",
 			"request": "launch",
+			"preLaunchTask": "gennerate assets",
 			"mode": "debug",
 			"program": "${workspaceFolder}"
 		},

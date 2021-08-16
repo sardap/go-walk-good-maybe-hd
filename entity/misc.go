@@ -1,8 +1,6 @@
 package entity
 
 import (
-	"image"
-
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -19,7 +17,6 @@ func CreateInputInfo() *InputInfo {
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
-			Vel:  &image.Point{},
 		},
 		TextComponent: &components.TextComponent{},
 	}

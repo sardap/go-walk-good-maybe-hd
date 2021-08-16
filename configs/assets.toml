@@ -1,9 +1,15 @@
 [[Images]]
-name="whale"
-scaleFactor=1
-dirs=[
-    "whale",
-]
+name="whaleAir"
+frameWidth=16
+file="whale/whaleAir.psd"
+
+[[Images]]
+name="whaleIdle"
+file="whale/whaleIdle.psd"
+
+[[Images]]
+name="backgroundCity"
+file="city/backgroundCity.psd"
 
 [[Music]]
 name="city"

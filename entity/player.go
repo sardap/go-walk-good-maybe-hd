@@ -7,23 +7,25 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type Player struct {
 	ecs.BasicEntity
+	*components.MainGamePlayerComponent
 	*components.TransformComponent
 	*components.ImageComponent
 	*components.AnimeComponent
 	*components.MovementComponent
+	*components.VelocityComponent
 }
 
 func CreatePlayer() *Player {
-	img, _ := assets.LoadImage(assets.ImageWhaleAir)
-
-	img = assets.ScaleImage(img)
+	img, _ := assets.LoadImage([]byte(assets.ImageWhaleAir.Data))
 
 	result := &Player{
-		BasicEntity: ecs.NewBasic(),
+		BasicEntity:             ecs.NewBasic(),
+		MainGamePlayerComponent: &components.MainGamePlayerComponent{},
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
 		},
@@ -31,11 +33,14 @@ func CreatePlayer() *Player {
 			Image: ebiten.NewImageFromImage(img),
 		},
 		AnimeComponent: &components.AnimeComponent{
-			FrameWidth:    8 * 8 * 2,
+			FrameWidth:    assets.ImageWhaleAir.FrameWidth,
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
 		MovementComponent: &components.MovementComponent{},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: &math.Vector2{},
+		},
 	}
 
 	return result

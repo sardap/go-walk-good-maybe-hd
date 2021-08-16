@@ -5,8 +5,6 @@ import (
 	"compress/gzip"
 	"image"
 	"io/ioutil"
-
-	"github.com/nfnt/resize"
 )
 
 func LoadImage(data []byte) (image.Image, error) {
@@ -24,8 +22,4 @@ func LoadImage(data []byte) (image.Image, error) {
 	}
 
 	return img, nil
-}
-
-func ScaleImage(img image.Image) image.Image {
-	return resize.Resize(uint(img.Bounds().Dx())*8, uint(img.Bounds().Dy())*8, img, resize.NearestNeighbor)
 }

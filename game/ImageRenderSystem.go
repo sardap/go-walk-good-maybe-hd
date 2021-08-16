@@ -1,6 +1,8 @@
 package game
 
 import (
+	"container/heap"
+
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -21,20 +23,26 @@ func (s *ImageRenderSystem) New(world *ecs.World) {
 func (s *ImageRenderSystem) Update(dt float32) {
 }
 
-func (s *ImageRenderSystem) Render(screen *ebiten.Image) {
+func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
-		img := ent.GetImageComponent()
+		imgCom := ent.GetImageComponent()
 
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM = *trans.GeoM
 
-		if img.SubRect == nil {
-			screen.DrawImage(img.Image, op)
+		var img *ebiten.Image
+		if imgCom.SubRect != nil {
+			img = imgCom.Image.SubImage(*imgCom.SubRect).(*ebiten.Image)
 		} else {
-			screen.DrawImage(img.Image.SubImage(*img.SubRect).(*ebiten.Image), op)
+			img = imgCom.Image
 		}
 
+		heap.Push(cmds, &RenderCmd{
+			Image:   img,
+			Options: op,
+			Layer:   imgCom.Layer,
+		})
 	}
 }
 

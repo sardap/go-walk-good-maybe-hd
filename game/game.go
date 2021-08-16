@@ -1,13 +1,17 @@
 package game
 
 import (
+	"container/heap"
 	"image/color"
 	"time"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
+
+const scaleMutiplier = 16
 
 type Game struct {
 	world    *ecs.World
@@ -25,22 +29,44 @@ func addSystems(world *ecs.World) {
 	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
 	var soundable *Soundable
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
+	var Velocityable *Velocityable
+	world.AddSystemInterface(CreateVelocitySystem(), Velocityable, nil)
 	var gameRuleable *GameRuleable
 	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
+}
+
+const (
+	bottomImageLayer components.ImageLayer = iota
+	middleImageLayer
+	uiImageLayer
+)
+
+func (g *Game) startCityLevel() {
+	g.world.AddEntity(entity.CreateCityMusic())
+
+	cityBackground := entity.CreateCityBackground()
+	cityBackground.GeoM.Scale(scaleMutiplier, scaleMutiplier)
+	cityBackground.ImageComponent.Layer = bottomImageLayer
+	g.world.AddEntity(cityBackground)
+
+	player := entity.CreatePlayer()
+	player.ImageComponent.Layer = middleImageLayer
+	player.GeoM.Scale(scaleMutiplier, scaleMutiplier)
+	g.world.AddEntity(player)
 }
 
 func CreateGame() *Game {
 	world := &ecs.World{}
 	addSystems(world)
 
-	world.AddEntity(entity.CreatePlayer())
-
-	world.AddEntity(entity.CreateCityMusic())
-
-	return &Game{
+	result := &Game{
 		world:    world,
 		lastTime: time.Now(),
 	}
+
+	result.startCityLevel()
+
+	return result
 }
 
 func (g *Game) Update() error {
@@ -51,14 +77,23 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	queue := &RenderCmds{}
+
 	screen.Fill(color.White)
 	for _, system := range g.world.Systems() {
 		if rendSys, ok := system.(RenderingSystem); ok {
-			rendSys.Render(screen)
+			rendSys.Render(queue)
 		}
+	}
+
+	heap.Init(queue)
+
+	for queue.Len() > 0 {
+		item := heap.Pop(queue).(*RenderCmd)
+		screen.DrawImage(item.Image, item.Options)
 	}
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return 3840, 2560
+	return 240 * scaleMutiplier, 160 * scaleMutiplier
 }
