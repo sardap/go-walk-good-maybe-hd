@@ -2,7 +2,7 @@
 
 apt-get update -y 
 
-apt-get install -y --no-install-recommends xorg-dev libgl1-mesa-dev zip
+apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev zip
 
 cd /app
 
