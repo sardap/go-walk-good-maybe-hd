@@ -51,7 +51,7 @@ func CreateCityBackground() *CityBackground {
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
-			Image: ebiten.NewImageFromImage(img),
+			Image: img,
 		},
 		VelocityComponent: &components.VelocityComponent{
 			Vel: &math.Vector2{},

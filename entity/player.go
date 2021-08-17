@@ -32,7 +32,7 @@ func CreatePlayer() *Player {
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
-			Image: ebiten.NewImageFromImage(img),
+			Image:  img,
 		},
 		AnimeComponent: &components.AnimeComponent{
 			FrameWidth:    assets.ImageWhaleAir.FrameWidth,

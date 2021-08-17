@@ -11,7 +11,8 @@ import (
 )
 
 type CollisionSystem struct {
-	ents map[uint64]Collisionable
+	ents    map[uint64]Collisionable
+	overlay *ebiten.Image
 }
 
 func CreateCollisionSystem() *CollisionSystem {
@@ -20,6 +21,7 @@ func CreateCollisionSystem() *CollisionSystem {
 
 func (s *CollisionSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Collisionable)
+	s.overlay = ebiten.NewImage(gameWidth, gameHeight)
 }
 
 func getRect(ent Collisionable) (x1, x2, y1, y2 float64) {
@@ -69,7 +71,7 @@ func (s *CollisionSystem) Update(dt float32) {
 }
 
 func (s *CollisionSystem) Render(cmds *RenderCmds) {
-	overlay := ebiten.NewImage(gameWidth, gameHeight)
+	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
 
 	for _, ent := range s.ents {
 		if !ent.GetCollisionComponent().Active {
@@ -82,18 +84,18 @@ func (s *CollisionSystem) Render(cmds *RenderCmds) {
 
 		clr := color.RGBA{255, 0, 0, 255}
 		// Left Top to Right Top
-		ebitenutil.DrawLine(overlay, x1, y1, x1+w, y1, clr)
+		ebitenutil.DrawLine(s.overlay, x1, y1, x1+w, y1, clr)
 		// Right Top to Right Bottom
-		ebitenutil.DrawLine(overlay, x1+w, y1, x1+w, y1+h, clr)
+		ebitenutil.DrawLine(s.overlay, x1+w, y1, x1+w, y1+h, clr)
 		// Right Bottom to Left Bottom
-		ebitenutil.DrawLine(overlay, x1+w, y1+h, x1, y1+h, clr)
+		ebitenutil.DrawLine(s.overlay, x1+w, y1+h, x1, y1+h, clr)
 		// Left Bottom to Left top
-		ebitenutil.DrawLine(overlay, x1, y1+h, x1, y1, clr)
+		ebitenutil.DrawLine(s.overlay, x1, y1+h, x1, y1, clr)
 	}
 
 	op := &ebiten.DrawImageOptions{}
 	heap.Push(cmds, &RenderCmd{
-		Image:   overlay,
+		Image:   s.overlay,
 		Options: op,
 		Layer:   debugImageLayer,
 	})

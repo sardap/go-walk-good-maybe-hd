@@ -2,11 +2,13 @@ package game
 
 import (
 	"container/heap"
+	"fmt"
 	"image/color"
 	"time"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
@@ -67,6 +69,7 @@ func (g *Game) startCityLevel() {
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()
+	testBox.ImageComponent.Layer = uiImageLayer
 	testBox.Translate(500, 500)
 	g.world.AddEntity(testBox)
 }
@@ -108,6 +111,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		item := heap.Pop(queue).(*RenderCmd)
 		screen.DrawImage(item.Image, item.Options)
 	}
+
+	img := ebiten.NewImage(50, 50)
+	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(10, 10)
+	screen.DrawImage(img, op)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
