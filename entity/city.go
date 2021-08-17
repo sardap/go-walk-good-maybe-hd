@@ -50,6 +50,7 @@ func CreateCityBackground() *CityBackground {
 			GeoM: &ebiten.GeoM{},
 		},
 		ImageComponent: &components.ImageComponent{
+			Active: true,
 			Image: ebiten.NewImageFromImage(img),
 		},
 		VelocityComponent: &components.VelocityComponent{

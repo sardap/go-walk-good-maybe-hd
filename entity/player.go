@@ -18,6 +18,7 @@ type Player struct {
 	*components.AnimeComponent
 	*components.MovementComponent
 	*components.VelocityComponent
+	*components.CollisionComponent
 }
 
 func CreatePlayer() *Player {
@@ -30,6 +31,7 @@ func CreatePlayer() *Player {
 			GeoM: &ebiten.GeoM{},
 		},
 		ImageComponent: &components.ImageComponent{
+			Active: true,
 			Image: ebiten.NewImageFromImage(img),
 		},
 		AnimeComponent: &components.AnimeComponent{
@@ -40,6 +42,9 @@ func CreatePlayer() *Player {
 		MovementComponent: &components.MovementComponent{},
 		VelocityComponent: &components.VelocityComponent{
 			Vel: &math.Vector2{},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
 		},
 	}
 

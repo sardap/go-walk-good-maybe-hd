@@ -10,6 +10,14 @@ type AnimeFace interface {
 	GetAnimeComponent() *AnimeComponent
 }
 
+func (c *CollisionComponent) GetCollisionComponent() *CollisionComponent {
+	return c
+}
+
+type CollisionFace interface {
+	GetCollisionComponent() *CollisionComponent
+}
+
 func (i *ImageComponent) GetImageComponent() *ImageComponent {
 	return i
 }
