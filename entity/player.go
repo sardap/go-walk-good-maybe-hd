@@ -3,8 +3,8 @@ package entity
 import (
 	"time"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -19,6 +19,7 @@ type Player struct {
 	*components.MovementComponent
 	*components.VelocityComponent
 	*components.CollisionComponent
+	*components.ScrollableComponent
 }
 
 func CreatePlayer() *Player {
@@ -41,11 +42,12 @@ func CreatePlayer() *Player {
 		},
 		MovementComponent: &components.MovementComponent{},
 		VelocityComponent: &components.VelocityComponent{
-			Vel: &math.Vector2{},
+			Vel: math.Vector2{},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
+		ScrollableComponent: &components.ScrollableComponent{},
 	}
 
 	return result

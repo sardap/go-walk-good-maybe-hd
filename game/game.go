@@ -6,16 +6,20 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
-const scaleMutiplier = 16
-const gameWidth = 240 * scaleMutiplier
-const gameHeight = 160 * scaleMutiplier
+const scaleMultiplier = 16
+const gameWidth = 240 * scaleMultiplier
+const gameHeight = 160 * scaleMultiplier
+
+var (
+	gGame *Game
+)
 
 const (
 	bottomImageLayer components.ImageLayer = iota
@@ -48,24 +52,24 @@ func addSystems(world *ecs.World) {
 	var soundable *Soundable
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
-	var Velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(), Velocityable, nil)
-
 	var gameRuleable *GameRuleable
 	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
+
+	var Velocityable *Velocityable
+	world.AddSystemInterface(CreateVelocitySystem(), Velocityable, nil)
 }
 
 func (g *Game) startCityLevel() {
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
-	cityBackground.GeoM.Scale(scaleMutiplier, scaleMutiplier)
+	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	g.world.AddEntity(cityBackground)
 
 	player := entity.CreatePlayer()
 	player.ImageComponent.Layer = middleImageLayer
-	player.GeoM.Scale(scaleMutiplier, scaleMutiplier)
+	player.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()
@@ -85,6 +89,8 @@ func CreateGame() *Game {
 
 	result.startCityLevel()
 
+	gGame = result
+
 	return result
 }
 
@@ -92,6 +98,7 @@ func (g *Game) Update() error {
 	dt := time.Since(g.lastTime)
 	g.world.Update(float32(dt / time.Millisecond))
 	g.lastTime = time.Now()
+
 	return nil
 }
 

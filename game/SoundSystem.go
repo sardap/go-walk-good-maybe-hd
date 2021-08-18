@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
@@ -20,6 +20,10 @@ type SoundSystem struct {
 
 func CreateSoundSystem() *SoundSystem {
 	return &SoundSystem{}
+}
+
+func (s *SoundSystem) Priority() int {
+	return int(systemPrioritySoundSystem)
 }
 
 func (s *SoundSystem) New(world *ecs.World) {

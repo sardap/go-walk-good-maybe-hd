@@ -5,9 +5,9 @@ import (
 	"log"
 	"math"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
@@ -45,6 +45,10 @@ type InputSystem struct {
 
 func CreateInputSystem() *InputSystem {
 	return &InputSystem{}
+}
+
+func (s *InputSystem) Priority() int {
+	return int(systemPriorityInputSystem)
 }
 
 func (s *InputSystem) New(world *ecs.World) {

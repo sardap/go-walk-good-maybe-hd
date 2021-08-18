@@ -3,8 +3,8 @@ package entity
 import (
 	"time"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -39,6 +39,7 @@ type CityBackground struct {
 	*components.TransformComponent
 	*components.ImageComponent
 	*components.VelocityComponent
+	*components.ScrollableComponent
 }
 
 func CreateCityBackground() *CityBackground {
@@ -51,10 +52,10 @@ func CreateCityBackground() *CityBackground {
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
-			Image: img,
+			Image:  img,
 		},
 		VelocityComponent: &components.VelocityComponent{
-			Vel: &math.Vector2{},
+			Vel: math.Vector2{},
 		},
 	}
 }

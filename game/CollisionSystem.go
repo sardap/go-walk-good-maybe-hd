@@ -4,9 +4,9 @@ import (
 	"container/heap"
 	"image/color"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
@@ -17,6 +17,10 @@ type CollisionSystem struct {
 
 func CreateCollisionSystem() *CollisionSystem {
 	return &CollisionSystem{}
+}
+
+func (s *CollisionSystem) Priority() int {
+	return int(systemPriorityCollisionSystem)
 }
 
 func (s *CollisionSystem) New(world *ecs.World) {

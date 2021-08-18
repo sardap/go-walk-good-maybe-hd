@@ -7,6 +7,20 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
+type systemPriority int
+
+const (
+	systemPriorityImageRenderSystem systemPriority = iota
+	systemPriorityAnimeSystem
+	systemPriorityTextRenderSystem
+	systemPriorityVelocitySystem
+	systemPriorityScrollingSystem
+	systemPriorityGameRuleSystem
+	systemPriorityCollisionSystem
+	systemPriorityInputSystem
+	systemPrioritySoundSystem
+)
+
 type RenderCmd struct {
 	Image   *ebiten.Image
 	Options *ebiten.DrawImageOptions

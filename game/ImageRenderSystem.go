@@ -3,8 +3,8 @@ package game
 import (
 	"container/heap"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
@@ -14,6 +14,10 @@ type ImageRenderSystem struct {
 
 func CreateImageRenderSystem() *ImageRenderSystem {
 	return &ImageRenderSystem{}
+}
+
+func (s *ImageRenderSystem) Priority() int {
+	return int(systemPriorityImageRenderSystem)
 }
 
 func (s *ImageRenderSystem) New(world *ecs.World) {

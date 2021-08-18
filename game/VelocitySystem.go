@@ -1,8 +1,9 @@
 package game
 
 import (
-	"github.com/EngoEngine/ecs"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type VelocitySystem struct {
@@ -13,6 +14,10 @@ func CreateVelocitySystem() *VelocitySystem {
 	return &VelocitySystem{}
 }
 
+func (s *VelocitySystem) Priority() int {
+	return int(systemPriorityVelocitySystem)
+}
+
 func (s *VelocitySystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Velocityable)
 }
@@ -20,9 +25,11 @@ func (s *VelocitySystem) New(world *ecs.World) {
 func (s *VelocitySystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
-		vel := ent.GetVelocityComponent()
+		vel := ent.GetVelocityComponent().Vel
 
-		trans.GeoM.Translate(float64(vel.Vel.X), float64(vel.Vel.Y))
+		trans.GeoM.Translate(vel.X, vel.Y)
+
+		ent.GetVelocityComponent().Vel = math.Vector2{}
 	}
 }
 

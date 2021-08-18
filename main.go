@@ -8,14 +8,6 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/game"
 )
 
-const (
-	frameOX     = 0
-	frameOY     = 32
-	frameWidth  = 32
-	frameHeight = 32
-	frameNum    = 8
-)
-
 func main() {
 	game := game.CreateGame()
 

@@ -42,6 +42,14 @@ type MovementFace interface {
 	GetMovementComponent() *MovementComponent
 }
 
+func (s *ScrollableComponent) GetScrollableComponent() *ScrollableComponent {
+	return s
+}
+
+type ScrollableFace interface {
+	GetScrollableComponent() *ScrollableComponent
+}
+
 func (s *SoundComponent) GetSoundComponent() *SoundComponent {
 	return s
 }
