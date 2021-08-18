@@ -1,6 +1,6 @@
 FROM golang:1.16 as builder
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends xorg-dev libgl1-mesa-dev
+RUN apt-get update -y && apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev
 
 RUN mkdir /app
 WORKDIR /app

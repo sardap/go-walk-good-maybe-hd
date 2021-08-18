@@ -3,38 +3,51 @@ package entity
 import (
 	"time"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type Player struct {
 	ecs.BasicEntity
+	*components.MainGamePlayerComponent
 	*components.TransformComponent
 	*components.ImageComponent
 	*components.AnimeComponent
 	*components.MovementComponent
+	*components.VelocityComponent
+	*components.CollisionComponent
+	*components.ScrollableComponent
 }
 
 func CreatePlayer() *Player {
-	img, _ := assets.LoadImage(assets.ImageWhaleAir)
-
-	img = assets.ScaleImage(img)
+	img, _ := assets.LoadImage([]byte(assets.ImageWhaleAir.Data))
 
 	result := &Player{
+		BasicEntity:             ecs.NewBasic(),
+		MainGamePlayerComponent: &components.MainGamePlayerComponent{},
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
 		},
 		ImageComponent: &components.ImageComponent{
-			Image: ebiten.NewImageFromImage(img),
+			Active: true,
+			Image:  img,
 		},
 		AnimeComponent: &components.AnimeComponent{
-			FrameWidth:    8 * 8 * 2,
+			FrameWidth:    assets.ImageWhaleAir.FrameWidth,
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
 		MovementComponent: &components.MovementComponent{},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		ScrollableComponent: &components.ScrollableComponent{},
 	}
 
 	return result

@@ -3,7 +3,7 @@ package game
 import (
 	"image"
 
-	"github.com/EngoEngine/ecs"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
@@ -14,6 +14,10 @@ type AnimeSystem struct {
 
 func CreateAnimeSystem() *AnimeSystem {
 	return &AnimeSystem{}
+}
+
+func (s *AnimeSystem) Priority() int {
+	return int(systemPriorityAnimeSystem)
 }
 
 func frameCount(anime *components.AnimeComponent, img *components.ImageComponent) int {

@@ -2,7 +2,7 @@
 
 apt-get update -y 
 
-apt-get install -y --no-install-recommends xorg-dev libgl1-mesa-dev zip
+apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev zip
 
 cd /app
 
@@ -41,6 +41,6 @@ cd bin
 
 zip walk-good-maybe-hd-amd64-linux walk-good-maybe-hd-amd64-linux
 zip walk-good-maybe-hd-amd64-windows.zip walk-good-maybe-hd-amd64-windows.exe
-zip walk-good-maybe-hd-wasm.zip walk-good-maybe-hd-wasm
+zip walk-good-maybe-hd-wasm.zip walk-good-maybe-hd.wasm
 
 echo "done zipping"

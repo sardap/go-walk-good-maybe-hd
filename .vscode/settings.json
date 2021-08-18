@@ -8,5 +8,21 @@
 			},
 		],
 		"autoClearConsole": true,
-	}
+	},
+	"editor.formatOnSave": true,
+	"files.watcherExclude": {
+		"**/.git/objects/**": true,
+		"**/.git/subtree-cache/**": true,
+		"**/node_modules/*/**": true,
+		"**/.hg/store/**": true,
+		"gen.go": true
+	},
+	"cSpell.words": [
+		"ebiten",
+		"ebitenutil",
+		"engo",
+		"ents",
+		"hajimehoshi",
+		"sardap"
+	]
 }

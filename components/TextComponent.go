@@ -1,5 +1,6 @@
 package components
 
 type TextComponent struct {
-	Text string
+	Text  string
+	Layer ImageLayer
 }

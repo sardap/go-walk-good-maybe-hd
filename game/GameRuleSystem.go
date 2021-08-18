@@ -1,50 +1,95 @@
 package game
 
 import (
-	"github.com/EngoEngine/ecs"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
+	"github.com/sardap/walk-good-maybe-hd/math"
+)
+
+type gameState int
+
+const (
+	gameStateStarting gameState = iota
+	gameStateScrolling
 )
 
 type GameRuleSystem struct {
-	ents map[uint64]GameRuleable
+	ents  map[uint64]interface{}
+	world *ecs.World
+	state gameState
 }
 
 func CreateGameRuleSystem() *GameRuleSystem {
 	return &GameRuleSystem{}
 }
 
+func (s *GameRuleSystem) Priority() int {
+	return int(systemPriorityGameRuleSystem)
+}
+
 func (s *GameRuleSystem) New(world *ecs.World) {
-	s.ents = make(map[uint64]GameRuleable)
+	s.ents = make(map[uint64]interface{})
+	s.world = world
+	s.state = gameStateStarting
+}
+
+func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
+	switch s.state {
+	case gameStateStarting:
+		if player.MoveRight {
+			var scrollable *Scrollable
+			s.world.AddSystemInterface(CreateScrollingSystem(math.Vector2{X: -2.5, Y: 0}), scrollable, nil)
+			s.state = gameStateScrolling
+		}
+	}
+}
+
+type Moveable interface {
+	ecs.BasicFace
+	components.MovementFace
+	components.VelocityFace
+}
+
+type Wrapable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.ImageFace
+	components.WrapFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
 	for _, ent := range s.ents {
-		if moveInter, ok := ent.(components.MovementFace); ok {
-			move := moveInter.GetMovementComponent()
-			trans := ent.(components.TransformFace).GetTransformComponent()
+		if ent, ok := ent.(*entity.Player); ok {
+			s.updatePlayer(dt, ent)
+		}
 
-			var velX float64
+		if moveable, ok := ent.(Moveable); ok {
+			move := moveable.GetMovementComponent()
+			vel := moveable.GetVelocityComponent().Vel
 			if move.MoveLeft {
-				velX -= 10
+				vel.X -= 10
 				move.MoveLeft = false
 			}
 			if move.MoveRight {
-				velX += 10
+				vel.X += 10
 				move.MoveRight = false
 			}
 
-			var velY float64
 			if move.MoveDown {
-				velY += 10
+				vel.Y += 10
 				move.MoveDown = false
 			}
 			if move.MoveUp {
-				velY -= 10
+				vel.Y -= 10
 				move.MoveUp = false
 			}
 
-			trans.GeoM.Translate(velX, velY)
+			moveable.GetVelocityComponent().Vel = vel
 		}
+
+		// if wrapable, ok := ent.(Wrapable); ok {
+		// }
 	}
 }
 

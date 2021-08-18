@@ -1,13 +1,14 @@
 package game
 
 import (
+	"container/heap"
 	"image/color"
 	"log"
 
-	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -34,32 +35,60 @@ func init() {
 	}
 }
 
+type textImageCache struct {
+	text string
+	img  *ebiten.Image
+}
+
 type TextRenderSystem struct {
-	ents map[uint64]TextRenderable
+	ents      map[uint64]TextRenderable
+	textCache map[uint64]*textImageCache
 }
 
 func CreateTextRenderSystem() *TextRenderSystem {
 	return &TextRenderSystem{}
 }
 
+func (s *TextRenderSystem) Priority() int {
+	return int(systemPriorityTextRenderSystem)
+}
+
 func (s *TextRenderSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]TextRenderable)
+	s.textCache = make(map[uint64]*textImageCache)
 }
 
 func (s *TextRenderSystem) Update(dt float32) {
 }
 
-func (s *TextRenderSystem) Render(screen *ebiten.Image) {
-	for _, ent := range s.ents {
+func (s *TextRenderSystem) Render(cmds *RenderCmds) {
+	for id, ent := range s.ents {
 		trans := ent.GetTransformComponent()
 		textCom := ent.GetTextComponent()
 
-		img := ebiten.NewImage(500, 500)
-		text.Draw(img, textCom.Text, mplusNormalFont, 0, 50, color.Black)
+		value, ok := s.textCache[id]
+		if !ok || value.text != textCom.Text {
+			if ok {
+				value.img.Dispose()
+			} else {
+				value = &textImageCache{}
+				s.textCache[id] = value
+			}
+
+			img := ebiten.NewImage(500, 500)
+			text.Draw(img, textCom.Text, mplusNormalFont, 0, 50, color.Black)
+			value.text = textCom.Text
+			value.img = img
+		}
 
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM = *trans.GeoM
-		screen.DrawImage(img, op)
+
+		heap.Push(cmds, &RenderCmd{
+			Image:   value.img,
+			Options: op,
+			Layer:   textCom.Layer,
+		})
 	}
 }
 

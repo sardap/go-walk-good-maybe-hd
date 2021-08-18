@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,7 +54,7 @@ func genComCode() {
 
 	err := filepath.Walk(filepath.Join(workspacePath, "components"),
 		func(path string, info os.FileInfo, err error) error {
-			if err != nil || info.IsDir() || info.Name() == "gen.go" {
+			if err != nil || info.IsDir() || !strings.HasSuffix(info.Name(), "Component.go") {
 				return err
 			}
 
@@ -80,14 +81,34 @@ func genComCode() {
 	jf.Render(f)
 }
 
+func compressAsset(data []byte) ([]byte, int) {
+	compressed := &bytes.Buffer{}
+	func() {
+		zw := gzip.NewWriter(compressed)
+		defer zw.Close()
+
+		_, err := zw.Write(data)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	return compressed.Bytes(), len(data) - compressed.Len()
+}
+
+func genByteArray(jf *jen.File, data []byte, name string) {
+	jf.Var().Id(name).Op("=").Index().Byte().Params(jen.Lit(string(data)))
+	jf.Line()
+}
+
 type GraphicsOutput struct {
 	Name        string
 	ScaleFactor int
-	Files       []string
-	Dirs        []string
+	FrameWidth  int
+	File        string
 }
 
-func genAssetFile(jf *jen.File, path string) {
+func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
 	f, err := os.Open(path)
 	if err != nil {
 		panic(err)
@@ -99,35 +120,64 @@ func genAssetFile(jf *jen.File, path string) {
 		panic(err)
 	}
 
-	name := strings.TrimSuffix(filepath.Base(f.Name()), filepath.Ext(f.Name()))
+	buffer := &bytes.Buffer{}
+	png.Encode(buffer, img)
+
+	compressed, diff := compressAsset(buffer.Bytes())
+
+	fmt.Printf("Reduced %s by %d bytes\n", path, diff)
+
+	var fields []jen.Code
+	fields = append(fields, jen.Id("Data").String())
+
+	if g.FrameWidth > 0 {
+		fields = append(fields, jen.Id("FrameWidth").Int())
+	}
+
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	name = strcase.ToCamel(name)
 	name = "Image" + name
 
-	buffer := &bytes.Buffer{}
-	err = png.Encode(buffer, img)
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("Data").Op(":").Lit(string(compressed)).Op(",")
+
+		if g.FrameWidth > 0 {
+			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
+		}
+	})
+	jf.Line()
+}
+
+func genImagesAssets(jf *jen.File, images []GraphicsOutput, assetsPath string) {
+	for _, target := range images {
+		target.genImageAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+	}
+}
+
+type SoundOutput struct {
+	Name string
+	File string
+}
+
+func (s *SoundOutput) genSouundAssetFromFile(jf *jen.File, path string) {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
-	compressed := &bytes.Buffer{}
-	func() {
-		zw := gzip.NewWriter(compressed)
-		defer zw.Close()
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Music" + name
 
-		_, err = zw.Write(buffer.Bytes())
-		if err != nil {
-			panic(err)
-		}
-	}()
+	genByteArray(jf, data, name)
+}
 
-	fmt.Printf("Reduced %d by %d bytes\n", buffer.Len(), compressed.Len()-buffer.Len())
+func genMusicAssets(jf *jen.File, sounds []SoundOutput, assetsPath string) {
+	jf.Const().Id("Mp3SampleRate").Op("=").Lit(48000)
 
-	jf.Var().Id(name).Op("=").Index().Byte().ValuesFunc(func(g *jen.Group) {
-		for _, b := range compressed.Bytes() {
-			g.LitByte(b)
-		}
-	})
-	jf.Line()
+	for _, target := range sounds {
+		target.genSouundAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+	}
 }
 
 func genAssets() {
@@ -139,7 +189,8 @@ func genAssets() {
 	}
 
 	var config struct {
-		Targets []GraphicsOutput
+		Images []GraphicsOutput
+		Music  []SoundOutput
 	}
 	if err := toml.Unmarshal(buildFile, &config); err != nil {
 		panic(err)
@@ -152,20 +203,8 @@ func genAssets() {
 	jf.Comment(warning)
 	jf.Line()
 
-	for _, target := range config.Targets {
-		filepath.Walk(assetsPath, func(path string, info os.FileInfo, err error) error {
-			if info.IsDir() || strings.Contains(filepath.Base(info.Name()), ".go") {
-				return nil
-			}
-
-			target.Files = append(target.Files, strings.TrimPrefix(path, assetsPath+string(filepath.Separator)))
-			return nil
-		})
-
-		for _, fPath := range target.Files {
-			genAssetFile(jf, filepath.Join(assetsPath, fPath))
-		}
-	}
+	genImagesAssets(jf, config.Images, filepath.Join(assetsPath, "images"))
+	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
 
 	f, err := os.Create(filepath.Join(workspacePath, "assets", "gen.go"))
 	if err != nil {

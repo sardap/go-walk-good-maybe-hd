@@ -3,13 +3,37 @@ package assets
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
 	"image"
 	"io/ioutil"
+	"sync"
 
-	"github.com/nfnt/resize"
+	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func LoadImage(data []byte) (image.Image, error) {
+var (
+	imageCache map[[16]byte]*ebiten.Image
+	lock       *sync.Mutex
+)
+
+func init() {
+	imageCache = make(map[[16]byte]*ebiten.Image)
+	lock = &sync.Mutex{}
+}
+
+func getHash(data []byte) [16]byte {
+	return md5.Sum(data)
+}
+
+func LoadImage(data []byte) (*ebiten.Image, error) {
+	hash := getHash(data)
+
+	lock.Lock()
+	defer lock.Unlock()
+	eImg, ok := imageCache[hash]
+	if ok {
+		return eImg, nil
+	}
 
 	zr, _ := gzip.NewReader(bytes.NewReader(data))
 	defer zr.Close()
@@ -23,9 +47,9 @@ func LoadImage(data []byte) (image.Image, error) {
 		return nil, err
 	}
 
-	return img, nil
-}
+	eImg = ebiten.NewImageFromImage(img)
 
-func ScaleImage(img image.Image) image.Image {
-	return resize.Resize(uint(img.Bounds().Dx())*8, uint(img.Bounds().Dy())*8, img, resize.NearestNeighbor)
+	imageCache[hash] = eImg
+
+	return eImg, nil
 }
