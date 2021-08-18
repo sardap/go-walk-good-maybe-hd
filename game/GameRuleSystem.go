@@ -51,6 +51,13 @@ type Moveable interface {
 	components.VelocityFace
 }
 
+type Wrapable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.ImageFace
+	components.WrapFace
+}
+
 func (s *GameRuleSystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		if ent, ok := ent.(*entity.Player); ok {
@@ -80,6 +87,9 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 			moveable.GetVelocityComponent().Vel = vel
 		}
+
+		// if wrapable, ok := ent.(Wrapable); ok {
+		// }
 	}
 }
 

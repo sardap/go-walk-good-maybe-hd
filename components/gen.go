@@ -18,6 +18,14 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
+func (i *IdentityComponent) GetIdentityComponent() *IdentityComponent {
+	return i
+}
+
+type IdentityFace interface {
+	GetIdentityComponent() *IdentityComponent
+}
+
 func (i *ImageComponent) GetImageComponent() *ImageComponent {
 	return i
 }
@@ -80,4 +88,12 @@ func (v *VelocityComponent) GetVelocityComponent() *VelocityComponent {
 
 type VelocityFace interface {
 	GetVelocityComponent() *VelocityComponent
+}
+
+func (w *WrapComponent) GetWrapComponent() *WrapComponent {
+	return w
+}
+
+type WrapFace interface {
+	GetWrapComponent() *WrapComponent
 }

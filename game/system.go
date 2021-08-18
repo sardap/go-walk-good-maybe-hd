@@ -68,3 +68,18 @@ func (r *RenderCmds) Update(item *RenderCmd) {
 type RenderingSystem interface {
 	Render(*RenderCmds)
 }
+
+type boundingBox interface {
+	components.TransformFace
+	components.ImageFace
+}
+
+func bounds(b boundingBox) (float64, float64, float64, float64) {
+	trans := b.GetTransformComponent()
+	imgW, imgH := b.GetImageComponent().Size()
+
+	x1, w := trans.Element(0, 2), trans.Element(1, 1)*float64(imgW)
+	y1, h := trans.Element(1, 2), trans.Element(0, 0)*float64(imgH)
+
+	return x1, w, y1, h
+}

@@ -67,6 +67,13 @@ func (g *Game) startCityLevel() {
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	g.world.AddEntity(cityBackground)
 
+	cityBackground = entity.CreateCityBackground()
+	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+	_, w, _, _ := bounds(cityBackground)
+	cityBackground.GeoM.Translate(w, 0)
+	cityBackground.ImageComponent.Layer = bottomImageLayer
+	g.world.AddEntity(cityBackground)
+
 	player := entity.CreatePlayer()
 	player.ImageComponent.Layer = middleImageLayer
 	player.GeoM.Scale(scaleMultiplier, scaleMultiplier)

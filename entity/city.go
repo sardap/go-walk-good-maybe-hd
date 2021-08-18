@@ -37,9 +37,11 @@ func CreateCityMusic() *CityMusic {
 type CityBackground struct {
 	ecs.BasicEntity
 	*components.TransformComponent
+	*components.IdentityComponent
 	*components.ImageComponent
 	*components.VelocityComponent
 	*components.ScrollableComponent
+	*components.WrapComponent
 }
 
 func CreateCityBackground() *CityBackground {
@@ -50,6 +52,7 @@ func CreateCityBackground() *CityBackground {
 		TransformComponent: &components.TransformComponent{
 			GeoM: &ebiten.GeoM{},
 		},
+		IdentityComponent: &components.IdentityComponent{},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
 			Image:  img,
@@ -57,5 +60,6 @@ func CreateCityBackground() *CityBackground {
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},
+		WrapComponent: &components.WrapComponent{},
 	}
 }
