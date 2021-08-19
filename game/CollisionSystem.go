@@ -31,18 +31,12 @@ func (s *CollisionSystem) New(world *ecs.World) {
 func getRect(ent Collisionable) (x1, x2, y1, y2 float64) {
 	trans := ent.GetTransformComponent()
 
-	var imgW, imgH int
-	if ent.GetImageComponent().SubRect != nil {
-		imgW, imgH = ent.GetImageComponent().SubRect.Dx(), ent.GetImageComponent().SubRect.Dy()
-	} else {
-		imgW, imgH = ent.GetImageComponent().Image.Size()
-	}
+	x1 = trans.Postion.X
+	x2 = x1 + trans.Size.X
+	y1 = trans.Postion.Y
+	y2 = y1 + trans.Size.Y
 
-	x1, w := trans.Element(0, 2), trans.Element(1, 1)*float64(imgW)
-	y1, h := trans.Element(1, 2), trans.Element(0, 0)*float64(imgH)
-
-	return x1, x1 + w, y1, y1 + h
-
+	return
 }
 
 func (s *CollisionSystem) Update(dt float32) {
@@ -98,6 +92,7 @@ func (s *CollisionSystem) Render(cmds *RenderCmds) {
 	}
 
 	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	heap.Push(cmds, &RenderCmd{
 		Image:   s.overlay,
 		Options: op,
@@ -117,7 +112,6 @@ type Collisionable interface {
 	ecs.BasicFace
 	components.TransformFace
 	components.CollisionFace
-	components.ImageFace
 }
 
 func (s *CollisionSystem) AddByInterface(o ecs.Identifier) {

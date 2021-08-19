@@ -63,7 +63,6 @@ func (s *TextRenderSystem) Update(dt float32) {
 
 func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 	for id, ent := range s.ents {
-		trans := ent.GetTransformComponent()
 		textCom := ent.GetTextComponent()
 
 		value, ok := s.textCache[id]
@@ -82,7 +81,7 @@ func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 		}
 
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM = *trans.GeoM
+		op.GeoM.Scale(2, 2)
 
 		heap.Push(cmds, &RenderCmd{
 			Image:   value.img,

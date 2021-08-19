@@ -13,9 +13,12 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
-const scaleMultiplier = 16
-const gameWidth = 240 * scaleMultiplier
-const gameHeight = 160 * scaleMultiplier
+const (
+	scaleMultiplier   = 16
+	gameWidth         = 240 * scaleMultiplier
+	gameHeight        = 160 * scaleMultiplier
+	xStartScrollSpeed = -10.5
+)
 
 var (
 	gGame *Game
@@ -63,25 +66,21 @@ func (g *Game) startCityLevel() {
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
-	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	g.world.AddEntity(cityBackground)
 
 	cityBackground = entity.CreateCityBackground()
-	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
-	_, w, _, _ := bounds(cityBackground)
-	cityBackground.GeoM.Translate(w, 0)
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	g.world.AddEntity(cityBackground)
 
 	player := entity.CreatePlayer()
 	player.ImageComponent.Layer = middleImageLayer
-	player.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()
 	testBox.ImageComponent.Layer = uiImageLayer
-	testBox.Translate(500, 500)
+	testBox.TransformComponent.Postion.X = 500
+	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
 }
 
@@ -103,7 +102,7 @@ func CreateGame() *Game {
 
 func (g *Game) Update() error {
 	dt := time.Since(g.lastTime)
-	g.world.Update(float32(dt / time.Millisecond))
+	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
 
 	return nil

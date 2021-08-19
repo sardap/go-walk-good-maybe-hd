@@ -39,7 +39,7 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	case gameStateStarting:
 		if player.MoveRight {
 			var scrollable *Scrollable
-			s.world.AddSystemInterface(CreateScrollingSystem(math.Vector2{X: -2.5, Y: 0}), scrollable, nil)
+			s.world.AddSystemInterface(CreateScrollingSystem(math.Vector2{X: xStartScrollSpeed, Y: 0}), scrollable, nil)
 			s.state = gameStateScrolling
 		}
 	}
@@ -68,20 +68,20 @@ func (s *GameRuleSystem) Update(dt float32) {
 			move := moveable.GetMovementComponent()
 			vel := moveable.GetVelocityComponent().Vel
 			if move.MoveLeft {
-				vel.X -= 10
+				vel.X -= move.Speed
 				move.MoveLeft = false
 			}
 			if move.MoveRight {
-				vel.X += 10
+				vel.X += move.Speed
 				move.MoveRight = false
 			}
 
 			if move.MoveDown {
-				vel.Y += 10
+				vel.Y += move.Speed
 				move.MoveDown = false
 			}
 			if move.MoveUp {
-				vel.Y -= 10
+				vel.Y -= move.Speed
 				move.MoveUp = false
 			}
 

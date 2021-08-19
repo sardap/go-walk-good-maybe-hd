@@ -55,10 +55,9 @@ func (s *InputSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Inputable)
 
 	s.infoEnt = entity.CreateInputInfo()
-	entity.CreateInputInfo().TransformComponent.GeoM.Translate(0, 0)
 	s.infoEnt.Text = inputModeGamepad.String()
-	s.infoEnt.Translate(0, 10)
-	s.infoEnt.Scale(2, 2)
+	s.infoEnt.Postion.X = 300
+	s.infoEnt.Postion.Y = 10
 	world.AddEntity(s.infoEnt)
 
 	s.setInputMode(inputModeKeyboard)

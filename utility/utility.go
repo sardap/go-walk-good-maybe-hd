@@ -5,8 +5,8 @@ import (
 )
 
 func DeltaToDuration(dt float32) time.Duration {
-	var i int = int(dt)
-	return time.Duration(i) * time.Millisecond
+	var i int = int(dt * float32(time.Second))
+	return time.Duration(i)
 }
 
 func WrapInt(x, min, max int) int {

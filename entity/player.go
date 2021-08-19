@@ -3,7 +3,6 @@ package entity
 import (
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -29,7 +28,7 @@ func CreatePlayer() *Player {
 		BasicEntity:             ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{},
 		TransformComponent: &components.TransformComponent{
-			GeoM: &ebiten.GeoM{},
+			Size: math.Vector2{X: float64(assets.ImageWhaleAir.FrameWidth), Y: float64(assets.ImageWhaleAir.FrameWidth)},
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
@@ -40,7 +39,9 @@ func CreatePlayer() *Player {
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
-		MovementComponent: &components.MovementComponent{},
+		MovementComponent: &components.MovementComponent{
+			Speed: 40,
+		},
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},

@@ -27,7 +27,7 @@ func (s *VelocitySystem) Update(dt float32) {
 		trans := ent.GetTransformComponent()
 		vel := ent.GetVelocityComponent().Vel
 
-		trans.GeoM.Translate(vel.X, vel.Y)
+		trans.Postion = trans.Postion.Add(vel.Mul(float64(dt)))
 
 		ent.GetVelocityComponent().Vel = math.Vector2{}
 	}

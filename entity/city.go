@@ -3,7 +3,6 @@ package entity
 import (
 	"time"
 
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -18,10 +17,8 @@ type CityMusic struct {
 
 func CreateCityMusic() *CityMusic {
 	return &CityMusic{
-		BasicEntity: ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{
-			GeoM: &ebiten.GeoM{},
-		},
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
 		SoundComponent: &components.SoundComponent{
 			Sound: components.Sound{
 				Source:    assets.MusicPdCity0,
@@ -47,10 +44,12 @@ type CityBackground struct {
 func CreateCityBackground() *CityBackground {
 	img, _ := assets.LoadImage([]byte(assets.ImageBackgroundCity.Data))
 
+	w, h := img.Size()
+
 	return &CityBackground{
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
-			GeoM: &ebiten.GeoM{},
+			Size: math.Vector2{X: float64(w), Y: float64(h)},
 		},
 		IdentityComponent: &components.IdentityComponent{},
 		ImageComponent: &components.ImageComponent{
