@@ -1,6 +1,6 @@
 package components
 
-// AUTO GENERATED CODE DO NOT EDIT REFER TO gen/codegen
+// AUTO GENERATED CODE DO NOT EDIT REFER TO gen/main.go
 
 func (a *AnimeComponent) GetAnimeComponent() *AnimeComponent {
 	return a
@@ -50,6 +50,14 @@ type MovementFace interface {
 	GetMovementComponent() *MovementComponent
 }
 
+func (p *PhysicsComponent) GetPhysicsComponent() *PhysicsComponent {
+	return p
+}
+
+type PhysicsFace interface {
+	GetPhysicsComponent() *PhysicsComponent
+}
+
 func (s *ScrollableComponent) GetScrollableComponent() *ScrollableComponent {
 	return s
 }
@@ -72,6 +80,14 @@ func (t *TextComponent) GetTextComponent() *TextComponent {
 
 type TextFace interface {
 	GetTextComponent() *TextComponent
+}
+
+func (t *TileImageComponent) GetTileImageComponent() *TileImageComponent {
+	return t
+}
+
+type TileImageFace interface {
+	GetTileImageComponent() *TileImageComponent
 }
 
 func (t *TransformComponent) GetTransformComponent() *TransformComponent {

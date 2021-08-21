@@ -18,11 +18,13 @@
 		"gen.go": true
 	},
 	"cSpell.words": [
+		"cmds",
 		"ebiten",
 		"ebitenutil",
 		"engo",
 		"ents",
 		"hajimehoshi",
+		"render",
 		"sardap"
 	]
 }

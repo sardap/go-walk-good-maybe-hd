@@ -93,7 +93,7 @@ func (s *CollisionSystem) Render(cmds *RenderCmds) {
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
-	heap.Push(cmds, &RenderCmd{
+	heap.Push(cmds, &RenderImageCmd{
 		Image:   s.overlay,
 		Options: op,
 		Layer:   debugImageLayer,

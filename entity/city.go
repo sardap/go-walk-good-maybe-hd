@@ -42,7 +42,7 @@ type CityBackground struct {
 }
 
 func CreateCityBackground() *CityBackground {
-	img, _ := assets.LoadImage([]byte(assets.ImageBackgroundCity.Data))
+	img, _ := assets.LoadEbitenImage(assets.ImageBackgroundCity)
 
 	w, h := img.Size()
 
@@ -59,6 +59,8 @@ func CreateCityBackground() *CityBackground {
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},
-		WrapComponent: &components.WrapComponent{},
+		WrapComponent: &components.WrapComponent{
+			Threshold: float64(w),
+		},
 	}
 }

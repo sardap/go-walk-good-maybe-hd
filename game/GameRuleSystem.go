@@ -4,20 +4,11 @@ import (
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
-	"github.com/sardap/walk-good-maybe-hd/math"
-)
-
-type gameState int
-
-const (
-	gameStateStarting gameState = iota
-	gameStateScrolling
 )
 
 type GameRuleSystem struct {
 	ents  map[uint64]interface{}
 	world *ecs.World
-	state gameState
 }
 
 func CreateGameRuleSystem() *GameRuleSystem {
@@ -31,17 +22,19 @@ func (s *GameRuleSystem) Priority() int {
 func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
-	s.state = gameStateStarting
+	mainGameInfo.state = gameStateStarting
+
 }
 
 func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
-	switch s.state {
+	switch mainGameInfo.state {
 	case gameStateStarting:
-		if player.MoveRight {
-			var scrollable *Scrollable
-			s.world.AddSystemInterface(CreateScrollingSystem(math.Vector2{X: xStartScrollSpeed, Y: 0}), scrollable, nil)
-			s.state = gameStateScrolling
+		if player.TransformComponent.Postion.X > 50 {
+			mainGameInfo.state = gameStateScrolling
+			mainGameInfo.scrollingSpeed.X = xStartScrollSpeed
 		}
+	case gameStateScrolling:
+		break
 	}
 }
 
@@ -54,8 +47,13 @@ type Moveable interface {
 type Wrapable interface {
 	ecs.BasicFace
 	components.TransformFace
-	components.ImageFace
 	components.WrapFace
+}
+
+type Scrollable interface {
+	ecs.BasicFace
+	components.VelocityFace
+	components.ScrollableFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
@@ -88,8 +86,18 @@ func (s *GameRuleSystem) Update(dt float32) {
 			moveable.GetVelocityComponent().Vel = vel
 		}
 
-		// if wrapable, ok := ent.(Wrapable); ok {
-		// }
+		if wrapable, ok := ent.(Wrapable); ok {
+			trans := wrapable.GetTransformComponent()
+			if trans.Postion.X < -wrapable.GetWrapComponent().Threshold {
+				trans.Postion.X = wrapable.GetWrapComponent().Threshold
+			}
+		}
+
+		if scrollable, ok := ent.(Scrollable); ok {
+			vel := scrollable.GetVelocityComponent().Vel
+			vel = vel.Add(mainGameInfo.scrollingSpeed)
+			scrollable.GetVelocityComponent().Vel = vel
+		}
 	}
 }
 

@@ -26,7 +26,8 @@ var (
 
 const (
 	bottomImageLayer components.ImageLayer = iota
-	middleImageLayer
+	playerImageLayer
+	buildingForground
 	uiImageLayer
 	debugImageLayer
 )
@@ -36,7 +37,9 @@ type Game struct {
 	lastTime time.Time
 }
 
-func addSystems(world *ecs.World) {
+func (g *Game) addSystems() {
+	world := g.world
+
 	var collisionable *Collisionable
 	world.AddSystemInterface(CreateCollisionSystem(), collisionable, nil)
 
@@ -45,6 +48,9 @@ func addSystems(world *ecs.World) {
 
 	var renderable *ImageRenderable
 	world.AddSystemInterface(CreateImageRenderSystem(), renderable, nil)
+
+	var tileImageRenderable *TileImageRenderable
+	world.AddSystemInterface(CreateTileImageRenderSystem(), tileImageRenderable, nil)
 
 	var textRenderable *TextRenderable
 	world.AddSystemInterface(CreateTextRenderSystem(), textRenderable, nil)
@@ -63,6 +69,10 @@ func addSystems(world *ecs.World) {
 }
 
 func (g *Game) startCityLevel() {
+	mainGameInfo = &MainGameInfo{}
+
+	g.addSystems()
+
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
@@ -71,10 +81,11 @@ func (g *Game) startCityLevel() {
 
 	cityBackground = entity.CreateCityBackground()
 	cityBackground.ImageComponent.Layer = bottomImageLayer
+	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
 
 	player := entity.CreatePlayer()
-	player.ImageComponent.Layer = middleImageLayer
+	player.ImageComponent.Layer = playerImageLayer
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()
@@ -82,11 +93,19 @@ func (g *Game) startCityLevel() {
 	testBox.TransformComponent.Postion.X = 500
 	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
+
+	ents := ecs.NewBasics(1)
+	for _, ent := range ents {
+		block := createBuilding0(ent)
+		trans := block.GetTransformComponent()
+		block.GetTransformComponent().Postion.Y = float64(gameHeight - trans.Size.Y)
+		g.world.AddEntity(block)
+	}
+
 }
 
 func CreateGame() *Game {
 	world := &ecs.World{}
-	addSystems(world)
 
 	result := &Game{
 		world:    world,
@@ -121,8 +140,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	heap.Init(queue)
 
 	for queue.Len() > 0 {
-		item := heap.Pop(queue).(*RenderCmd)
-		screen.DrawImage(item.Image, item.Options)
+		item := heap.Pop(queue).(RenderCmd)
+		item.Draw(screen)
 	}
 
 	img := ebiten.NewImage(50, 50)

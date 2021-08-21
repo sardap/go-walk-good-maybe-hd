@@ -43,7 +43,7 @@ func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 			img = imgCom.Image
 		}
 
-		heap.Push(cmds, &RenderCmd{
+		heap.Push(cmds, &RenderImageCmd{
 			Image:   img,
 			Options: op,
 			Layer:   imgCom.Layer,

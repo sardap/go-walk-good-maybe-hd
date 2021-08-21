@@ -13,12 +13,13 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/dave/jennifer/jen"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/iancoleman/strcase"
 
 	_ "github.com/oov/psd"
 )
 
-const warning = "AUTO GENERATED CODE DO NOT EDIT REFER TO gen/codegen"
+const warning = "AUTO GENERATED CODE DO NOT EDIT REFER TO gen/main.go"
 
 var workspacePath string
 
@@ -103,9 +104,87 @@ func genByteArray(jf *jen.File, data []byte, name string) {
 
 type GraphicsOutput struct {
 	Name        string
+	Type        string
+	Parts       []string
 	ScaleFactor int
 	FrameWidth  int
 	File        string
+}
+
+func (g *GraphicsOutput) genImageAsset(jf *jen.File, img image.Image) {
+	var fields []jen.Code
+	fields = append(fields, jen.Id("Data").String())
+	fields = append(fields, jen.Id("Compressed").Bool())
+
+	if g.FrameWidth > 0 {
+		fields = append(fields, jen.Id("FrameWidth").Int())
+	}
+
+	buffer := &bytes.Buffer{}
+	png.Encode(buffer, img)
+	imgBytes := buffer.Bytes()
+
+	// Copy this
+	compressed, diff := compressAsset(imgBytes)
+	useCompressed := diff > 40
+	if useCompressed {
+		fmt.Printf("Reduced %s by %d bytes\n", g.Name, diff)
+		imgBytes = compressed
+	} else {
+		fmt.Printf("Not compressing %s too small\n", g.Name)
+	}
+
+	name := g.Name
+	name = strcase.ToCamel(name)
+	name = "Image" + name
+
+	if g.Type == "tileSet" && len(g.Parts) == 0 {
+		for i := 0; i < img.Bounds().Dx()/g.FrameWidth; i++ {
+			g.Parts = append(g.Parts, fmt.Sprintf("Frame%d", i))
+		}
+	}
+
+	if len(g.Parts) > 0 {
+		name += "TileSet"
+	}
+
+	for i, part := range g.Parts {
+		id := strcase.ToCamel("Index " + g.Name + " " + part)
+		jf.Const().Id(id).Op("=").Lit(i)
+	}
+
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("Data").Op(":").Lit(string(imgBytes)).Op(",")
+
+		if g.FrameWidth > 0 {
+			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
+		}
+
+		jf.Id("Compressed").Op(":").Lit(useCompressed).Op(",")
+	})
+
+	jf.Line()
+}
+
+func (g *GraphicsOutput) genTileSetImageAsset(jf *jen.File, img image.Image) {
+
+	ebitenImg := ebiten.NewImageFromImage(img)
+	defer ebitenImg.Dispose()
+
+	for i, part := range g.Parts {
+		inG := &GraphicsOutput{
+			Name: g.Name + part,
+			Type: "single",
+		}
+
+		subRect := image.Rectangle{
+			Min: image.Point{X: i * g.FrameWidth, Y: 0},
+			Max: image.Point{},
+		}
+		subImg := ebitenImg.SubImage(subRect)
+
+		inG.genImageAsset(jf, subImg)
+	}
 }
 
 func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
@@ -120,32 +199,7 @@ func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
 		panic(err)
 	}
 
-	buffer := &bytes.Buffer{}
-	png.Encode(buffer, img)
-
-	compressed, diff := compressAsset(buffer.Bytes())
-
-	fmt.Printf("Reduced %s by %d bytes\n", path, diff)
-
-	var fields []jen.Code
-	fields = append(fields, jen.Id("Data").String())
-
-	if g.FrameWidth > 0 {
-		fields = append(fields, jen.Id("FrameWidth").Int())
-	}
-
-	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
-	name = strcase.ToCamel(name)
-	name = "Image" + name
-
-	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
-		jf.Id("Data").Op(":").Lit(string(compressed)).Op(",")
-
-		if g.FrameWidth > 0 {
-			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
-		}
-	})
-	jf.Line()
+	g.genImageAsset(jf, img)
 }
 
 func genImagesAssets(jf *jen.File, images []GraphicsOutput, assetsPath string) {
@@ -212,7 +266,9 @@ func genAssets() {
 	}
 	defer f.Close()
 
-	jf.Render(f)
+	if err := jf.Render(f); err != nil {
+		panic(err.Error()[:100])
+	}
 }
 
 func needBuild(strAry []string, value string) bool {

@@ -19,23 +19,24 @@ type Player struct {
 	*components.VelocityComponent
 	*components.CollisionComponent
 	*components.ScrollableComponent
+	*components.PhysicsComponent
 }
 
 func CreatePlayer() *Player {
-	img, _ := assets.LoadImage([]byte(assets.ImageWhaleAir.Data))
+	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 
 	result := &Player{
 		BasicEntity:             ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{},
 		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: float64(assets.ImageWhaleAir.FrameWidth), Y: float64(assets.ImageWhaleAir.FrameWidth)},
+			Size: math.Vector2{X: float64(assets.ImageWhaleAirTileSet.FrameWidth), Y: float64(assets.ImageWhaleAirTileSet.FrameWidth)},
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
 			Image:  img,
 		},
 		AnimeComponent: &components.AnimeComponent{
-			FrameWidth:    assets.ImageWhaleAir.FrameWidth,
+			FrameWidth:    assets.ImageWhaleAirTileSet.FrameWidth,
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
@@ -49,6 +50,7 @@ func CreatePlayer() *Player {
 			Active: true,
 		},
 		ScrollableComponent: &components.ScrollableComponent{},
+		PhysicsComponent:    &components.PhysicsComponent{},
 	}
 
 	return result
