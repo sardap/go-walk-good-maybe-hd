@@ -6,4 +6,5 @@ import (
 
 type VelocityComponent struct {
 	Vel math.Vector2
+	Acc math.Vector2
 }

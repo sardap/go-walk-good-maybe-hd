@@ -19,7 +19,8 @@ type Player struct {
 	*components.VelocityComponent
 	*components.CollisionComponent
 	*components.ScrollableComponent
-	*components.PhysicsComponent
+	*components.GravityComponent
+	*components.IdentityComponent
 }
 
 func CreatePlayer() *Player {
@@ -50,7 +51,10 @@ func CreatePlayer() *Player {
 			Active: true,
 		},
 		ScrollableComponent: &components.ScrollableComponent{},
-		PhysicsComponent:    &components.PhysicsComponent{},
+		GravityComponent:    &components.GravityComponent{},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{TagPlayer},
+		},
 	}
 
 	return result

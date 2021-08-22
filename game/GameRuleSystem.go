@@ -6,6 +6,7 @@ import (
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type GameRuleSystem struct {
@@ -39,6 +40,31 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	}
 }
 
+type Collideable interface {
+	ecs.BasicFace
+	components.CollisionFace
+	components.IdentityFace
+}
+
+func (s *GameRuleSystem) CollidedWith(a Collideable, tag string) bool {
+	if !a.GetCollisionComponent().Active {
+		return false
+	}
+
+	for _, event := range a.GetCollisionComponent().Collisions {
+		otherInter, ok := s.ents[event.ID]
+		if !ok {
+			continue
+		}
+
+		if other, ok := otherInter.(Collideable); ok && other.GetIdentityComponent().HasTag(tag) {
+			return true
+		}
+	}
+
+	return false
+}
+
 type Moveable interface {
 	ecs.BasicFace
 	components.MovementFace
@@ -55,6 +81,14 @@ type Scrollable interface {
 	ecs.BasicFace
 	components.VelocityFace
 	components.ScrollableFace
+}
+
+type Gravityable interface {
+	ecs.BasicFace
+	components.VelocityFace
+	components.GravityFace
+	components.IdentityFace
+	components.CollisionFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
@@ -106,6 +140,28 @@ func (s *GameRuleSystem) Update(dt float32) {
 				defer s.world.RemoveEntity(building.BasicEntity)
 				fmt.Printf("Removing %d\n", building.ID())
 			}
+		}
+
+		if gravityable, ok := ent.(Gravityable); ok {
+			vel := gravityable.GetVelocityComponent()
+
+			if s.CollidedWith(gravityable, entity.TagGround) {
+				vel.Acc = math.Vector2{}
+				continue
+			}
+
+			vel.Acc = vel.Acc.Add(math.Vector2{Y: mainGameInfo.gravity}.Mul(float64(dt)))
+			vel.Acc = math.ClampVec2(
+				vel.Acc,
+				math.Vector2{
+					X: -maxAccelerationX,
+					Y: -maxAccelerationY,
+				},
+				math.Vector2{
+					X: maxAccelerationX,
+					Y: maxAccelerationY,
+				},
+			)
 		}
 	}
 

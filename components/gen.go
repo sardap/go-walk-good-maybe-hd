@@ -18,6 +18,14 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
+func (g *GravityComponent) GetGravityComponent() *GravityComponent {
+	return g
+}
+
+type GravityFace interface {
+	GetGravityComponent() *GravityComponent
+}
+
 func (i *IdentityComponent) GetIdentityComponent() *IdentityComponent {
 	return i
 }
@@ -48,14 +56,6 @@ func (m *MovementComponent) GetMovementComponent() *MovementComponent {
 
 type MovementFace interface {
 	GetMovementComponent() *MovementComponent
-}
-
-func (p *PhysicsComponent) GetPhysicsComponent() *PhysicsComponent {
-	return p
-}
-
-type PhysicsFace interface {
-	GetPhysicsComponent() *PhysicsComponent
 }
 
 func (s *ScrollableComponent) GetScrollableComponent() *ScrollableComponent {

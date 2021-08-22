@@ -57,7 +57,7 @@ func (s *CollisionSystem) Update(dt float32) {
 				continue
 			}
 
-			bX1, bX2, bY1, bY2 := getRect(entA)
+			bX1, bX2, bY1, bY2 := getRect(entB)
 
 			if aX1 < bX2 && aX2 > bX1 && aY1 < bY2 && aY2 > bY1 {
 				entCol.Collisions = append(entCol.Collisions, &components.CollisionEvent{

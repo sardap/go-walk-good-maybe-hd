@@ -15,6 +15,7 @@ const (
 
 type MainGameInfo struct {
 	scrollingSpeed math.Vector2
+	gravity        float64
 	state          gameState
 	level          *Level
 }

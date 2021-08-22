@@ -4,6 +4,7 @@ import (
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
@@ -19,6 +20,7 @@ type Building struct {
 	*components.TileImageComponent
 	*components.CollisionComponent
 	*components.ScrollableComponent
+	*components.IdentityComponent
 }
 
 func createBuilding0(ent ecs.BasicEntity) *Building {
@@ -54,6 +56,9 @@ func createBuilding0(ent ecs.BasicEntity) *Building {
 			Active: true,
 		},
 		ScrollableComponent: &components.ScrollableComponent{},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{entity.TagGround},
+		},
 	}
 
 	return result

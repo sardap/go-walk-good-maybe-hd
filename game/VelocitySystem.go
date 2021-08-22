@@ -25,11 +25,13 @@ func (s *VelocitySystem) New(world *ecs.World) {
 func (s *VelocitySystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
+
 		vel := ent.GetVelocityComponent().Vel
-
 		trans.Postion = trans.Postion.Add(vel.Mul(float64(dt)))
-
 		ent.GetVelocityComponent().Vel = math.Vector2{}
+
+		acc := ent.GetVelocityComponent().Acc
+		trans.Postion = trans.Postion.Add(acc.Mul(float64(dt)))
 	}
 }
 

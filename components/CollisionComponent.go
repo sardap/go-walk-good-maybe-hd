@@ -1,10 +1,12 @@
 package components
 
-type CollisionComponent struct {
-	Active     bool
-	Collisions []*CollisionEvent
-}
-
 type CollisionEvent struct {
 	ID uint64
+}
+
+type CollisionEvents []*CollisionEvent
+
+type CollisionComponent struct {
+	Active     bool
+	Collisions CollisionEvents
 }

@@ -13,13 +13,6 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
-const (
-	scaleMultiplier   = 16
-	gameWidth         = 240 * scaleMultiplier
-	gameHeight        = 160 * scaleMultiplier
-	xStartScrollSpeed = -10.5
-)
-
 var (
 	gGame *Game
 )
@@ -69,7 +62,9 @@ func (g *Game) addSystems() {
 }
 
 func (g *Game) startCityLevel() {
-	mainGameInfo = &MainGameInfo{}
+	mainGameInfo = &MainGameInfo{
+		gravity: startingGravity,
+	}
 
 	g.addSystems()
 

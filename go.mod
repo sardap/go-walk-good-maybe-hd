@@ -13,4 +13,5 @@ require (
 	github.com/sardap/ecs v1.0.6-0.20210818120910-49430815678c
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
+	modernc.org/mathutil v1.4.1 // indirect
 )
