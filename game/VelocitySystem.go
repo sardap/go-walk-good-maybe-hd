@@ -3,7 +3,6 @@ package game
 import (
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
-	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type VelocitySystem struct {
@@ -28,10 +27,6 @@ func (s *VelocitySystem) Update(dt float32) {
 
 		vel := ent.GetVelocityComponent().Vel
 		trans.Postion = trans.Postion.Add(vel.Mul(float64(dt)))
-		ent.GetVelocityComponent().Vel = math.Vector2{}
-
-		acc := ent.GetVelocityComponent().Acc
-		trans.Postion = trans.Postion.Add(acc.Mul(float64(dt)))
 	}
 }
 

@@ -5,5 +5,4 @@ type MovementComponent struct {
 	MoveDown  bool
 	MoveLeft  bool
 	MoveRight bool
-	Speed     float64
 }

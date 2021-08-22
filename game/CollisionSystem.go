@@ -6,13 +6,15 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
 type CollisionSystem struct {
-	ents    map[uint64]Collisionable
-	overlay *ebiten.Image
+	ents           map[uint64]Collisionable
+	overlay        *ebiten.Image
+	overlayEnabled bool
 }
 
 func CreateCollisionSystem() *CollisionSystem {
@@ -40,6 +42,11 @@ func getRect(ent Collisionable) (x1, x2, y1, y2 float64) {
 }
 
 func (s *CollisionSystem) Update(dt float32) {
+	// Toggle debug overlay
+	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
+		s.overlayEnabled = !s.overlayEnabled
+	}
+
 	for _, entA := range s.ents {
 
 		if !entA.GetCollisionComponent().Active {
@@ -69,6 +76,10 @@ func (s *CollisionSystem) Update(dt float32) {
 }
 
 func (s *CollisionSystem) Render(cmds *RenderCmds) {
+	if !s.overlayEnabled {
+		return
+	}
+
 	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
 
 	for _, ent := range s.ents {

@@ -1,6 +1,6 @@
 package entity
 
 const (
-	TagGround = "building"
-	TagPlayer   = "player"
+	TagGround = "ground"
+	TagPlayer = "player"
 )

@@ -7,6 +7,8 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
+
+	gomath "math"
 )
 
 type GameRuleSystem struct {
@@ -38,6 +40,49 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	case gameStateScrolling:
 		break
 	}
+
+	playerCom := player.GetMainGamePlayerComponent()
+
+	move := player.GetMovementComponent()
+	vel := player.GetVelocityComponent().Vel
+	if move.MoveLeft {
+		vel.X = -playerCom.Speed
+		move.MoveLeft = false
+	} else if move.MoveRight {
+		vel.X = playerCom.Speed
+		move.MoveRight = false
+	} else {
+		vel.X = 0
+	}
+
+	fmt.Printf("Player update\n")
+
+	switch playerCom.State {
+	case components.MainGamePlayerStateGround:
+		fmt.Printf("state ground\n")
+		if move.MoveUp {
+			vel.Y -= player.JumpPower
+			player.State = components.MainGamePlayerStateJumping
+		}
+	case components.MainGamePlayerStateJumping:
+		fmt.Printf("state Jumping\n")
+		player.State = components.MainGamePlayerStateFalling
+		// TODO: Change tileset
+	case components.MainGamePlayerStateFalling:
+		// TODO: Change tileset
+		fmt.Printf("state Falling\n")
+		if s.CollidedWith(player, entity.TagGround) {
+			player.State = components.MainGamePlayerStateGround
+		}
+	default:
+		panic("Unimplemented")
+	}
+	// Must reset no matter what
+	if move.MoveUp {
+		move.MoveUp = false
+	}
+
+	player.GetVelocityComponent().Vel = vel
 }
 
 type Collideable interface {
@@ -65,12 +110,6 @@ func (s *GameRuleSystem) CollidedWith(a Collideable, tag string) bool {
 	return false
 }
 
-type Moveable interface {
-	ecs.BasicFace
-	components.MovementFace
-	components.VelocityFace
-}
-
 type Wrapable interface {
 	ecs.BasicFace
 	components.TransformFace
@@ -79,7 +118,7 @@ type Wrapable interface {
 
 type Scrollable interface {
 	ecs.BasicFace
-	components.VelocityFace
+	components.TransformFace
 	components.ScrollableFace
 }
 
@@ -93,34 +132,6 @@ type Gravityable interface {
 
 func (s *GameRuleSystem) Update(dt float32) {
 	for _, ent := range s.ents {
-		if ent, ok := ent.(*entity.Player); ok {
-			s.updatePlayer(dt, ent)
-		}
-
-		if moveable, ok := ent.(Moveable); ok {
-			move := moveable.GetMovementComponent()
-			vel := moveable.GetVelocityComponent().Vel
-			if move.MoveLeft {
-				vel.X -= move.Speed
-				move.MoveLeft = false
-			}
-			if move.MoveRight {
-				vel.X += move.Speed
-				move.MoveRight = false
-			}
-
-			if move.MoveDown {
-				vel.Y += move.Speed
-				move.MoveDown = false
-			}
-			if move.MoveUp {
-				vel.Y -= move.Speed
-				move.MoveUp = false
-			}
-
-			moveable.GetVelocityComponent().Vel = vel
-		}
-
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
 			if trans.Postion.X < -wrapable.GetWrapComponent().Threshold {
@@ -129,9 +140,9 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 
 		if scrollable, ok := ent.(Scrollable); ok {
-			vel := scrollable.GetVelocityComponent().Vel
-			vel = vel.Add(mainGameInfo.scrollingSpeed)
-			scrollable.GetVelocityComponent().Vel = vel
+			trans := scrollable.GetTransformComponent().Postion
+			trans = trans.Add(mainGameInfo.scrollingSpeed.Mul(float64(dt)))
+			scrollable.GetTransformComponent().Postion = trans
 		}
 
 		if building, ok := ent.(*Building); ok {
@@ -143,25 +154,31 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 
 		if gravityable, ok := ent.(Gravityable); ok {
-			vel := gravityable.GetVelocityComponent()
+			func() {
+				vel := gravityable.GetVelocityComponent()
 
-			if s.CollidedWith(gravityable, entity.TagGround) {
-				vel.Acc = math.Vector2{}
-				continue
-			}
+				if s.CollidedWith(gravityable, entity.TagGround) {
+					vel.Vel.Y = math.ClampFloat64(vel.Vel.Y, -gomath.MaxFloat64, 0)
+					return
+				}
 
-			vel.Acc = vel.Acc.Add(math.Vector2{Y: mainGameInfo.gravity}.Mul(float64(dt)))
-			vel.Acc = math.ClampVec2(
-				vel.Acc,
-				math.Vector2{
-					X: -maxAccelerationX,
-					Y: -maxAccelerationY,
-				},
-				math.Vector2{
-					X: maxAccelerationX,
-					Y: maxAccelerationY,
-				},
-			)
+				vel.Vel = vel.Vel.Add(math.Vector2{Y: mainGameInfo.gravity}.Mul(float64(dt)))
+				vel.Vel = math.ClampVec2(
+					vel.Vel,
+					math.Vector2{
+						X: -maxAccelerationX,
+						Y: -maxAccelerationY,
+					},
+					math.Vector2{
+						X: maxAccelerationX,
+						Y: maxAccelerationY,
+					},
+				)
+			}()
+		}
+
+		if ent, ok := ent.(*entity.Player); ok {
+			s.updatePlayer(dt, ent)
 		}
 	}
 

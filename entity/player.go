@@ -27,8 +27,12 @@ func CreatePlayer() *Player {
 	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 
 	result := &Player{
-		BasicEntity:             ecs.NewBasic(),
-		MainGamePlayerComponent: &components.MainGamePlayerComponent{},
+		BasicEntity: ecs.NewBasic(),
+		MainGamePlayerComponent: &components.MainGamePlayerComponent{
+			Speed:     40,
+			JumpPower: 30,
+			State:     components.MainGamePlayerStateFalling,
+		},
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{X: float64(assets.ImageWhaleAirTileSet.FrameWidth), Y: float64(assets.ImageWhaleAirTileSet.FrameWidth)},
 		},
@@ -41,9 +45,7 @@ func CreatePlayer() *Player {
 			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
-		MovementComponent: &components.MovementComponent{
-			Speed: 40,
-		},
+		MovementComponent: &components.MovementComponent{},
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},

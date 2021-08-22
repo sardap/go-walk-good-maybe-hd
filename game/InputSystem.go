@@ -131,6 +131,10 @@ func (s *InputSystem) processKeyboard() {
 		if inpututil.KeyPressDuration(ebiten.KeyDown) > 0 {
 			move.MoveDown = true
 		}
+
+		if inpututil.KeyPressDuration(ebiten.KeyZ) > 0 {
+			move.MoveUp = true
+		}
 	}
 }
 
