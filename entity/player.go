@@ -13,7 +13,7 @@ type Player struct {
 	ecs.BasicEntity
 	*components.MainGamePlayerComponent
 	*components.TransformComponent
-	*components.ImageComponent
+	*components.TileImageComponent
 	*components.AnimeComponent
 	*components.MovementComponent
 	*components.VelocityComponent
@@ -26,23 +26,26 @@ type Player struct {
 func CreatePlayer() *Player {
 	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 
+	tileMap := components.CreateTileMap(1, 1, img, assets.ImageWhaleAirTileSet.FrameWidth)
+
 	result := &Player{
 		BasicEntity: ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
-			Speed:     40,
+			Speed:     70,
 			JumpPower: 30,
 			State:     components.MainGamePlayerStateFalling,
 		},
 		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: float64(assets.ImageWhaleAirTileSet.FrameWidth), Y: float64(assets.ImageWhaleAirTileSet.FrameWidth)},
+			Size: math.Vector2{
+				X: float64(assets.ImageWhaleAirTileSet.FrameWidth),
+				Y: float64(assets.ImageWhaleAirTileSet.FrameWidth),
+			},
 		},
-		ImageComponent: &components.ImageComponent{
-			Active: true,
-			Image:  img,
+		TileImageComponent: &components.TileImageComponent{
+			Active:  true,
+			TileMap: tileMap,
 		},
 		AnimeComponent: &components.AnimeComponent{
-			FrameWidth:    assets.ImageWhaleAirTileSet.FrameWidth,
-			FrameHeight:   img.Bounds().Dy(),
 			FrameDuration: 50 * time.Millisecond,
 		},
 		MovementComponent: &components.MovementComponent{},

@@ -59,20 +59,3 @@ func (v Vector2) Mul(m float64) Vector2 {
 func (v Vector2) Dot(ov Vector2) float64 {
 	return v.X*ov.X + v.Y*ov.Y
 }
-
-func ClampFloat64(x, min, max float64) float64 {
-	if x < min {
-		return min
-	} else if x > max {
-		return max
-	}
-
-	return x
-}
-
-func ClampVec2(val, min, max Vector2) Vector2 {
-	return Vector2{
-		X: ClampFloat64(val.X, min.X, max.X),
-		Y: ClampFloat64(val.Y, min.Y, max.Y),
-	}
-}

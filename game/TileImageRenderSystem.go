@@ -2,6 +2,7 @@ package game
 
 import (
 	"container/heap"
+	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/ecs"
@@ -68,4 +69,31 @@ type TileImageRenderable interface {
 
 func (s *TileImageRenderSystem) AddByInterface(o ecs.Identifier) {
 	s.Add(o.(TileImageRenderable))
+}
+
+type RenderTileMapCmd struct {
+	HeapSortable
+	*components.TransformComponent
+	*components.TileImageComponent
+	Options *ebiten.DrawImageOptions
+}
+
+func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
+	tileSize := c.TileMap.TileWidth
+	tileXNum := c.TileMap.TileXNum
+
+	for i, t := range c.TileMap.Map {
+		op := &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(c.Postion.X, c.Postion.Y)
+		op.GeoM.Translate(float64((i%tileXNum)*tileSize), float64((i/tileXNum)*tileSize))
+		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+
+		sx := int(t) * tileSize
+		sy := 0
+		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)
+	}
+}
+
+func (c *RenderTileMapCmd) GetLayer() int {
+	return int(c.Layer)
 }

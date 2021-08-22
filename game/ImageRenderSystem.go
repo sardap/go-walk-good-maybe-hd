@@ -68,3 +68,18 @@ type ImageRenderable interface {
 func (s *ImageRenderSystem) AddByInterface(o ecs.Identifier) {
 	s.Add(o.(ImageRenderable))
 }
+
+type RenderImageCmd struct {
+	HeapSortable
+	Image   *ebiten.Image
+	Options *ebiten.DrawImageOptions
+	Layer   components.ImageLayer
+}
+
+func (c *RenderImageCmd) Draw(screen *ebiten.Image) {
+	screen.DrawImage(c.Image, c.Options)
+}
+
+func (c *RenderImageCmd) GetLayer() int {
+	return int(c.Layer)
+}

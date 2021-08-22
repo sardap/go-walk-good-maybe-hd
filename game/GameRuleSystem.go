@@ -4,9 +4,11 @@ import (
 	"fmt"
 
 	"github.com/sardap/ecs"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
+	"github.com/sardap/walk-good-maybe-hd/utility"
 
 	gomath "math"
 )
@@ -47,10 +49,8 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	vel := player.GetVelocityComponent().Vel
 	if move.MoveLeft {
 		vel.X = -playerCom.Speed
-		move.MoveLeft = false
 	} else if move.MoveRight {
 		vel.X = playerCom.Speed
-		move.MoveRight = false
 	} else {
 		vel.X = 0
 	}
@@ -67,20 +67,26 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	case components.MainGamePlayerStateJumping:
 		fmt.Printf("state Jumping\n")
 		player.State = components.MainGamePlayerStateFalling
-		// TODO: Change tileset
+
+		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
+		player.TileMap.TilesImg = img
+		player.TileMap.SetTile(0, 0, 0)
 	case components.MainGamePlayerStateFalling:
-		// TODO: Change tileset
 		fmt.Printf("state Falling\n")
 		if s.CollidedWith(player, entity.TagGround) {
 			player.State = components.MainGamePlayerStateGround
+
+			img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
+			player.TileMap.TilesImg = img
+			player.TileMap.SetTile(0, 0, 0)
 		}
 	default:
 		panic("Unimplemented")
 	}
 	// Must reset no matter what
-	if move.MoveUp {
-		move.MoveUp = false
-	}
+	move.MoveLeft = false
+	move.MoveRight = false
+	move.MoveUp = false
 
 	player.GetVelocityComponent().Vel = vel
 }
@@ -158,12 +164,12 @@ func (s *GameRuleSystem) Update(dt float32) {
 				vel := gravityable.GetVelocityComponent()
 
 				if s.CollidedWith(gravityable, entity.TagGround) {
-					vel.Vel.Y = math.ClampFloat64(vel.Vel.Y, -gomath.MaxFloat64, 0)
+					vel.Vel.Y = utility.ClampFloat64(vel.Vel.Y, -gomath.MaxFloat64, 0)
 					return
 				}
 
 				vel.Vel = vel.Vel.Add(math.Vector2{Y: mainGameInfo.gravity}.Mul(float64(dt)))
-				vel.Vel = math.ClampVec2(
+				vel.Vel = utility.ClampVec2(
 					vel.Vel,
 					math.Vector2{
 						X: -maxAccelerationX,

@@ -80,7 +80,7 @@ func (g *Game) startCityLevel() {
 	g.world.AddEntity(cityBackground)
 
 	player := entity.CreatePlayer()
-	player.ImageComponent.Layer = playerImageLayer
+	player.TileImageComponent.Layer = playerImageLayer
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()

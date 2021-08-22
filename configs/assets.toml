@@ -6,7 +6,8 @@ file="whale/whaleAir.psd"
 
 [[Images]]
 name="whaleIdle"
-type="single"
+type="tileSet"
+frameWidth=16
 file="whale/whaleIdle.psd"
 
 [[Images]]
