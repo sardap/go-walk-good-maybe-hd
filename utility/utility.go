@@ -1,6 +1,7 @@
 package utility
 
 import (
+	"math/rand"
 	"time"
 )
 
@@ -28,4 +29,9 @@ func ClampFloat64(x, min, max float64) float64 {
 	}
 
 	return x
+}
+
+func RandRange(min, max int) int {
+	return rand.Intn(max-min) + min
+
 }

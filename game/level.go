@@ -1,12 +1,11 @@
 package game
 
 import (
-	"math/rand"
-
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
+	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
 type block interface {
@@ -27,32 +26,35 @@ type windowBlock struct {
 func createBuilding0(ent ecs.BasicEntity) block {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
 
-	tileMap := make([]int, 10)
-	for i := range tileMap {
-		if rand.Int()%2 == 0 {
-			tileMap[i] = assets.IndexBuilding0Wall
-		} else {
-			tileMap[i] = assets.IndexBuilding0Window
-		}
-	}
+	width := utility.RandRange(5, 9)
+	height := utility.RandRange(5, 10)
 
-	w := float64(5 * assets.ImageBuilding0TileSet.FrameWidth)
-	h := float64(2 * assets.ImageBuilding0TileSet.FrameWidth)
+	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding0TileSet.FrameWidth)
+	// Edges
+	tileMap.SetRow(0, 0, assets.IndexBuilding0Wall)
+	tileMap.SetCol(width-1, 1, assets.IndexBuilding0Wall)
+	// Body
+	tileMap.SetCol(0, 1, assets.IndexBuilding0Wall)
+	for x := 1; x < width-1; x++ {
+		tileMap.SetCol(x, 1, assets.IndexBuilding0Window)
+	}
 
 	window := &windowBlock{
 		BasicEntity: ent,
 		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: w, Y: h},
+			Size: math.Vector2{
+				X: float64(width * assets.ImageBuilding0TileSet.FrameWidth),
+				Y: float64(height * assets.ImageBuilding0TileSet.FrameWidth),
+			},
 		},
 		VelocityComponent: &components.VelocityComponent{},
 		TileImageComponent: &components.TileImageComponent{
-			TilesImg:  tileSet,
-			TilesMap:  tileMap,
-			TileWidth: assets.ImageBuilding0TileSet.FrameWidth,
-			TileXNum:  5,
-			Layer:     buildingForground,
+			TileMap: tileMap,
+			Layer:   buildingForground,
 		},
-		CollisionComponent:  &components.CollisionComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
 		ScrollableComponent: &components.ScrollableComponent{},
 	}
 

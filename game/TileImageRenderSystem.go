@@ -36,8 +36,9 @@ func (s *TileImageRenderSystem) Render(cmds *RenderCmds) {
 		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 
 		heap.Push(cmds, &RenderTileMapCmd{
+			TransformComponent: ent.GetTransformComponent(),
 			TileImageComponent: ent.GetTileImageComponent(),
-			Options:                 op,
+			Options:            op,
 		})
 	}
 }

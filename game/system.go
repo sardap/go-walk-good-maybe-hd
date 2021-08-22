@@ -59,22 +59,24 @@ func (c *RenderImageCmd) GetLayer() int {
 
 type RenderTileMapCmd struct {
 	HeapSortable
+	*components.TransformComponent
 	*components.TileImageComponent
 	Options *ebiten.DrawImageOptions
 }
 
 func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
-	tileSize := c.TileWidth
-	tileXNum := c.TileXNum
+	tileSize := c.TileMap.TileWidth
+	tileXNum := c.TileMap.TileXNum
 
-	for i, t := range c.TilesMap {
+	for i, t := range c.TileMap.Map {
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(float64((i%c.TileXNum)*tileSize), float64((i/c.TileXNum)*tileSize))
+		op.GeoM.Translate(c.Postion.X, c.Postion.Y)
+		op.GeoM.Translate(float64((i%tileXNum)*tileSize), float64((i/tileXNum)*tileSize))
 		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 
-		sx := (t % tileXNum) * tileSize
-		sy := (t / tileXNum) * tileSize
-		screen.DrawImage(c.TilesImg.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)
+		sx := (int(t) % tileXNum) * tileSize
+		sy := (int(t) / tileXNum) * tileSize
+		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)
 	}
 }
 
