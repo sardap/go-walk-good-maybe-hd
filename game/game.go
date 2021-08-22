@@ -11,7 +11,6 @@ import (
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
-	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
 const (
@@ -95,16 +94,9 @@ func (g *Game) startCityLevel() {
 	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
 
-	ents := ecs.NewBasics(5)
-	startX := float64(0)
-	for _, ent := range ents {
-		block := createBuilding0(ent)
-		trans := block.GetTransformComponent()
-		block.GetTransformComponent().Postion.Y = gameHeight/scaleMultiplier - trans.Size.Y
-		block.GetTransformComponent().Postion.X = startX
-		startX += block.GetTransformComponent().Size.X + float64(utility.RandRange(30, 50))
-		g.world.AddEntity(block)
-	}
+	mainGameInfo.level = &Level{}
+
+	generateBuildings(g.world)
 }
 
 func CreateGame() *Game {

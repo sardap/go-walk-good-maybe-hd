@@ -8,13 +8,11 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
-type block interface {
-	ecs.BasicFace
-	ecs.Identifier
-	components.TransformFace
+type Level struct {
+	StartX float64
 }
 
-type windowBlock struct {
+type Building struct {
 	ecs.BasicEntity
 	*components.TransformComponent
 	*components.VelocityComponent
@@ -23,7 +21,7 @@ type windowBlock struct {
 	*components.ScrollableComponent
 }
 
-func createBuilding0(ent ecs.BasicEntity) block {
+func createBuilding0(ent ecs.BasicEntity) *Building {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
 
 	width := utility.RandRange(5, 9)
@@ -39,7 +37,7 @@ func createBuilding0(ent ecs.BasicEntity) block {
 		tileMap.SetCol(x, 1, assets.IndexBuilding0Window)
 	}
 
-	window := &windowBlock{
+	result := &Building{
 		BasicEntity: ent,
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{
@@ -58,5 +56,19 @@ func createBuilding0(ent ecs.BasicEntity) block {
 		ScrollableComponent: &components.ScrollableComponent{},
 	}
 
-	return window
+	return result
+}
+
+func generateBuildings(w *ecs.World) {
+	x := mainGameInfo.level.StartX
+	for x < gameWidth/scaleMultiplier {
+		ent := ecs.NewBasic()
+		block := createBuilding0(ent)
+		trans := block.GetTransformComponent()
+		block.GetTransformComponent().Postion.Y = gameHeight/scaleMultiplier - trans.Size.Y
+		block.GetTransformComponent().Postion.X = x
+		x += block.Size.X + float64(utility.RandRange(30, 50))
+		w.AddEntity(block)
+	}
+	mainGameInfo.level.StartX = x
 }

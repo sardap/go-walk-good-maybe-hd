@@ -75,7 +75,9 @@ func (s *SoundSystem) Add(r Soundable) {
 }
 
 func (s *SoundSystem) Remove(e ecs.BasicEntity) {
-	s.ents[e.ID()].GetSoundComponent().Player.Close()
+	if ent, ok := s.ents[e.ID()]; ok {
+		ent.GetSoundComponent().Player.Close()
+	}
 
 	delete(s.ents, e.ID())
 }

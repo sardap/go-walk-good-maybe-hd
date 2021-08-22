@@ -14,6 +14,7 @@ const (
 	systemPriorityImageRenderSystem systemPriority = iota
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
+	systemPriorityLifecycleSystem
 	systemPriorityAnimeSystem
 	systemPriorityVelocitySystem
 	systemPriorityScrollingSystem

@@ -1,6 +1,8 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -23,7 +25,6 @@ func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
 	mainGameInfo.state = gameStateStarting
-
 }
 
 func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
@@ -98,7 +99,18 @@ func (s *GameRuleSystem) Update(dt float32) {
 			vel = vel.Add(mainGameInfo.scrollingSpeed)
 			scrollable.GetVelocityComponent().Vel = vel
 		}
+
+		if building, ok := ent.(*Building); ok {
+			trans := building.GetTransformComponent()
+			if trans.Postion.X+trans.Size.X < 0 {
+				defer s.world.RemoveEntity(building.BasicEntity)
+				fmt.Printf("Removing %d\n", building.ID())
+			}
+		}
 	}
+
+	mainGameInfo.level.StartX += mainGameInfo.scrollingSpeed.X * float64(dt)
+	generateBuildings(s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {
