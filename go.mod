@@ -3,15 +3,14 @@ module github.com/sardap/walk-good-maybe-hd
 go 1.16
 
 require (
-	github.com/BurntSushi/toml v0.4.1
-	github.com/dave/jennifer v1.4.1
-	github.com/gopherjs/gopherjs v0.0.0-20210803090616-8f023c250c89 // indirect
+	github.com/SolarLune/resolv v0.0.0-20201206065135-f22ef61a44a3
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/hajimehoshi/ebiten v1.12.12
-	github.com/hajimehoshi/ebiten/v2 v2.1.4
-	github.com/iancoleman/strcase v0.2.0
-	github.com/oov/psd v0.0.0-20210618170533-9fb823ddb631
+	github.com/hajimehoshi/ebiten/v2 v2.1.5
 	github.com/sardap/ecs v1.0.6-0.20210818120910-49430815678c
 	github.com/stretchr/testify v1.7.0
+	golang.org/x/exp v0.0.0-20191030013958-a1ab85dbe136 // indirect
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d
-	modernc.org/mathutil v1.4.1 // indirect
 )
+
+replace github.com/SolarLune/resolv => github.com/sardap/resolv v0.0.0-20210826124450-340ecca2ee89

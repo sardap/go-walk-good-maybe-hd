@@ -4,7 +4,7 @@
 			{
 				"match": "(components..*?\\.go)|(gen.codegen.main.go)$",
 				"notMatch": "gen\\.go$",
-				"cmd": "cd ${workspaceFolder} && go run ${workspaceFolder}/gen ${workspaceFolder} components",
+				"cmd": "cd ${workspaceFolder}/gen && go run . ${workspaceFolder} components",
 			},
 		],
 		"autoClearConsole": true,
@@ -26,6 +26,7 @@
 		"gomath",
 		"hajimehoshi",
 		"render",
+		"resolv",
 		"sardap"
 	]
 }

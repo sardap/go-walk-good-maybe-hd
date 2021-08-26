@@ -17,6 +17,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
+			"cwd": "${workspaceFolder}",
 			"program": "${workspaceFolder}/gen",
 			"args": [
 				"${workspaceFolder}"

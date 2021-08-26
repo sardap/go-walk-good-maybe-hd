@@ -6,15 +6,12 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
-)
-
-var (
-	gGame *Game
 )
 
 const (
@@ -27,14 +24,15 @@ const (
 
 type Game struct {
 	world    *ecs.World
+	space    *resolv.Space
 	lastTime time.Time
 }
 
 func (g *Game) addSystems() {
 	world := g.world
 
-	var collisionable *Collisionable
-	world.AddSystemInterface(CreateCollisionSystem(), collisionable, nil)
+	// var collisionable *Collisionable
+	// world.AddSystemInterface(CreateCollisionSystem(), collisionable, nil)
 
 	var animeable *Animeable
 	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
@@ -55,10 +53,10 @@ func (g *Game) addSystems() {
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
 	var gameRuleable *GameRuleable
-	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
+	world.AddSystemInterface(CreateGameRuleSystem(g.space), gameRuleable, nil)
 
 	var Velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(), Velocityable, nil)
+	world.AddSystemInterface(CreateVelocitySystem(g.space), Velocityable, nil)
 }
 
 func (g *Game) startCityLevel() {
@@ -99,17 +97,20 @@ func CreateGame() *Game {
 
 	result := &Game{
 		world:    world,
-		lastTime: time.Now(),
+		lastTime: time.Unix(0, 0),
+		space:    resolv.NewSpace(),
 	}
 
 	result.startCityLevel()
-
-	gGame = result
 
 	return result
 }
 
 func (g *Game) Update() error {
+	if g.lastTime.Unix() == 0 {
+		g.lastTime = time.Now()
+	}
+
 	dt := time.Since(g.lastTime)
 	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()

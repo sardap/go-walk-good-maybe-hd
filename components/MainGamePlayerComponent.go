@@ -4,7 +4,8 @@ type MainGamePlayerState int
 
 // Idk if this should live here
 const (
-	MainGamePlayerStateGround MainGamePlayerState = iota
+	MainGamePlayerStateGroundIdling MainGamePlayerState = iota
+	MainGamePlayerStateGroundMoving
 	MainGamePlayerStateFalling
 	MainGamePlayerStateJumping
 )
