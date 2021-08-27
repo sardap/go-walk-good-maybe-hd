@@ -162,6 +162,6 @@ func TestVelocitySystem(t *testing.T) {
 	entA.Vel.Y = 10
 	w.Update(1)
 	assert.Equal(t, float64(9.5), entA.Postion.Y, "bounds y to stop collsion")
-	assert.True(t, entA.Collisions.CollidingWith("ground"), "")
-	assert.True(t, entB.Collisions.CollidingWith("test"), "should not move if dt is 0")
+	assert.True(t, entA.Collisions.CollidingWith("ground"))
+	assert.True(t, entB.Collisions.CollidingWith("test"))
 }

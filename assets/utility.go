@@ -10,6 +10,8 @@ import (
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
+
+	_ "image/png"
 )
 
 var (
