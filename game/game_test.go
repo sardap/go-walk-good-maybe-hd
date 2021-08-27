@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/EngoEngine/ecs"
+	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/game"
+	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/stretchr/testify/assert"
 
 	_ "image/png"
@@ -52,6 +54,7 @@ func TestAnimeSystem(t *testing.T) {
 
 	w.AddEntity(ent)
 
+	// Asserts
 	w.Update(0)
 	assert.Zero(t, ent.Cycles, "no cycles with no time passing")
 
@@ -67,4 +70,98 @@ func TestAnimeSystem(t *testing.T) {
 	w.Update(float32(51*time.Millisecond) / float32(time.Second))
 	assert.Equal(t, int(1), ent.Cycles, "complete cycle should be complete")
 	assert.Zero(t, ent.TileMap.Get(0, 0), "frame should wrap")
+}
+
+func TestVelocitySystem(t *testing.T) {
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+
+	// Setup
+	animeSystem := game.CreateVelocitySystem(s)
+
+	var velocityable *game.Velocityable
+	w.AddSystemInterface(animeSystem, velocityable, nil)
+
+	entA := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"test"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active:         true,
+			CollisionShape: nil,
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+	}
+
+	entB := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Postion: math.Vector2{
+				X: 20,
+				Y: 20,
+			},
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"ground"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active:         true,
+			CollisionShape: nil,
+		},
+		VelocityComponent: &components.VelocityComponent{},
+	}
+
+	// asserts
+	assert.False(t, s.Contains(entA.CollisionShape), "space should be empty")
+	w.AddEntity(entA)
+	assert.NotNil(t, entA.CollisionShape, "collsion shape should be init")
+	assert.True(t, s.Contains(entA.CollisionShape), "space should contain shape")
+	assert.Equal(t, "test", entA.CollisionShape.GetTags()[0], "tags should be copied to shape")
+
+	w.RemoveEntity(entA.BasicEntity)
+	assert.False(t, s.Contains(entA.CollisionShape), "shape should be removed from space")
+
+	w.AddEntity(entA)
+	w.AddEntity(entB)
+
+	// 1.5 seconds passed
+	entA.Vel.Y = 3
+	w.Update(1.5)
+	assert.Zero(t, entA.Vel.X, "vel X  should be set to 0")
+	assert.Zero(t, entA.Vel.Y, "vel Y should be set to 0")
+	assert.Equal(t, float64(3*1.5), entA.Postion.Y)
+
+	entA.Vel.Y = 10
+	w.Update(1)
+	assert.Equal(t, float64(9.5), entA.Postion.Y, "bounds y to stop collsion")
+	assert.True(t, entA.Collisions.CollidingWith("ground"), "")
+	assert.True(t, entB.Collisions.CollidingWith("test"), "should not move if dt is 0")
 }

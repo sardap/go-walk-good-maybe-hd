@@ -8,6 +8,14 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
+type Velocityable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.IdentityFace
+	components.CollisionFace
+	components.VelocityFace
+}
+
 type VelocitySystem struct {
 	ents  map[uint64]Velocityable
 	space *resolv.Space
@@ -37,24 +45,6 @@ func (s *VelocitySystem) Update(dt float32) {
 
 		colCom.Collisions = nil
 
-		colShape := colCom.CollisionShape
-
-		colShape.X -= 5
-		colShape.Y -= 5
-		colShape.W += 10
-		colShape.H += 10
-
-		if collision := s.space.Collision(colShape); collision != nil && collision.Colliding() {
-			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
-				Tags: collision.ShapeB.GetTags(),
-			})
-		}
-
-		colShape.X += 5
-		colShape.Y += 5
-		colShape.W -= 10
-		colShape.H -= 10
-
 		ground := s.space.FilterByTags(entity.TagGround)
 
 		collision := ground.Resolve(colCom.CollisionShape, vel.X, 0)
@@ -75,12 +65,34 @@ func (s *VelocitySystem) Update(dt float32) {
 
 		ent.GetVelocityComponent().Vel = math.Vector2{}
 	}
+
+	for _, ent := range s.ents {
+		colCom := ent.GetCollisionComponent()
+
+		colShape := colCom.CollisionShape
+
+		colShape.X -= 5
+		colShape.Y -= 5
+		colShape.W += 10
+		colShape.H += 10
+
+		if collision := s.space.Collision(colShape); collision != nil && collision.Colliding() {
+			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
+				Tags: collision.ShapeB.GetTags(),
+			})
+		}
+
+		colShape.X += 5
+		colShape.Y += 5
+		colShape.W -= 10
+		colShape.H -= 10
+	}
 }
 
 func (s *VelocitySystem) Add(r Velocityable) {
 	s.ents[r.GetBasicEntity().ID()] = r
 
-	if r.GetCollisionComponent().CollisionShape != nil {
+	if r.GetCollisionComponent().CollisionShape != nil && s.space.Contains(r.GetCollisionComponent().CollisionShape) {
 		return
 	}
 
@@ -100,15 +112,11 @@ func (s *VelocitySystem) Add(r Velocityable) {
 }
 
 func (s *VelocitySystem) Remove(e ecs.BasicEntity) {
-	delete(s.ents, e.ID())
-}
+	if ent, ok := s.ents[e.ID()]; ok {
+		s.space.Remove(ent.GetCollisionComponent().CollisionShape)
+	}
 
-type Velocityable interface {
-	ecs.BasicFace
-	components.TransformFace
-	components.IdentityFace
-	components.CollisionFace
-	components.VelocityFace
+	delete(s.ents, e.ID())
 }
 
 func (s *VelocitySystem) AddByInterface(o ecs.Identifier) {
