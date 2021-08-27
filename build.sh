@@ -1,15 +1,28 @@
 #!/bin/bash
 
-apt-get update -y 
-
-apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev zip
+apt-get update -y && apt-get install -y --no-install-recommends \
+	zip \
+	xorg-dev \
+	libx11-dev \
+	libgl1-mesa-dev \
+	libasound2-dev \
+	libgles2-mesa-dev \
+	libalut-dev \
+	libxcursor-dev \
+	libxi-dev \
+	libxinerama-dev \
+	libxrandr-dev \
+	libxxf86vm-dev \
+	libglfw3-dev \
+	xvfb \
+	xauth
 
 cd /app
 
 go mod download
 
 echo "running tests"
-go test ./...
+xvfb-run go test ./...
 
 if [ $? -eq 0 ]
 then
