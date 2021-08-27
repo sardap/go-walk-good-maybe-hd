@@ -4,15 +4,16 @@ import (
 	"container/heap"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
 type systemPriority int
 
 const (
 	systemPriorityImageRenderSystem systemPriority = iota
-	systemPriorityAnimeSystem
+	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
+	systemPriorityLifecycleSystem
+	systemPriorityAnimeSystem
 	systemPriorityVelocitySystem
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
@@ -21,33 +22,45 @@ const (
 	systemPrioritySoundSystem
 )
 
-type RenderCmd struct {
-	Image   *ebiten.Image
-	Options *ebiten.DrawImageOptions
-	Layer   components.ImageLayer
-	index   int
+type HeapSortable struct {
+	index int
 }
 
-type RenderCmds []*RenderCmd
+func (s *HeapSortable) GetIndex() int {
+	return s.index
+}
+
+func (s *HeapSortable) SetIndex(val int) {
+	s.index = val
+}
+
+type RenderCmd interface {
+	Draw(*ebiten.Image)
+	GetLayer() int
+	GetIndex() int
+	SetIndex(int)
+}
+
+type RenderCmds []RenderCmd
 
 func (r RenderCmds) Len() int {
 	return len(r)
 }
 
 func (r RenderCmds) Less(i, j int) bool {
-	return r[i].Layer < r[j].Layer
+	return r[i].GetLayer() < r[j].GetLayer()
 }
 
 func (r RenderCmds) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
-	r[i].index = i
-	r[j].index = j
+	r[i].SetIndex(i)
+	r[j].SetIndex(j)
 }
 
 func (r *RenderCmds) Push(x interface{}) {
 	n := len(*r)
-	item := x.(*RenderCmd)
-	item.index = n
+	item := x.(RenderCmd)
+	item.SetIndex(n)
 	*r = append(*r, item)
 }
 
@@ -56,30 +69,15 @@ func (r *RenderCmds) Pop() interface{} {
 	n := len(old)
 	item := old[n-1]
 	old[n-1] = nil
-	item.index = -1
+	item.SetIndex(-1)
 	*r = old[0 : n-1]
 	return item
 }
 
-func (r *RenderCmds) Update(item *RenderCmd) {
+func (r *RenderCmds) Update(item *RenderImageCmd) {
 	heap.Fix(r, item.index)
 }
 
 type RenderingSystem interface {
 	Render(*RenderCmds)
-}
-
-type boundingBox interface {
-	components.TransformFace
-	components.ImageFace
-}
-
-func bounds(b boundingBox) (float64, float64, float64, float64) {
-	trans := b.GetTransformComponent()
-	imgW, imgH := b.GetImageComponent().Size()
-
-	x1, w := trans.Element(0, 2), trans.Element(1, 1)*float64(imgW)
-	y1, h := trans.Element(1, 2), trans.Element(0, 0)*float64(imgH)
-
-	return x1, w, y1, h
 }

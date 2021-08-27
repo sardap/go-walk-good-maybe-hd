@@ -1,15 +1,38 @@
 [[Images]]
 name="whaleAir"
+type="tileSet"
 frameWidth=16
 file="whale/whaleAir.psd"
 
 [[Images]]
 name="whaleIdle"
+type="tileSet"
+frameWidth=16
 file="whale/whaleIdle.psd"
 
 [[Images]]
+name="whaleWalk"
+type="tileSet"
+frameWidth=16
+file="whale/whaleWalk.psd"
+
+[[Images]]
+name="whaleJump"
+type="tileSet"
+frameWidth=16
+file="whale/whaleJump.psd"
+
+[[Images]]
 name="backgroundCity"
+type="single"
 file="city/backgroundCity.psd"
+
+[[Images]]
+name="building0"
+type="tileSet"
+frameWidth=8
+parts=["wall", "window"]
+file="building/building0TileSet.psd"
 
 [[Music]]
 name="city"

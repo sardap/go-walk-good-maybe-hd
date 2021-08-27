@@ -1,7 +1,6 @@
 package entity
 
-type entityTag string
-
 const (
-	entityTagWraps entityTag = "wraps"
+	TagGround = "ground"
+	TagPlayer = "player"
 )

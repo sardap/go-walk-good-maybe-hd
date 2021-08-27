@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
@@ -75,7 +75,9 @@ func (s *SoundSystem) Add(r Soundable) {
 }
 
 func (s *SoundSystem) Remove(e ecs.BasicEntity) {
-	s.ents[e.ID()].GetSoundComponent().Player.Close()
+	if ent, ok := s.ents[e.ID()]; ok {
+		ent.GetSoundComponent().Player.Close()
+	}
 
 	delete(s.ents, e.ID())
 }

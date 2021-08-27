@@ -1,6 +1,6 @@
 package components
 
-// AUTO GENERATED CODE DO NOT EDIT REFER TO gen/codegen
+// AUTO GENERATED CODE DO NOT EDIT REFER TO gen/main.go
 
 func (a *AnimeComponent) GetAnimeComponent() *AnimeComponent {
 	return a
@@ -16,6 +16,14 @@ func (c *CollisionComponent) GetCollisionComponent() *CollisionComponent {
 
 type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
+}
+
+func (g *GravityComponent) GetGravityComponent() *GravityComponent {
+	return g
+}
+
+type GravityFace interface {
+	GetGravityComponent() *GravityComponent
 }
 
 func (i *IdentityComponent) GetIdentityComponent() *IdentityComponent {
@@ -72,6 +80,14 @@ func (t *TextComponent) GetTextComponent() *TextComponent {
 
 type TextFace interface {
 	GetTextComponent() *TextComponent
+}
+
+func (t *TileImageComponent) GetTileImageComponent() *TileImageComponent {
+	return t
+}
+
+type TileImageFace interface {
+	GetTileImageComponent() *TileImageComponent
 }
 
 func (t *TransformComponent) GetTransformComponent() *TransformComponent {

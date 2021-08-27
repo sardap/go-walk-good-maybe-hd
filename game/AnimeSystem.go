@@ -1,9 +1,7 @@
 package game
 
 import (
-	"image"
-
-	"github.com/sardap/ecs"
+	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
@@ -20,8 +18,8 @@ func (s *AnimeSystem) Priority() int {
 	return int(systemPriorityAnimeSystem)
 }
 
-func frameCount(anime *components.AnimeComponent, img *components.ImageComponent) int {
-	return img.Image.Bounds().Max.X / anime.FrameWidth
+func frameCount(img *components.TileImageComponent) int {
+	return img.TileMap.TilesImg.Bounds().Max.X / img.TileMap.TileWidth
 }
 
 func (s *AnimeSystem) New(world *ecs.World) {
@@ -31,15 +29,17 @@ func (s *AnimeSystem) New(world *ecs.World) {
 func (s *AnimeSystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		anime := ent.GetAnimeComponent()
-		img := ent.GetImageComponent()
+		img := ent.GetTileImageComponent()
+
 		anime.FrameRemaining -= utility.DeltaToDuration(dt)
 		if anime.FrameRemaining < 0 {
-			anime.CurrentFrame = utility.WrapInt(anime.CurrentFrame+1, 0, frameCount(anime, img))
-			anime.FrameRemaining = anime.FrameDuration
-			sx, sy := anime.CurrentFrame*anime.FrameWidth, 0
-			img.SubRect = &image.Rectangle{
-				image.Pt(sx, sy), image.Pt(sx+anime.FrameWidth, sy+anime.FrameHeight),
+			nextFrame := img.TileMap.Map[0] + 1
+			if nextFrame >= int16(frameCount(img)) {
+				anime.Cycles++
+				nextFrame = 0
 			}
+			img.TileMap.Map[0] = nextFrame
+			anime.FrameRemaining = anime.FrameDuration
 		}
 	}
 }
@@ -55,7 +55,7 @@ func (s *AnimeSystem) Remove(e ecs.BasicEntity) {
 type Animeable interface {
 	ecs.BasicFace
 	components.AnimeFace
-	components.ImageFace
+	components.TileImageFace
 }
 
 func (s *AnimeSystem) AddByInterface(o ecs.Identifier) {

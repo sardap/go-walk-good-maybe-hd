@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"image"
 	"io/ioutil"
+	"reflect"
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -25,7 +26,12 @@ func getHash(data []byte) [16]byte {
 	return md5.Sum(data)
 }
 
-func LoadImage(data []byte) (*ebiten.Image, error) {
+func LoadEbitenImage(asset interface{}) (*ebiten.Image, error) {
+	t := reflect.ValueOf(asset)
+
+	compressed := t.FieldByName("Compressed").Bool()
+	data := []byte(t.FieldByName("Data").String())
+
 	hash := getHash(data)
 
 	lock.Lock()
@@ -35,14 +41,17 @@ func LoadImage(data []byte) (*ebiten.Image, error) {
 		return eImg, nil
 	}
 
-	zr, _ := gzip.NewReader(bytes.NewReader(data))
-	defer zr.Close()
-	uncompressed, err := ioutil.ReadAll(zr)
-	if err != nil {
-		panic(err)
+	if compressed {
+		zr, _ := gzip.NewReader(bytes.NewReader(data))
+		defer zr.Close()
+		var err error
+		data, err = ioutil.ReadAll(zr)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	img, _, err := image.Decode(bytes.NewReader(uncompressed))
+	img, _, err := image.Decode(bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}

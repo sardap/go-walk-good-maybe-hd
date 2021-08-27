@@ -6,42 +6,39 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/EngoEngine/ecs"
+	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
-const scaleMultiplier = 16
-const gameWidth = 240 * scaleMultiplier
-const gameHeight = 160 * scaleMultiplier
-
-var (
-	gGame *Game
-)
-
 const (
 	bottomImageLayer components.ImageLayer = iota
-	middleImageLayer
+	playerImageLayer
+	buildingForground
 	uiImageLayer
 	debugImageLayer
 )
 
 type Game struct {
 	world    *ecs.World
+	space    *resolv.Space
 	lastTime time.Time
 }
 
-func addSystems(world *ecs.World) {
-	var collisionable *Collisionable
-	world.AddSystemInterface(CreateCollisionSystem(), collisionable, nil)
+func (g *Game) addSystems() {
+	world := g.world
 
 	var animeable *Animeable
 	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
 
 	var renderable *ImageRenderable
 	world.AddSystemInterface(CreateImageRenderSystem(), renderable, nil)
+
+	var tileImageRenderable *TileImageRenderable
+	world.AddSystemInterface(CreateTileImageRenderSystem(), tileImageRenderable, nil)
 
 	var textRenderable *TextRenderable
 	world.AddSystemInterface(CreateTextRenderSystem(), textRenderable, nil)
@@ -53,57 +50,66 @@ func addSystems(world *ecs.World) {
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
 	var gameRuleable *GameRuleable
-	world.AddSystemInterface(CreateGameRuleSystem(), gameRuleable, nil)
+	world.AddSystemInterface(CreateGameRuleSystem(g.space), gameRuleable, nil)
 
 	var Velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(), Velocityable, nil)
+	world.AddSystemInterface(CreateVelocitySystem(g.space), Velocityable, nil)
 }
 
 func (g *Game) startCityLevel() {
+	mainGameInfo = &MainGameInfo{
+		gravity: startingGravity,
+	}
+
+	g.addSystems()
+
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
-	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	g.world.AddEntity(cityBackground)
 
 	cityBackground = entity.CreateCityBackground()
-	cityBackground.GeoM.Scale(scaleMultiplier, scaleMultiplier)
-	_, w, _, _ := bounds(cityBackground)
-	cityBackground.GeoM.Translate(w, 0)
 	cityBackground.ImageComponent.Layer = bottomImageLayer
+	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
 
 	player := entity.CreatePlayer()
-	player.ImageComponent.Layer = middleImageLayer
-	player.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+	player.TileImageComponent.Layer = playerImageLayer
 	g.world.AddEntity(player)
 
 	testBox := entity.CreateTestBox()
 	testBox.ImageComponent.Layer = uiImageLayer
-	testBox.Translate(500, 500)
+	testBox.TransformComponent.Postion.X = 500
+	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
+
+	mainGameInfo.level = &Level{}
+
+	generateBuildings(g.world)
 }
 
 func CreateGame() *Game {
 	world := &ecs.World{}
-	addSystems(world)
 
 	result := &Game{
 		world:    world,
-		lastTime: time.Now(),
+		lastTime: time.Unix(0, 0),
+		space:    resolv.NewSpace(),
 	}
 
 	result.startCityLevel()
-
-	gGame = result
 
 	return result
 }
 
 func (g *Game) Update() error {
+	if g.lastTime.Unix() == 0 {
+		g.lastTime = time.Now()
+	}
+
 	dt := time.Since(g.lastTime)
-	g.world.Update(float32(dt / time.Millisecond))
+	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
 
 	return nil
@@ -122,8 +128,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	heap.Init(queue)
 
 	for queue.Len() > 0 {
-		item := heap.Pop(queue).(*RenderCmd)
-		screen.DrawImage(item.Image, item.Options)
+		item := heap.Pop(queue).(RenderCmd)
+		item.Draw(screen)
 	}
 
 	img := ebiten.NewImage(50, 50)

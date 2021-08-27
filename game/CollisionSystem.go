@@ -4,15 +4,17 @@ import (
 	"container/heap"
 	"image/color"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/sardap/ecs"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
 type CollisionSystem struct {
-	ents    map[uint64]Collisionable
-	overlay *ebiten.Image
+	ents           map[uint64]Collisionable
+	overlay        *ebiten.Image
+	overlayEnabled bool
 }
 
 func CreateCollisionSystem() *CollisionSystem {
@@ -31,21 +33,20 @@ func (s *CollisionSystem) New(world *ecs.World) {
 func getRect(ent Collisionable) (x1, x2, y1, y2 float64) {
 	trans := ent.GetTransformComponent()
 
-	var imgW, imgH int
-	if ent.GetImageComponent().SubRect != nil {
-		imgW, imgH = ent.GetImageComponent().SubRect.Dx(), ent.GetImageComponent().SubRect.Dy()
-	} else {
-		imgW, imgH = ent.GetImageComponent().Image.Size()
-	}
+	x1 = trans.Postion.X
+	x2 = x1 + trans.Size.X
+	y1 = trans.Postion.Y
+	y2 = y1 + trans.Size.Y
 
-	x1, w := trans.Element(0, 2), trans.Element(1, 1)*float64(imgW)
-	y1, h := trans.Element(1, 2), trans.Element(0, 0)*float64(imgH)
-
-	return x1, x1 + w, y1, y1 + h
-
+	return
 }
 
 func (s *CollisionSystem) Update(dt float32) {
+	// Toggle debug overlay
+	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
+		s.overlayEnabled = !s.overlayEnabled
+	}
+
 	for _, entA := range s.ents {
 
 		if !entA.GetCollisionComponent().Active {
@@ -63,7 +64,7 @@ func (s *CollisionSystem) Update(dt float32) {
 				continue
 			}
 
-			bX1, bX2, bY1, bY2 := getRect(entA)
+			bX1, bX2, bY1, bY2 := getRect(entB)
 
 			if aX1 < bX2 && aX2 > bX1 && aY1 < bY2 && aY2 > bY1 {
 				entCol.Collisions = append(entCol.Collisions, &components.CollisionEvent{
@@ -75,6 +76,10 @@ func (s *CollisionSystem) Update(dt float32) {
 }
 
 func (s *CollisionSystem) Render(cmds *RenderCmds) {
+	if !s.overlayEnabled {
+		return
+	}
+
 	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
 
 	for _, ent := range s.ents {
@@ -98,7 +103,8 @@ func (s *CollisionSystem) Render(cmds *RenderCmds) {
 	}
 
 	op := &ebiten.DrawImageOptions{}
-	heap.Push(cmds, &RenderCmd{
+	op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+	heap.Push(cmds, &RenderImageCmd{
 		Image:   s.overlay,
 		Options: op,
 		Layer:   debugImageLayer,
@@ -117,7 +123,6 @@ type Collisionable interface {
 	ecs.BasicFace
 	components.TransformFace
 	components.CollisionFace
-	components.ImageFace
 }
 
 func (s *CollisionSystem) AddByInterface(o ecs.Identifier) {

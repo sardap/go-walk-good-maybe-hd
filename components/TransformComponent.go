@@ -1,9 +1,10 @@
 package components
 
 import (
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type TransformComponent struct {
-	*ebiten.GeoM
+	Postion math.Vector2
+	Size    math.Vector2
 }

@@ -1,15 +1,28 @@
 #!/bin/bash
 
-apt-get update -y 
-
-apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev zip
+apt-get update -y && apt-get install -y --no-install-recommends \
+	zip \
+	xorg-dev \
+	libx11-dev \
+	libgl1-mesa-dev \
+	libasound2-dev \
+	libgles2-mesa-dev \
+	libalut-dev \
+	libxcursor-dev \
+	libxi-dev \
+	libxinerama-dev \
+	libxrandr-dev \
+	libxxf86vm-dev \
+	libglfw3-dev \
+	xvfb \
+	xauth
 
 cd /app
 
 go mod download
 
 echo "running tests"
-go test ./...
+xvfb-run go test ./...
 
 if [ $? -eq 0 ]
 then
@@ -35,12 +48,14 @@ export GOOS=js
 export GOARCH=wasm
 
 echo "building wasm version"
-go build -o bin/walk-good-maybe-hd-wasm .
+go build -o bin/walk-good-maybe-hd.wasm .
 
 cd bin
 
 zip walk-good-maybe-hd-amd64-linux walk-good-maybe-hd-amd64-linux
 zip walk-good-maybe-hd-amd64-windows.zip walk-good-maybe-hd-amd64-windows.exe
 zip walk-good-maybe-hd-wasm.zip walk-good-maybe-hd.wasm
+
+ls
 
 echo "done zipping"

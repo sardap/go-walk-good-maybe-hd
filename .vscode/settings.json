@@ -4,7 +4,7 @@
 			{
 				"match": "(components..*?\\.go)|(gen.codegen.main.go)$",
 				"notMatch": "gen\\.go$",
-				"cmd": "cd ${workspaceFolder} && go run ${workspaceFolder}/gen ${workspaceFolder} components",
+				"cmd": "cd ${workspaceFolder}/gen && go run . ${workspaceFolder} components",
 			},
 		],
 		"autoClearConsole": true,
@@ -18,11 +18,17 @@
 		"gen.go": true
 	},
 	"cSpell.words": [
+		"cmds",
 		"ebiten",
 		"ebitenutil",
 		"engo",
 		"ents",
+		"gomath",
 		"hajimehoshi",
-		"sardap"
+		"horz",
+		"render",
+		"resolv",
+		"sardap",
+		"speed"
 	]
 }

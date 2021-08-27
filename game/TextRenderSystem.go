@@ -5,10 +5,10 @@ import (
 	"image/color"
 	"log"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"
@@ -63,7 +63,6 @@ func (s *TextRenderSystem) Update(dt float32) {
 
 func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 	for id, ent := range s.ents {
-		trans := ent.GetTransformComponent()
 		textCom := ent.GetTextComponent()
 
 		value, ok := s.textCache[id]
@@ -82,9 +81,9 @@ func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 		}
 
 		op := &ebiten.DrawImageOptions{}
-		op.GeoM = *trans.GeoM
+		op.GeoM.Scale(2, 2)
 
-		heap.Push(cmds, &RenderCmd{
+		heap.Push(cmds, &RenderImageCmd{
 			Image:   value.img,
 			Options: op,
 			Layer:   textCom.Layer,
