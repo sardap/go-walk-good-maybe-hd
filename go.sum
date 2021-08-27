@@ -1,5 +1,7 @@
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
+github.com/EngoEngine/ecs v1.0.5 h1:S21KTClrAqC862BFR5wTkd6uEYQ0Aw/ob9RjKPt0e30=
+github.com/EngoEngine/ecs v1.0.5/go.mod h1:A8AYbzKIsl+t4qafmLL3t4H6cXdfGo4CIHl7EN100iM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -38,8 +40,6 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLA
 github.com/pkg/browser v0.0.0-20180916011732-0a3d74bf9ce4/go.mod h1:4OwLy04Bl9Ef3GJJCoec+30X3LQs/0/m4HFRt/2LUSA=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/sardap/ecs v1.0.6-0.20210818120910-49430815678c h1:SamSWIxpPgzC9/FZxt5pdBjNQw+Fq0RDu1LQa5Du3AA=
-github.com/sardap/ecs v1.0.6-0.20210818120910-49430815678c/go.mod h1:jzRYWGQpwYT99RLNFoXAPZC5rBjd3gheVrny9yIs2VQ=
 github.com/sardap/resolv v0.0.0-20210826120632-a4619f00bd2b h1:RHGisY1tmXh2bW/Pe6FTAWwQ2mwXb5EZooY/WQszw20=
 github.com/sardap/resolv v0.0.0-20210826120632-a4619f00bd2b/go.mod h1:INI36cColVDZdZZKepCJDRRhOfWUarQ3CBzcrDuwetw=
 github.com/sardap/resolv v0.0.0-20210826124450-340ecca2ee89 h1:Ho1oPEhF+n7a6UvplHBTVCqM1AQBxkf69yhqvFarm5Y=

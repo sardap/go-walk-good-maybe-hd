@@ -4,8 +4,8 @@ import (
 	"container/heap"
 	"image"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 

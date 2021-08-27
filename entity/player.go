@@ -3,7 +3,7 @@ package entity
 import (
 	"time"
 
-	"github.com/sardap/ecs"
+	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"

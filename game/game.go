@@ -6,10 +6,10 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
@@ -30,9 +30,6 @@ type Game struct {
 
 func (g *Game) addSystems() {
 	world := g.world
-
-	// var collisionable *Collisionable
-	// world.AddSystemInterface(CreateCollisionSystem(), collisionable, nil)
 
 	var animeable *Animeable
 	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)

@@ -1,8 +1,8 @@
 package game
 
 import (
+	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"

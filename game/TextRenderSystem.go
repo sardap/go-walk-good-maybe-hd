@@ -5,10 +5,10 @@ import (
 	"image/color"
 	"log"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/opentype"

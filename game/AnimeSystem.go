@@ -1,7 +1,7 @@
 package game
 
 import (
-	"github.com/sardap/ecs"
+	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
-	"github.com/sardap/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
