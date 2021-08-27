@@ -30,9 +30,15 @@ func (s *AnimeSystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		anime := ent.GetAnimeComponent()
 		img := ent.GetTileImageComponent()
+
 		anime.FrameRemaining -= utility.DeltaToDuration(dt)
 		if anime.FrameRemaining < 0 {
-			img.TileMap.Map[0] = utility.WrapInt16(img.TileMap.Map[0]+1, 0, int16(frameCount(img)))
+			nextFrame := img.TileMap.Map[0] + 1
+			if nextFrame >= int16(frameCount(img)) {
+				anime.Cycles++
+				nextFrame = 0
+			}
+			img.TileMap.Map[0] = nextFrame
 			anime.FrameRemaining = anime.FrameDuration
 		}
 	}

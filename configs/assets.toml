@@ -17,6 +17,12 @@ frameWidth=16
 file="whale/whaleWalk.psd"
 
 [[Images]]
+name="whaleJump"
+type="tileSet"
+frameWidth=16
+file="whale/whaleJump.psd"
+
+[[Images]]
 name="backgroundCity"
 type="single"
 file="city/backgroundCity.psd"

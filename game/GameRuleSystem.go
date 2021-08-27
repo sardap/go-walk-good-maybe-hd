@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/SolarLune/resolv"
 	"github.com/sardap/ecs"
@@ -9,6 +10,7 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
+	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
 type GameRuleSystem struct {
@@ -49,59 +51,88 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	move := player.GetMovementComponent()
 	vel := player.GetVelocityComponent().Vel
 
-	fmt.Printf("Player update\n")
+	changeToPrepareJump := func() {
+		player.State = components.MainGamePlayerStatePrepareJumping
+
+		img, _ := assets.LoadEbitenImage(assets.ImageWhaleJumpTileSet)
+		components.ChangeAnimeImage(player, img, 125*time.Millisecond)
+	}
+
+	changeToJumping := func() {
+		player.State = components.MainGamePlayerStateJumping
+
+		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
+		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
+		player.JumpTime = 0
+	}
+
+	changeToFlying := func() {
+		player.State = components.MainGamePlayerStateFlying
+	}
+
+	changeToIdle := func() {
+		player.State = components.MainGamePlayerStateGroundIdling
+
+		img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
+		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
+	}
+
+	changeToWalk := func() {
+		player.State = components.MainGamePlayerStateGroundMoving
+
+		img, _ := assets.LoadEbitenImage(assets.ImageWhaleWalkTileSet)
+		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
+	}
+
+	horzSpeed := playerCom.Speed
 
 	switch playerCom.State {
 	case components.MainGamePlayerStateGroundIdling:
-		fmt.Printf("state ground\n")
 		if move.MoveUp {
-			vel.Y -= player.JumpPower
-			player.State = components.MainGamePlayerStateJumping
+			changeToPrepareJump()
 		} else if move.MoveLeft || move.MoveRight {
-			player.State = components.MainGamePlayerStateGroundMoving
-
-			img, _ := assets.LoadEbitenImage(assets.ImageWhaleWalkTileSet)
-			player.TileMap.TilesImg = img
-			player.TileMap.SetTile(0, 0, 0)
+			changeToWalk()
 		}
+
 	case components.MainGamePlayerStateGroundMoving:
-		if !move.MoveLeft && !move.MoveRight {
-			player.State = components.MainGamePlayerStateGroundIdling
-
-			img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
-			player.TileMap.TilesImg = img
-			player.TileMap.SetTile(0, 0, 0)
+		if move.MoveUp {
+			changeToPrepareJump()
+		} else if !move.MoveLeft && !move.MoveRight {
+			changeToIdle()
 		}
 
-		if move.MoveUp {
-			vel.Y -= player.JumpPower
-			player.State = components.MainGamePlayerStateJumping
+	case components.MainGamePlayerStatePrepareJumping:
+		horzSpeed = 0
+
+		if player.Cycles >= 1 {
+			changeToJumping()
 		}
 
 	case components.MainGamePlayerStateJumping:
-		fmt.Printf("state Jumping\n")
-		player.State = components.MainGamePlayerStateFalling
+		horzSpeed /= 2
 
-		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
-		player.TileMap.TilesImg = img
-		player.TileMap.SetTile(0, 0, 0)
-	case components.MainGamePlayerStateFalling:
-		fmt.Printf("state Falling\n")
-		if player.Collisions.CollidingWith(entity.TagGround) {
-			player.State = components.MainGamePlayerStateGroundIdling
+		vel.Y -= player.JumpPower
+		player.JumpTime += utility.DeltaToDuration(dt)
 
-			img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
-			player.TileMap.TilesImg = img
-			player.TileMap.SetTile(0, 0, 0)
+		if player.JumpTime > time.Duration(1000)*time.Millisecond {
+			changeToFlying()
 		}
+
+	case components.MainGamePlayerStateFlying:
+		horzSpeed /= 2
+
+		if player.Collisions.CollidingWith(entity.TagGround) {
+			changeToIdle()
+		}
+
 	default:
 		panic("Unimplemented")
 	}
 
 	if move.MoveLeft {
-		vel.X = -playerCom.Speed
+		vel.X = -horzSpeed
 	} else if move.MoveRight {
-		vel.X = playerCom.Speed
+		vel.X = horzSpeed
 	}
 
 	// Must reset no matter what
