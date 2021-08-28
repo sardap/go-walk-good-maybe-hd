@@ -6,6 +6,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
+type DrawOptions struct {
+	InvertX bool
+	InvertY bool
+}
+
 type ImageLayer int
 
 type Animeable interface {

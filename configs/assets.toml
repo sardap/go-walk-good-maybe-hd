@@ -34,6 +34,10 @@ frameWidth=8
 parts=["wall", "window"]
 file="building/building0TileSet.psd"
 
+[[Sounds]]
+name="byJumpTwo"
+file="byJumpTwo.wav"
+
 [[Music]]
 name="city"
 file="pd_city_0.mp3"

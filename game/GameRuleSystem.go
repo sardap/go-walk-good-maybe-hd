@@ -61,6 +61,9 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	changeToJumping := func() {
 		player.State = components.MainGamePlayerStateJumping
 
+		player.SoundComponent.Active = true
+		player.SoundComponent.Restart = true
+
 		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
 		player.JumpTime = 0
@@ -131,8 +134,10 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 
 	if move.MoveLeft {
 		vel.X = -horzSpeed
+		player.TileMap.Options.InvertX = true
 	} else if move.MoveRight {
 		vel.X = horzSpeed
+		player.TileMap.Options.InvertX = false
 	}
 
 	// Must reset no matter what

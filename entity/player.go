@@ -21,6 +21,7 @@ type Player struct {
 	*components.ScrollableComponent
 	*components.GravityComponent
 	*components.IdentityComponent
+	*components.SoundComponent
 }
 
 func CreatePlayer() *Player {
@@ -59,6 +60,10 @@ func CreatePlayer() *Player {
 		GravityComponent:    &components.GravityComponent{},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagPlayer},
+		},
+		SoundComponent: &components.SoundComponent{
+			Active: false,
+			Sound:  loadSound(assets.SoundByJumpTwo),
 		},
 	}
 

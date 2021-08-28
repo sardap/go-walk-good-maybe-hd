@@ -12,6 +12,7 @@ const (
 	systemPriorityImageRenderSystem systemPriority = iota
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
+	systemPrioritySoundSystem
 	systemPriorityLifecycleSystem
 	systemPriorityAnimeSystem
 	systemPriorityVelocitySystem
@@ -19,7 +20,6 @@ const (
 	systemPriorityGameRuleSystem
 	systemPriorityCollisionSystem
 	systemPriorityInputSystem
-	systemPrioritySoundSystem
 )
 
 type HeapSortable struct {

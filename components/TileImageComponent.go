@@ -5,6 +5,7 @@ import (
 )
 
 type TileMap struct {
+	Options   DrawOptions
 	TilesImg  *ebiten.Image
 	Map       []int16
 	TileWidth int

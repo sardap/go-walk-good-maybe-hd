@@ -29,6 +29,7 @@ func compress(data []byte) []byte {
 }
 
 func TestLoadEbitenImage(t *testing.T) {
+	t.Parallel()
 
 	var asset struct {
 		Compressed bool
@@ -59,7 +60,7 @@ func TestLoadEbitenImage(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		LoadEbitenImage(asset)
 	}
-	assert.Less(t, time.Since(startTime), delta/25)
+	assert.Less(t, time.Since(startTime), delta/15)
 	assert.NoError(t, err)
 
 	// Compressed
@@ -74,4 +75,23 @@ func TestLoadEbitenImage(t *testing.T) {
 	img, err = LoadEbitenImage(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
+}
+
+func TestLoadSound(t *testing.T) {
+	t.Parallel()
+
+	asset := struct {
+		SampleRate int
+		Data       string
+		SoundType  SoundType
+	}{
+		SampleRate: 10312312,
+		Data:       "looky here",
+		SoundType:  SoundTypeWav,
+	}
+
+	data, sr, soundType := LoadSound(asset)
+	assert.Equal(t, int(10312312), sr)
+	assert.Equal(t, []byte("looky here"), data)
+	assert.Equal(t, SoundTypeWav, soundType)
 }

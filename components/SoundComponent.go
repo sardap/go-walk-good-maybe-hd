@@ -4,24 +4,21 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2/audio"
-)
-
-type SoundType int
-
-const (
-	SoundTypeMp3 SoundType = iota
+	"github.com/sardap/walk-good-maybe-hd/assets"
 )
 
 type Sound struct {
-	Source    []byte
-	SoundType SoundType
+	Source     []byte
+	SampleRate int
+	SoundType  assets.SoundType
 }
 
 type SoundComponent struct {
-	Sound  Sound
-	Intro  time.Duration
-	Active bool
-	Loop   bool
+	Sound   Sound
+	Intro   time.Duration
+	Active  bool
+	Restart bool
+	Loop    bool
 	// This should be null on creation
 	Player *audio.Player
 }

@@ -64,3 +64,13 @@ func LoadEbitenImage(asset interface{}) (*ebiten.Image, error) {
 
 	return eImg, nil
 }
+
+func LoadSound(asset interface{}) (data []byte, sampleRate int, soundType SoundType) {
+	t := reflect.ValueOf(asset)
+
+	sampleRate = int(t.FieldByName("SampleRate").Int())
+	data = []byte(t.FieldByName("Data").String())
+	soundType = SoundType(t.FieldByName("SoundType").Int())
+
+	return
+}
