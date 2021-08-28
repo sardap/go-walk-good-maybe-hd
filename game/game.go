@@ -1,7 +1,6 @@
 package game
 
 import (
-	"container/heap"
 	"fmt"
 	"image/color"
 	"time"
@@ -116,19 +115,18 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	queue := &RenderCmds{}
+	queue := RenderCmds{}
 
 	screen.Fill(color.White)
 	for _, system := range g.world.Systems() {
 		if rendSys, ok := system.(RenderingSystem); ok {
-			rendSys.Render(queue)
+			rendSys.Render(&queue)
 		}
 	}
 
-	heap.Init(queue)
+	queue.Sort()
 
-	for queue.Len() > 0 {
-		item := heap.Pop(queue).(RenderCmd)
+	for _, item := range queue {
 		item.Draw(screen)
 	}
 

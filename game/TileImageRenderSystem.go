@@ -1,7 +1,6 @@
 package game
 
 import (
-	"container/heap"
 	"image"
 
 	"github.com/EngoEngine/ecs"
@@ -36,7 +35,7 @@ func (s *TileImageRenderSystem) Render(cmds *RenderCmds) {
 		op.GeoM.Translate(trans.Postion.X, trans.Postion.Y)
 		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 
-		heap.Push(cmds, &RenderTileMapCmd{
+		*cmds = append(*cmds, &RenderTileMapCmd{
 			TransformComponent: ent.GetTransformComponent(),
 			TileImageComponent: ent.GetTileImageComponent(),
 			Options:            op,

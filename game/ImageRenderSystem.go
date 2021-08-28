@@ -1,12 +1,16 @@
 package game
 
 import (
-	"container/heap"
-
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
+
+type ImageRenderable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.ImageFace
+}
 
 type ImageRenderSystem struct {
 	ents map[uint64]ImageRenderable
@@ -43,7 +47,7 @@ func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 			img = imgCom.Image
 		}
 
-		heap.Push(cmds, &RenderImageCmd{
+		*cmds = append(*cmds, &RenderImageCmd{
 			Image:   img,
 			Options: op,
 			Layer:   imgCom.Layer,
@@ -57,12 +61,6 @@ func (s *ImageRenderSystem) Add(r ImageRenderable) {
 
 func (s *ImageRenderSystem) Remove(e ecs.BasicEntity) {
 	delete(s.ents, e.ID())
-}
-
-type ImageRenderable interface {
-	ecs.BasicFace
-	components.TransformFace
-	components.ImageFace
 }
 
 func (s *ImageRenderSystem) AddByInterface(o ecs.Identifier) {
