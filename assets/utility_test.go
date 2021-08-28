@@ -1,11 +1,11 @@
-package assets_test
+package assets
 
 import (
 	"bytes"
 	"compress/gzip"
 	"testing"
+	"time"
 
-	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -30,7 +30,10 @@ func compress(data []byte) []byte {
 
 func TestLoadEbitenImage(t *testing.T) {
 
-	var asset interface{}
+	var asset struct {
+		Compressed bool
+		Data       string
+	}
 
 	// Uncompressed
 	asset = struct {
@@ -41,9 +44,23 @@ func TestLoadEbitenImage(t *testing.T) {
 		Data:       testImg,
 	}
 
-	img, err := assets.LoadEbitenImage(asset)
+	img, err := LoadEbitenImage(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
+
+	startTime := time.Now()
+	for i := 0; i < 1000; i++ {
+		delete(imageCache, getHash([]byte(asset.Data)))
+		LoadEbitenImage(asset)
+	}
+	delta := time.Since(startTime)
+
+	startTime = time.Now()
+	for i := 0; i < 1000; i++ {
+		LoadEbitenImage(asset)
+	}
+	assert.Less(t, time.Since(startTime), delta/25)
+	assert.NoError(t, err)
 
 	// Compressed
 	asset = struct {
@@ -54,7 +71,7 @@ func TestLoadEbitenImage(t *testing.T) {
 		Data:       string(compress([]byte(testImg))),
 	}
 
-	img, err = assets.LoadEbitenImage(asset)
+	img, err = LoadEbitenImage(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
 }

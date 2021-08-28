@@ -34,6 +34,7 @@ func (s *SoundSystem) New(world *ecs.World) {
 func (s *SoundSystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		soundCom := ent.GetSoundComponent()
+
 		if soundCom.Active {
 			if soundCom.Player == nil {
 				switch soundCom.Sound.SoundType {
@@ -58,7 +59,7 @@ func (s *SoundSystem) Update(dt float32) {
 					soundCom.Player, _ = audio.NewPlayer(s.audioCtx, stream)
 
 				default:
-					log.Fatalf("Unkown sound type %v", soundCom.Sound.SoundType)
+					log.Fatalf("Unknown sound type %v", soundCom.Sound.SoundType)
 					continue
 				}
 			}
