@@ -23,6 +23,11 @@ frameWidth=16
 file="whale/whaleJump.psd"
 
 [[Images]]
+name="bulletSmallGreen"
+type="single"
+file="bullet/bulletSmallGreen.psd"
+
+[[Images]]
 name="backgroundCity"
 type="single"
 file="city/backgroundCity.psd"

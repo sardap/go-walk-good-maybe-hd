@@ -14,8 +14,10 @@ const (
 )
 
 type MainGamePlayerComponent struct {
-	State     MainGamePlayerState
-	Speed     float64
-	JumpPower float64
-	JumpTime  time.Duration
+	State                 MainGamePlayerState
+	Speed                 float64
+	JumpPower             float64
+	JumpTime              time.Duration
+	ShootCooldown         time.Duration
+	ShootCooldownRemaning time.Duration
 }

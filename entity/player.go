@@ -32,9 +32,10 @@ func CreatePlayer() *Player {
 	result := &Player{
 		BasicEntity: ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
-			Speed:     70,
-			JumpPower: 90,
-			State:     components.MainGamePlayerStateFlying,
+			Speed:         70,
+			JumpPower:     90,
+			State:         components.MainGamePlayerStateFlying,
+			ShootCooldown: 250 * time.Millisecond,
 		},
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{

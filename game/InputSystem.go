@@ -13,9 +13,16 @@ import (
 )
 
 const (
-	moveAxisX = 2
-	moveAxisY = 3
+	moveAxisX = 0
+	moveAxisY = 1
 	deadZone  = 0.1
+)
+
+var (
+	keyJump     = ebiten.KeyZ
+	keyShoot    = ebiten.KeyX
+	buttonJump  = ebiten.GamepadButton(0)
+	buttonShoot = ebiten.GamepadButton(1)
 )
 
 type inputMode int
@@ -90,9 +97,9 @@ func (s *InputSystem) processGamepad() {
 	}
 
 	vx := ebiten.GamepadAxis(id, moveAxisX)
-	vy := ebiten.GamepadAxis(id, moveAxisY)
 	for _, ent := range s.ents {
 		move := ent.GetMovementComponent()
+
 		if math.Abs(vx) > deadZone {
 			if vx > 0 {
 				move.MoveRight = true
@@ -102,13 +109,11 @@ func (s *InputSystem) processGamepad() {
 			}
 		}
 
-		if math.Abs(vy) > deadZone {
-			if vy > 0 {
-				move.MoveDown = true
-			}
-			if vy < 0 {
-				move.MoveUp = true
-			}
+		if inpututil.IsGamepadButtonJustPressed(id, buttonJump) {
+			move.MoveUp = true
+		}
+		if inpututil.IsGamepadButtonJustPressed(id, buttonShoot) {
+			move.Shoot = true
 		}
 	}
 }
@@ -132,8 +137,12 @@ func (s *InputSystem) processKeyboard() {
 			move.MoveDown = true
 		}
 
-		if inpututil.KeyPressDuration(ebiten.KeyZ) > 0 {
+		if inpututil.KeyPressDuration(keyJump) > 0 {
 			move.MoveUp = true
+		}
+
+		if inpututil.KeyPressDuration(keyShoot) > 0 {
+			move.Shoot = true
 		}
 	}
 }

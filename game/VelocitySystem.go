@@ -1,8 +1,12 @@
 package game
 
 import (
+	"image/color"
+
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -17,8 +21,9 @@ type Velocityable interface {
 }
 
 type VelocitySystem struct {
-	ents  map[uint64]Velocityable
-	space *resolv.Space
+	ents    map[uint64]Velocityable
+	space   *resolv.Space
+	overlay *ebiten.Image
 }
 
 func CreateVelocitySystem(space *resolv.Space) *VelocitySystem {
@@ -33,6 +38,7 @@ func (s *VelocitySystem) Priority() int {
 
 func (s *VelocitySystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Velocityable)
+	s.overlay = ebiten.NewImage(gameWidth, gameHeight)
 }
 
 func (s *VelocitySystem) Update(dt float32) {
@@ -87,6 +93,39 @@ func (s *VelocitySystem) Update(dt float32) {
 		colShape.W -= 10
 		colShape.H -= 10
 	}
+}
+
+func (s *VelocitySystem) Render(cmds *RenderCmds) {
+	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
+
+	for _, ent := range s.ents {
+		if !ent.GetCollisionComponent().Active {
+			continue
+		}
+
+		x1 := ent.GetTransformComponent().Postion.X
+		y1 := ent.GetTransformComponent().Postion.Y
+		w := ent.GetTransformComponent().Size.X
+		h := ent.GetTransformComponent().Size.Y
+
+		clr := color.RGBA{255, 0, 0, 255}
+		// Left Top to Right Top
+		ebitenutil.DrawLine(s.overlay, x1, y1, x1+w, y1, clr)
+		// Right Top to Right Bottom
+		ebitenutil.DrawLine(s.overlay, x1+w, y1, x1+w, y1+h, clr)
+		// Right Bottom to Left Bottom
+		ebitenutil.DrawLine(s.overlay, x1+w, y1+h, x1, y1+h, clr)
+		// Left Bottom to Left top
+		ebitenutil.DrawLine(s.overlay, x1, y1+h, x1, y1, clr)
+	}
+
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+	*cmds = append(*cmds, &RenderImageCmd{
+		Image:   s.overlay,
+		Options: op,
+		Layer:   debugImageLayer,
+	})
 }
 
 func (s *VelocitySystem) Add(r Velocityable) {

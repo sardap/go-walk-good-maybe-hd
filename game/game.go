@@ -16,6 +16,7 @@ import (
 const (
 	bottomImageLayer components.ImageLayer = iota
 	playerImageLayer
+	bulletImageLayer
 	buildingForground
 	uiImageLayer
 	debugImageLayer

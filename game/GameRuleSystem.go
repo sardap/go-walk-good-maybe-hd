@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -140,10 +139,22 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 		player.TileMap.Options.InvertX = false
 	}
 
+	player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
+	if move.Shoot && player.ShootCooldownRemaning < 0 {
+		player.ShootCooldownRemaning = player.ShootCooldown
+		bullet := entity.CreateBullet()
+		bullet.Postion.X = player.Postion.X + player.Size.X + 0.5
+		bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
+		bullet.Layer = bulletImageLayer
+		bullet.Speed.X = 70
+		s.world.AddEntity(bullet)
+	}
+
 	// Must reset no matter what
 	move.MoveLeft = false
 	move.MoveRight = false
 	move.MoveUp = false
+	move.Shoot = false
 
 	player.GetVelocityComponent().Vel = vel
 }
@@ -174,6 +185,13 @@ type Gravityable interface {
 	components.CollisionFace
 }
 
+type Bulletable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.VelocityFace
+	components.BulletFace
+}
+
 func (s *GameRuleSystem) Update(dt float32) {
 	ground := s.space.FilterByTags(entity.TagGround)
 
@@ -195,7 +213,6 @@ func (s *GameRuleSystem) Update(dt float32) {
 			trans := building.GetTransformComponent()
 			if trans.Postion.X+trans.Size.X < 0 {
 				defer s.world.RemoveEntity(building.BasicEntity)
-				fmt.Printf("Removing %d\n", building.ID())
 			}
 		}
 
@@ -206,6 +223,15 @@ func (s *GameRuleSystem) Update(dt float32) {
 			collision := ground.Resolve(colCom.CollisionShape, 0, mainGameInfo.gravity*float64(dt))
 			if !collision.Colliding() {
 				vel.Vel = vel.Vel.Add(math.Vector2{Y: mainGameInfo.gravity})
+			}
+		}
+
+		if bullet, ok := ent.(Bulletable); ok {
+			velCom := bullet.GetVelocityComponent()
+			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
+			postion := bullet.GetTransformComponent().Postion
+			if postion.X > gameWidth/scaleMultiplier || postion.X < 0 {
+				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
 			}
 		}
 
