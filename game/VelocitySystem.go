@@ -77,10 +77,10 @@ func (s *VelocitySystem) Update(dt float32) {
 
 		colShape := colCom.CollisionShape
 
-		colShape.X -= 5
-		colShape.Y -= 5
-		colShape.W += 10
-		colShape.H += 10
+		colShape.X -= 2.5
+		colShape.Y -= 2.5
+		colShape.W += 5
+		colShape.H += 5
 
 		if collision := s.space.Collision(colShape); collision != nil && collision.Colliding() {
 			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
@@ -88,10 +88,10 @@ func (s *VelocitySystem) Update(dt float32) {
 			})
 		}
 
-		colShape.X += 5
-		colShape.Y += 5
-		colShape.W -= 10
-		colShape.H -= 10
+		colShape.X += 2.5
+		colShape.Y += 2.5
+		colShape.W -= 5
+		colShape.H -= 5
 	}
 }
 
