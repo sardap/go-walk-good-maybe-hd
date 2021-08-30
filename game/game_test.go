@@ -87,10 +87,10 @@ func TestVelocitySystem(t *testing.T) {
 	s := resolv.NewSpace()
 
 	// Setup
-	animeSystem := game.CreateVelocitySystem(s)
+	velocitySystem := game.CreateVelocitySystem(s)
 
 	var velocityable *game.Velocityable
-	w.AddSystemInterface(animeSystem, velocityable, nil)
+	w.AddSystemInterface(velocitySystem, velocityable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity

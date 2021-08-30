@@ -244,7 +244,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 	}
 
 	mainGameInfo.level.StartX += mainGameInfo.scrollingSpeed.X * float64(dt)
-	generateBuildings(s.world)
+	generateCityBuildings(s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

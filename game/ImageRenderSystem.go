@@ -68,7 +68,6 @@ func (s *ImageRenderSystem) AddByInterface(o ecs.Identifier) {
 }
 
 type RenderImageCmd struct {
-	HeapSortable
 	Image   *ebiten.Image
 	Options *ebiten.DrawImageOptions
 	Layer   components.ImageLayer

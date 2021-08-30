@@ -64,7 +64,6 @@ func (s *TileImageRenderSystem) AddByInterface(o ecs.Identifier) {
 }
 
 type RenderTileMapCmd struct {
-	HeapSortable
 	*components.TransformComponent
 	*components.TileImageComponent
 }

@@ -22,23 +22,9 @@ const (
 	systemPriorityInputSystem
 )
 
-type HeapSortable struct {
-	index int
-}
-
-func (s *HeapSortable) GetIndex() int {
-	return s.index
-}
-
-func (s *HeapSortable) SetIndex(val int) {
-	s.index = val
-}
-
 type RenderCmd interface {
 	Draw(*ebiten.Image)
 	GetLayer() int
-	GetIndex() int
-	SetIndex(int)
 }
 
 type RenderCmds []RenderCmd

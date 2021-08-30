@@ -54,8 +54,8 @@ func (g *Game) addSystems() {
 	var gameRuleable *GameRuleable
 	world.AddSystemInterface(CreateGameRuleSystem(g.space), gameRuleable, nil)
 
-	var Velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(g.space), Velocityable, nil)
+	var velocityable *Velocityable
+	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
 }
 
 func (g *Game) startCityLevel() {
@@ -88,7 +88,7 @@ func (g *Game) startCityLevel() {
 
 	mainGameInfo.level = &Level{}
 
-	generateBuildings(g.world)
+	generateCityBuildings(g.world)
 }
 
 func (g *Game) Reset() {
