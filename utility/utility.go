@@ -53,3 +53,7 @@ func RandRange(min, max int) int {
 	return rand.Intn(max-min) + min
 
 }
+
+func RandRangeFloat64(min, max int) float64 {
+	return float64(rand.Intn(max-min)+min) + rand.Float64()
+}

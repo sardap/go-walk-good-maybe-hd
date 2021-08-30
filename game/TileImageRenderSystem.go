@@ -91,8 +91,7 @@ func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
 		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 
 		sx := int(t) * tileSize
-		sy := 0
-		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)
+		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, 0, sx+tileSize, c.TileMap.TilesImg.Bounds().Dy())).(*ebiten.Image), op)
 	}
 }
 

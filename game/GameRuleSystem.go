@@ -210,7 +210,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 			scrollable.GetTransformComponent().Postion = trans
 		}
 
-		if building, ok := ent.(*Building); ok {
+		if building, ok := ent.(*LevelBlock); ok {
 			trans := building.GetTransformComponent()
 			if trans.Postion.X+trans.Size.X < 0 {
 				defer s.world.RemoveEntity(building.BasicEntity)

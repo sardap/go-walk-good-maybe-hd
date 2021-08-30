@@ -10,6 +10,14 @@ type AnimeFace interface {
 	GetAnimeComponent() *AnimeComponent
 }
 
+func (b *BiscuitEnemyComponent) GetBiscuitEnemyComponent() *BiscuitEnemyComponent {
+	return b
+}
+
+type BiscuitEnemyFace interface {
+	GetBiscuitEnemyComponent() *BiscuitEnemyComponent
+}
+
 func (b *BulletComponent) GetBulletComponent() *BulletComponent {
 	return b
 }

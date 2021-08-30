@@ -1,3 +1,6 @@
+# 
+# ---Whale---
+#
 [[Images]]
 name="whaleAir"
 type="tileSet"
@@ -21,6 +24,19 @@ name="whaleJump"
 type="tileSet"
 frameWidth=16
 file="whale/whaleJump.psd"
+
+# 
+# ---Enemies---
+#
+[[Images]]
+name="biscuitEnemyIdle"
+type="tileSet"
+frameWidth=8
+file="Enemies/biscuitEnemyIdle.psd"
+
+# 
+# ---Buildings---
+#
 
 [[Images]]
 name="bulletSmallGreen"

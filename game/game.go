@@ -9,6 +9,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
@@ -16,6 +17,7 @@ import (
 const (
 	bottomImageLayer components.ImageLayer = iota
 	playerImageLayer
+	enemyLayer
 	bulletImageLayer
 	buildingForground
 	uiImageLayer
@@ -89,17 +91,17 @@ func (g *Game) startCityLevel() {
 	generateBuildings(g.world)
 }
 
+func (g *Game) Reset() {
+	g.world = &ecs.World{}
+	g.lastTime = time.Unix(0, 0)
+	g.space = resolv.NewSpace()
+
+	g.startCityLevel()
+}
+
 func CreateGame() *Game {
-	world := &ecs.World{}
-
-	result := &Game{
-		world:    world,
-		lastTime: time.Unix(0, 0),
-		space:    resolv.NewSpace(),
-	}
-
-	result.startCityLevel()
-
+	result := &Game{}
+	result.Reset()
 	return result
 }
 
@@ -111,6 +113,10 @@ func (g *Game) Update() error {
 	dt := time.Since(g.lastTime)
 	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
+
+	if inpututil.IsKeyJustReleased(ebiten.KeyR) {
+		g.Reset()
+	}
 
 	return nil
 }

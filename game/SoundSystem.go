@@ -14,6 +14,10 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
+var (
+	audioCtx *audio.Context
+)
+
 type SoundSystem struct {
 	ents     map[uint64]Soundable
 	audioCtx *audio.Context
@@ -29,7 +33,10 @@ func (s *SoundSystem) Priority() int {
 
 func (s *SoundSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Soundable)
-	s.audioCtx = audio.NewContext(48000)
+	if audioCtx == nil {
+		audioCtx = audio.NewContext(48000)
+	}
+	s.audioCtx = audioCtx
 }
 
 func (s *SoundSystem) Update(dt float32) {

@@ -7,6 +7,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -21,9 +22,10 @@ type Velocityable interface {
 }
 
 type VelocitySystem struct {
-	ents    map[uint64]Velocityable
-	space   *resolv.Space
-	overlay *ebiten.Image
+	ents           map[uint64]Velocityable
+	space          *resolv.Space
+	overlay        *ebiten.Image
+	overlayEnabled bool
 }
 
 func CreateVelocitySystem(space *resolv.Space) *VelocitySystem {
@@ -42,6 +44,10 @@ func (s *VelocitySystem) New(world *ecs.World) {
 }
 
 func (s *VelocitySystem) Update(dt float32) {
+	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
+		s.overlayEnabled = !s.overlayEnabled
+	}
+
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
 		colCom := ent.GetCollisionComponent()
@@ -97,6 +103,10 @@ func (s *VelocitySystem) Update(dt float32) {
 
 func (s *VelocitySystem) Render(cmds *RenderCmds) {
 	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
+
+	if !s.overlayEnabled {
+		return
+	}
 
 	for _, ent := range s.ents {
 		if !ent.GetCollisionComponent().Active {
