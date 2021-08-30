@@ -22,7 +22,7 @@ cd /app
 go mod download
 
 echo "running tests"
-xvfb-run go test ./...
+xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
 if [ $? -eq 0 ]
 then
