@@ -2,8 +2,10 @@ package game_test
 
 import (
 	"bytes"
+	"errors"
 	"image"
 	"math/rand"
+	"os"
 	"testing"
 	"time"
 
@@ -177,7 +179,6 @@ func TestVelocitySystem(t *testing.T) {
 }
 
 func TestImageRenderSystem(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 
@@ -192,7 +193,6 @@ func TestImageRenderSystem(t *testing.T) {
 		ecs.BasicEntity
 		*components.TransformComponent
 		*components.ImageComponent
-		clr color.Color
 	}{}
 
 	basics := ecs.NewBasics(10)
@@ -205,7 +205,6 @@ func TestImageRenderSystem(t *testing.T) {
 			ecs.BasicEntity
 			*components.TransformComponent
 			*components.ImageComponent
-			clr color.Color
 		}{
 			BasicEntity:        basics[i],
 			TransformComponent: &components.TransformComponent{},
@@ -214,7 +213,6 @@ func TestImageRenderSystem(t *testing.T) {
 				Image:  img,
 				Layer:  components.ImageLayer(i),
 			},
-			clr: clr,
 		}
 
 		ents = append(ents, ent)
@@ -230,20 +228,130 @@ func TestImageRenderSystem(t *testing.T) {
 	}
 
 	imageRenderSystem.Render(&renderQueue)
-
 	renderQueue.Sort()
 
-	assert.Equal(t, len(renderQueue), len(ents))
+	assert.Equal(t, len(renderQueue), len(ents), "ents missing from the queue")
 
-	screen := ebiten.NewImage(500, 500)
-
+	screen := ebiten.NewImage(300, 300)
 	last := renderQueue[len(renderQueue)-1]
 	for i := len(renderQueue) - 2; i > 0; i-- {
 		currentEnt := ents[i]
 		current := renderQueue[i]
 		assert.Equal(t, int(currentEnt.Layer), current.GetLayer())
 		assert.Greater(t, last.GetLayer(), current.GetLayer())
+
 		current.Draw(screen)
+		expectedColor := color.RGBA{byte(i * 10), 255, 255, 255}
+		assert.Equal(t, expectedColor, screen.At(0, 0), "incorrect colour at 0,0")
+
 		last = current
 	}
+}
+
+func TestTileImageRenderSystem(t *testing.T) {
+
+	w := &ecs.World{}
+
+	imageRenderSystem := game.CreateTileImageRenderSystem()
+
+	var tileImageRenderable *game.TileImageRenderable
+	w.AddSystemInterface(imageRenderSystem, tileImageRenderable, nil)
+
+	renderQueue := make(game.RenderCmds, 0)
+
+	ents := []*struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.TileImageComponent
+	}{}
+
+	basics := ecs.NewBasics(10)
+	for i := 0; i < 10; i++ {
+		img := ebiten.NewImage(3, 1)
+		value := byte((i + 1) * 10)
+		img.Set(0, 0, color.RGBA{
+			R: value,
+			A: 255,
+		})
+		img.Set(1, 0, color.RGBA{
+			G: value,
+			A: 255,
+		})
+		img.Set(2, 0, color.RGBA{
+			B: value,
+			A: 255,
+		})
+
+		tileMap := components.CreateTileMap(2, 2, img, 1)
+
+		ent := &struct {
+			ecs.BasicEntity
+			*components.TransformComponent
+			*components.TileImageComponent
+		}{
+			BasicEntity:        basics[i],
+			TransformComponent: &components.TransformComponent{},
+			TileImageComponent: &components.TileImageComponent{
+				Active:  true,
+				TileMap: tileMap,
+				Layer:   components.ImageLayer(i),
+			},
+		}
+		tileMap.SetTile(0, 0, 0)
+		tileMap.SetTile(1, 0, 1)
+		tileMap.SetTile(0, 1, 2)
+
+		ents = append(ents, ent)
+		w.AddEntity(ents[i])
+	}
+
+	imageRenderSystem.Render(&renderQueue)
+
+	renderQueue.Sort()
+	assert.Equal(t, len(renderQueue), len(ents), "missing ents from render queue")
+
+	screen := ebiten.NewImage(2, 2)
+	for i := len(renderQueue) - 1; i > 0; i-- {
+		screen.Fill(color.Black)
+		current := renderQueue[i]
+
+		current.Draw(screen)
+		expectedValue := byte((i + 1) * 10)
+
+		assert.Equal(t, color.RGBA{R: expectedValue, A: 255}, screen.At(0, 0), "incorrect colour at 0,0")
+		assert.Equal(t, color.RGBA{G: expectedValue, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
+		assert.Equal(t, color.RGBA{B: expectedValue, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
+		assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
+	}
+}
+
+type testGame struct {
+	m    *testing.M
+	code int
+}
+
+var (
+	errRegularTermination = errors.New("regular termination")
+)
+
+func (g *testGame) Update() error {
+	g.code = g.m.Run()
+	return errRegularTermination
+}
+
+func (*testGame) Draw(screen *ebiten.Image) {
+}
+
+func (*testGame) Layout(int, int) (int, int) {
+	return 300, 300
+}
+
+func TestMain(m *testing.M) {
+	g := &testGame{
+		m: m,
+	}
+	if err := ebiten.RunGame(g); err != nil && err != errRegularTermination {
+		panic(err)
+	}
+	os.Exit(g.code)
 }

@@ -30,6 +30,6 @@ func TestCityLevelGenerate(t *testing.T) {
 		left := ground.Get(i).(*resolv.Rectangle)
 		right := ground.Get(i + 1).(*resolv.Rectangle)
 		dist := math.Abs((left.X + left.W) - (right.X + right.W))
-		assert.Less(t, dist, float64(100), "distance between buildings must be jumpable")
+		assert.Less(t, dist, float64(150), "distance between buildings must be jumpable")
 	}
 }

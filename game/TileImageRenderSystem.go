@@ -87,10 +87,12 @@ func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
 
 		op.GeoM.Translate(c.Postion.X, c.Postion.Y)
 		op.GeoM.Translate(float64((i%tileXNum)*tileSize), float64((i/tileXNum)*tileSize))
-		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+		op.GeoM.Scale(c.TileMap.Options.Scale.X, c.TileMap.Options.Scale.Y)
 
 		sx := int(t) * tileSize
-		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, 0, sx+tileSize, c.TileMap.TilesImg.Bounds().Dy())).(*ebiten.Image), op)
+		rect := image.Rect(sx, 0, sx+tileSize, c.TileMap.TilesImg.Bounds().Dy())
+		subImg := c.TileMap.TilesImg.SubImage(rect).(*ebiten.Image)
+		screen.DrawImage(subImg, op)
 	}
 }
 
