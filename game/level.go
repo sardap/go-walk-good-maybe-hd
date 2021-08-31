@@ -78,8 +78,8 @@ func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
 	w.AddEntity(biscuit)
 }
 
-func generateCityBuildings(w *ecs.World) {
-	x := mainGameInfo.level.StartX
+func generateCityBuildings(mainGameInfo *MainGameInfo, w *ecs.World) {
+	x := mainGameInfo.Level.StartX
 	for x < gameWidth/scaleMultiplier {
 		ent := ecs.NewBasic()
 		levelBlock := createBuilding0(ent)
@@ -90,5 +90,5 @@ func generateCityBuildings(w *ecs.World) {
 		w.AddEntity(levelBlock)
 		populateLevelBlock(w, levelBlock)
 	}
-	mainGameInfo.level.StartX = x
+	mainGameInfo.Level.StartX = x
 }

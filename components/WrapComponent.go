@@ -1,5 +1,8 @@
 package components
 
+import "github.com/sardap/walk-good-maybe-hd/math"
+
 type WrapComponent struct {
-	Threshold float64
+	Max math.Vector2
+	Min math.Vector2
 }

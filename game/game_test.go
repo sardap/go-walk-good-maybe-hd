@@ -176,6 +176,55 @@ func TestVelocitySystem(t *testing.T) {
 	assert.Equal(t, float64(9.5), entA.Postion.Y, "bounds y to stop collsion")
 	assert.True(t, entA.Collisions.CollidingWith("ground"))
 	assert.True(t, entB.Collisions.CollidingWith("test"))
+
+	entA.Vel.X = 10
+	w.Update(1)
+	assert.Equal(t, float64(25), entA.Postion.X, "bounds X to stop collsion")
+	assert.True(t, entA.Collisions.CollidingWith("ground"))
+	assert.True(t, entB.Collisions.CollidingWith("test"))
+
+	// don't need to test debug overlay so just do it here
+	renderQueue := make(game.RenderCmds, 0)
+	velocitySystem.OverlayEnabled = true
+	velocitySystem.Render(&renderQueue)
+	assert.Equal(t, 1, len(renderQueue))
+
+	renderQueue = make(game.RenderCmds, 0)
+	velocitySystem.OverlayEnabled = false
+	velocitySystem.Render(&renderQueue)
+	assert.Equal(t, 0, len(renderQueue))
+
+	colShape := resolv.NewRectangle(0, 0, 10, 10)
+	entC := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Postion: math.Vector2{
+				X: 20,
+				Y: 20,
+			},
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"ground"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active:         true,
+			CollisionShape: colShape,
+		},
+		VelocityComponent: &components.VelocityComponent{},
+	}
+	w.AddEntity(entC)
+	assert.Equal(t, colShape, entC.CollisionShape, "if collission shape is provided it should be unchanged")
+	assert.True(t, s.Contains(colShape), "it should be added to the space")
 }
 
 func TestImageRenderSystem(t *testing.T) {
@@ -322,6 +371,55 @@ func TestTileImageRenderSystem(t *testing.T) {
 		assert.Equal(t, color.RGBA{G: expectedValue, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
 		assert.Equal(t, color.RGBA{B: expectedValue, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
 		assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
+	}
+}
+
+func TestGameRuleSystem(t *testing.T) {
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.WrapComponent
+	}{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		WrapComponent: &components.WrapComponent{
+			Min: math.Vector2{X: 0, Y: 0},
+			Max: math.Vector2{X: 50, Y: 0},
+		},
+	}
+	w.AddEntity(ent)
+
+	wrapTestCases := []struct {
+		Postion  math.Vector2
+		Expected math.Vector2
+	}{
+		{
+			Postion:  math.Vector2{},
+			Expected: math.Vector2{},
+		},
+		{
+			Postion:  math.Vector2{X: 51},
+			Expected: math.Vector2{X: 1},
+		},
+	}
+
+	for _, testCase := range wrapTestCases {
+		ent.Postion = testCase.Postion
+		w.Update(1)
+		assert.Equal(t, testCase.Expected, ent.Postion, "No movement no change")
 	}
 }
 

@@ -25,7 +25,7 @@ type VelocitySystem struct {
 	ents           map[uint64]Velocityable
 	space          *resolv.Space
 	overlay        *ebiten.Image
-	overlayEnabled bool
+	OverlayEnabled bool
 }
 
 func CreateVelocitySystem(space *resolv.Space) *VelocitySystem {
@@ -45,7 +45,7 @@ func (s *VelocitySystem) New(world *ecs.World) {
 
 func (s *VelocitySystem) Update(dt float32) {
 	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
-		s.overlayEnabled = !s.overlayEnabled
+		s.OverlayEnabled = !s.OverlayEnabled
 	}
 
 	for _, ent := range s.ents {
@@ -104,7 +104,7 @@ func (s *VelocitySystem) Update(dt float32) {
 func (s *VelocitySystem) Render(cmds *RenderCmds) {
 	s.overlay.Fill(color.RGBA{0, 0, 0, 0})
 
-	if !s.overlayEnabled {
+	if !s.OverlayEnabled {
 		return
 	}
 
@@ -141,7 +141,10 @@ func (s *VelocitySystem) Render(cmds *RenderCmds) {
 func (s *VelocitySystem) Add(r Velocityable) {
 	s.ents[r.GetBasicEntity().ID()] = r
 
-	if r.GetCollisionComponent().CollisionShape != nil && s.space.Contains(r.GetCollisionComponent().CollisionShape) {
+	if r.GetCollisionComponent().CollisionShape != nil {
+		if !s.space.Contains(r.GetCollisionComponent().CollisionShape) {
+			s.space.Add(r.GetCollisionComponent().CollisionShape)
+		}
 		return
 	}
 

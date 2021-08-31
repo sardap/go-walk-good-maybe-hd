@@ -21,6 +21,15 @@ func WrapInt(x, min, max int) int {
 	return x
 }
 
+func WrapFloat64(x, min, max float64) float64 {
+	if x >= max {
+		return x + min - max
+	} else if x < min {
+		return x + max - min
+	}
+	return x
+}
+
 func ClampFloat64(x, min, max float64) float64 {
 	if x > max {
 		return max
@@ -37,6 +46,13 @@ func ClampVec2(val, min, max math.Vector2) math.Vector2 {
 	return math.Vector2{
 		X: ClampFloat64(val.X, min.X, max.X),
 		Y: ClampFloat64(val.Y, min.Y, max.Y),
+	}
+}
+
+func WrapVec2(val, min, max math.Vector2) math.Vector2 {
+	return math.Vector2{
+		X: WrapFloat64(val.X, min.X, max.X),
+		Y: WrapFloat64(val.Y, min.Y, max.Y),
 	}
 }
 

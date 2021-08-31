@@ -13,17 +13,16 @@ import (
 func TestCityLevelGenerate(t *testing.T) {
 	t.Parallel()
 
-	mainGameInfo = &MainGameInfo{
-		level: &Level{},
-	}
-
 	w := &ecs.World{}
 	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		Level: &Level{},
+	}
 
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
-	generateCityBuildings(w)
+	generateCityBuildings(mainGameInfo, w)
 
 	ground := s.FilterByTags(entity.TagGround)
 	for i := 0; i < ground.Length()-1; i++ {

@@ -25,9 +25,10 @@ const (
 )
 
 type Game struct {
-	world    *ecs.World
-	space    *resolv.Space
-	lastTime time.Time
+	world        *ecs.World
+	space        *resolv.Space
+	lastTime     time.Time
+	MainGameInfo *MainGameInfo
 }
 
 func (g *Game) addSystems() {
@@ -52,15 +53,15 @@ func (g *Game) addSystems() {
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
 	var gameRuleable *GameRuleable
-	world.AddSystemInterface(CreateGameRuleSystem(g.space), gameRuleable, nil)
+	world.AddSystemInterface(CreateGameRuleSystem(g.MainGameInfo, g.space), gameRuleable, nil)
 
 	var velocityable *Velocityable
 	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
 }
 
 func (g *Game) startCityLevel() {
-	mainGameInfo = &MainGameInfo{
-		gravity: startingGravity,
+	g.MainGameInfo = &MainGameInfo{
+		Gravity: startingGravity,
 	}
 
 	g.addSystems()
@@ -86,9 +87,9 @@ func (g *Game) startCityLevel() {
 	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
 
-	mainGameInfo.level = &Level{}
+	g.MainGameInfo.Level = &Level{}
 
-	generateCityBuildings(g.world)
+	generateCityBuildings(g.MainGameInfo, g.world)
 }
 
 func (g *Game) Reset() {

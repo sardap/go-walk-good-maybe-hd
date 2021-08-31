@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -13,14 +14,16 @@ import (
 )
 
 type GameRuleSystem struct {
-	ents  map[uint64]interface{}
-	world *ecs.World
-	space *resolv.Space
+	ents         map[uint64]interface{}
+	world        *ecs.World
+	space        *resolv.Space
+	mainGameInfo *MainGameInfo
 }
 
-func CreateGameRuleSystem(space *resolv.Space) *GameRuleSystem {
+func CreateGameRuleSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *GameRuleSystem {
 	return &GameRuleSystem{
-		space: space,
+		space:        space,
+		mainGameInfo: mainGameInfo,
 	}
 }
 
@@ -31,15 +34,15 @@ func (s *GameRuleSystem) Priority() int {
 func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
-	mainGameInfo.state = gameStateStarting
+	s.mainGameInfo.State = gameStateStarting
 }
 
 func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
-	switch mainGameInfo.state {
+	switch s.mainGameInfo.State {
 	case gameStateStarting:
 		if player.TransformComponent.Postion.X > 50 {
-			mainGameInfo.state = gameStateScrolling
-			mainGameInfo.scrollingSpeed.X = xStartScrollSpeed
+			s.mainGameInfo.State = gameStateScrolling
+			s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
 		}
 	case gameStateScrolling:
 		break
@@ -159,12 +162,6 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 	player.GetVelocityComponent().Vel = vel
 }
 
-type Collideable interface {
-	ecs.BasicFace
-	components.CollisionFace
-	components.IdentityFace
-}
-
 type Wrapable interface {
 	ecs.BasicFace
 	components.TransformFace
@@ -197,16 +194,19 @@ func (s *GameRuleSystem) Update(dt float32) {
 	ground := s.space.FilterByTags(entity.TagGround)
 
 	for _, ent := range s.ents {
+		// Here broken
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
-			if trans.Postion.X < -wrapable.GetWrapComponent().Threshold {
-				trans.Postion.X = wrapable.GetWrapComponent().Threshold
+			wrap := wrapable.GetWrapComponent()
+			if trans.Postion.X < wrap.Min.X {
+				fmt.Printf("fuck\n")
 			}
+			trans.Postion = utility.WrapVec2(trans.Postion, wrap.Min, wrap.Max)
 		}
 
 		if scrollable, ok := ent.(Scrollable); ok {
 			trans := scrollable.GetTransformComponent().Postion
-			trans = trans.Add(mainGameInfo.scrollingSpeed.Mul(float64(dt)))
+			trans = trans.Add(s.mainGameInfo.ScrollingSpeed.Mul(float64(dt)))
 			scrollable.GetTransformComponent().Postion = trans
 		}
 
@@ -221,9 +221,9 @@ func (s *GameRuleSystem) Update(dt float32) {
 			vel := gravityable.GetVelocityComponent()
 			colCom := gravityable.GetCollisionComponent()
 
-			collision := ground.Resolve(colCom.CollisionShape, 0, mainGameInfo.gravity*float64(dt))
+			collision := ground.Resolve(colCom.CollisionShape, 0, s.mainGameInfo.Gravity*float64(dt))
 			if !collision.Colliding() {
-				vel.Vel = vel.Vel.Add(math.Vector2{Y: mainGameInfo.gravity})
+				vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
 			}
 		}
 
@@ -232,7 +232,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
 			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
-			if postion.X > gameWidth/scaleMultiplier ||postion.X < 0 ||
+			if postion.X > gameWidth/scaleMultiplier || postion.X < 0 ||
 				colCom.Collisions.CollidingWith(entity.TagGround) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
 			}
@@ -243,8 +243,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 	}
 
-	mainGameInfo.level.StartX += mainGameInfo.scrollingSpeed.X * float64(dt)
-	generateCityBuildings(s.world)
+	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
+	generateCityBuildings(s.mainGameInfo, s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

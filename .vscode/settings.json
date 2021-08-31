@@ -29,6 +29,7 @@
 		"render",
 		"resolv",
 		"sardap",
-		"speed"
+		"speed",
+		"stretchr"
 	]
 }

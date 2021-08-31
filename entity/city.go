@@ -57,7 +57,8 @@ func CreateCityBackground() *CityBackground {
 			Vel: math.Vector2{},
 		},
 		WrapComponent: &components.WrapComponent{
-			Threshold: float64(w),
+			Max: math.Vector2{X: float64(w), Y: 0},
+			Min: math.Vector2{X: -float64(w), Y: 0},
 		},
 	}
 }
