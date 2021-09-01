@@ -175,10 +175,10 @@ type Scrollable interface {
 
 type Gravityable interface {
 	ecs.BasicFace
-	components.VelocityFace
+	components.CollisionFace
 	components.GravityFace
 	components.IdentityFace
-	components.CollisionFace
+	components.VelocityFace
 }
 
 type Bulletable interface {

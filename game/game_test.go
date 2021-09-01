@@ -13,6 +13,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/game"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/stretchr/testify/assert"
@@ -220,7 +221,7 @@ func TestResolvSystem(t *testing.T) {
 	var resolvable *game.Resolvable
 	w.AddSystemInterface(resolvSystem, resolvable, nil)
 
-	entA := &struct {
+	ent := &struct {
 		ecs.BasicEntity
 		*components.TransformComponent
 		*components.IdentityComponent
@@ -243,16 +244,16 @@ func TestResolvSystem(t *testing.T) {
 	}
 
 	// asserts
-	assert.False(t, s.Contains(entA.CollisionShape), "space should be empty")
-	w.AddEntity(entA)
-	assert.NotNil(t, entA.CollisionShape, "collsion shape should be init")
-	assert.True(t, s.Contains(entA.CollisionShape), "space should contain shape")
-	assert.Equal(t, "test", entA.CollisionShape.GetTags()[0], "tags should be copied to shape")
+	assert.False(t, s.Contains(ent.CollisionShape), "space should be empty")
+	w.AddEntity(ent)
+	assert.NotNil(t, ent.CollisionShape, "collsion shape should be init")
+	assert.True(t, s.Contains(ent.CollisionShape), "space should contain shape")
+	assert.Equal(t, "test", ent.CollisionShape.GetTags()[0], "tags should be copied to shape")
 
-	w.RemoveEntity(entA.BasicEntity)
-	assert.False(t, s.Contains(entA.CollisionShape), "shape should be removed from space")
+	w.RemoveEntity(ent.BasicEntity)
+	assert.False(t, s.Contains(ent.CollisionShape), "shape should be removed from space")
 
-	w.AddEntity(entA)
+	w.AddEntity(ent)
 
 	// don't need to test debug overlay so just do it here
 	renderQueue := make(game.RenderCmds, 0)
@@ -513,6 +514,90 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 	}
 
 	w.RemoveEntity(scrollEnt.BasicEntity)
+}
+
+func TestGravityInGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
+		Gravity:        10,
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+
+	var velocityable *game.Velocityable
+	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
+
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+
+	fallingEnt := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.CollisionComponent
+		*components.GravityComponent
+		*components.IdentityComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		GravityComponent:  &components.GravityComponent{},
+		VelocityComponent: &components.VelocityComponent{},
+		IdentityComponent: &components.IdentityComponent{},
+	}
+	w.AddEntity(fallingEnt)
+
+	ground := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Postion: math.Vector2{
+				X: 0,
+				Y: 100,
+			},
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"ground"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+	}
+	w.AddEntity(ground)
+
+	for i := 0; i < 9; i++ {
+		w.Update(1)
+		assert.Equal(t, float64((i+1)*10), fallingEnt.Postion.Y, "no postion change")
+	}
+
+	lastPostion := fallingEnt.Postion
+	w.Update(1)
+	assert.Equal(t, lastPostion, fallingEnt.Postion, "postion change should not be changing")
+	assert.False(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
+
+	w.RemoveEntity(fallingEnt.BasicEntity)
 }
 
 type testGame struct {
