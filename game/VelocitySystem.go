@@ -3,8 +3,6 @@ package game
 import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -19,10 +17,8 @@ type Velocityable interface {
 }
 
 type VelocitySystem struct {
-	ents           map[uint64]Velocityable
-	space          *resolv.Space
-	overlay        *ebiten.Image
-	OverlayEnabled bool
+	ents  map[uint64]Velocityable
+	space *resolv.Space
 }
 
 func CreateVelocitySystem(space *resolv.Space) *VelocitySystem {
@@ -37,14 +33,9 @@ func (s *VelocitySystem) Priority() int {
 
 func (s *VelocitySystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Velocityable)
-	s.overlay = ebiten.NewImage(gameWidth, gameHeight)
 }
 
 func (s *VelocitySystem) Update(dt float32) {
-	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
-		s.OverlayEnabled = !s.OverlayEnabled
-	}
-
 	for _, ent := range s.ents {
 		trans := ent.GetTransformComponent()
 		colCom := ent.GetCollisionComponent()

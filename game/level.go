@@ -11,6 +11,7 @@ import (
 
 type Level struct {
 	StartX float64
+	Width  float64
 }
 
 type LevelBlock struct {
@@ -80,7 +81,7 @@ func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
 
 func generateCityBuildings(mainGameInfo *MainGameInfo, w *ecs.World) {
 	x := mainGameInfo.Level.StartX
-	for x < gameWidth/scaleMultiplier {
+	for x < mainGameInfo.Level.Width/scaleMultiplier {
 		ent := ecs.NewBasic()
 		levelBlock := createBuilding0(ent)
 		trans := levelBlock.GetTransformComponent()

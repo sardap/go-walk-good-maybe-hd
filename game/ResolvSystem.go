@@ -37,7 +37,7 @@ func (s *ResolvSystem) Priority() int {
 
 func (s *ResolvSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Resolvable)
-	s.overlay = ebiten.NewImage(gameWidth, gameHeight)
+	s.overlay = ebiten.NewImage(windowWidth, gameHeight)
 }
 
 func (s *ResolvSystem) Update(dt float32) {

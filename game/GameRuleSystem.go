@@ -183,10 +183,10 @@ type Gravityable interface {
 
 type Bulletable interface {
 	ecs.BasicFace
-	components.BulletFace
 	components.TransformFace
-	components.VelocityFace
+	components.BulletFace
 	components.CollisionFace
+	components.VelocityFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
@@ -227,8 +227,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
 			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
-			if postion.X > gameWidth/scaleMultiplier || postion.X < 0 ||
-				colCom.Collisions.CollidingWith(entity.TagGround) {
+			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width || colCom.Collisions.CollidingWith(entity.TagGround) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
 			}
 		}

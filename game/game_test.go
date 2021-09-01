@@ -600,6 +600,71 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	w.RemoveEntity(fallingEnt.BasicEntity)
 }
 
+func TestBulletInGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Gravity: 10,
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+
+	var velocityable *game.Velocityable
+	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
+
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+
+	bullet := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.BulletComponent
+		*components.CollisionComponent
+		*components.IdentityComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		BulletComponent: &components.BulletComponent{
+			Speed: math.Vector2{X: 10},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		VelocityComponent: &components.VelocityComponent{},
+		IdentityComponent: &components.IdentityComponent{},
+	}
+	w.AddEntity(bullet)
+	for bullet.Postion.X <= mainGameInfo.Level.Width {
+		assert.True(t, s.Contains(bullet.CollisionShape))
+		w.Update(1)
+	}
+	w.Update(1)
+	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
+
+	bullet.Postion = math.Vector2{}
+	bullet.CollisionShape = nil
+	bullet.Speed.X = -10
+	w.AddEntity(bullet)
+	for bullet.Postion.X >= 0 {
+		assert.True(t, s.Contains(bullet.CollisionShape))
+		w.Update(1)
+	}
+	w.Update(1)
+	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
+}
+
 type testGame struct {
 	m    *testing.M
 	code int
