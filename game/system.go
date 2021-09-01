@@ -15,6 +15,7 @@ const (
 	systemPrioritySoundSystem
 	systemPriorityLifecycleSystem
 	systemPriorityAnimeSystem
+	systemPriorityResolvSystem
 	systemPriorityVelocitySystem
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem

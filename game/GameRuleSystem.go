@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -170,8 +169,8 @@ type Wrapable interface {
 
 type Scrollable interface {
 	ecs.BasicFace
-	components.TransformFace
 	components.ScrollableFace
+	components.VelocityFace
 }
 
 type Gravityable interface {
@@ -198,16 +197,12 @@ func (s *GameRuleSystem) Update(dt float32) {
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
 			wrap := wrapable.GetWrapComponent()
-			if trans.Postion.X < wrap.Min.X {
-				fmt.Printf("fuck\n")
-			}
 			trans.Postion = utility.WrapVec2(trans.Postion, wrap.Min, wrap.Max)
 		}
 
 		if scrollable, ok := ent.(Scrollable); ok {
-			trans := scrollable.GetTransformComponent().Postion
-			trans = trans.Add(s.mainGameInfo.ScrollingSpeed.Mul(float64(dt)))
-			scrollable.GetTransformComponent().Postion = trans
+			velCom := scrollable.GetVelocityComponent()
+			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed)
 		}
 
 		if building, ok := ent.(*LevelBlock); ok {

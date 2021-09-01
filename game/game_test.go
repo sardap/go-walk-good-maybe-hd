@@ -90,9 +90,11 @@ func TestVelocitySystem(t *testing.T) {
 
 	// Setup
 	velocitySystem := game.CreateVelocitySystem(s)
-
 	var velocityable *game.Velocityable
 	w.AddSystemInterface(velocitySystem, velocityable, nil)
+
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity
@@ -151,16 +153,6 @@ func TestVelocitySystem(t *testing.T) {
 		VelocityComponent: &components.VelocityComponent{},
 	}
 
-	// asserts
-	assert.False(t, s.Contains(entA.CollisionShape), "space should be empty")
-	w.AddEntity(entA)
-	assert.NotNil(t, entA.CollisionShape, "collsion shape should be init")
-	assert.True(t, s.Contains(entA.CollisionShape), "space should contain shape")
-	assert.Equal(t, "test", entA.CollisionShape.GetTags()[0], "tags should be copied to shape")
-
-	w.RemoveEntity(entA.BasicEntity)
-	assert.False(t, s.Contains(entA.CollisionShape), "shape should be removed from space")
-
 	w.AddEntity(entA)
 	w.AddEntity(entB)
 
@@ -182,17 +174,6 @@ func TestVelocitySystem(t *testing.T) {
 	assert.Equal(t, float64(25), entA.Postion.X, "bounds X to stop collsion")
 	assert.True(t, entA.Collisions.CollidingWith("ground"))
 	assert.True(t, entB.Collisions.CollidingWith("test"))
-
-	// don't need to test debug overlay so just do it here
-	renderQueue := make(game.RenderCmds, 0)
-	velocitySystem.OverlayEnabled = true
-	velocitySystem.Render(&renderQueue)
-	assert.Equal(t, 1, len(renderQueue))
-
-	renderQueue = make(game.RenderCmds, 0)
-	velocitySystem.OverlayEnabled = false
-	velocitySystem.Render(&renderQueue)
-	assert.Equal(t, 0, len(renderQueue))
 
 	colShape := resolv.NewRectangle(0, 0, 10, 10)
 	entC := &struct {
@@ -225,6 +206,64 @@ func TestVelocitySystem(t *testing.T) {
 	w.AddEntity(entC)
 	assert.Equal(t, colShape, entC.CollisionShape, "if collission shape is provided it should be unchanged")
 	assert.True(t, s.Contains(colShape), "it should be added to the space")
+}
+
+func TestResolvSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+
+	// Setup
+	resolvSystem := game.CreateResolvSystem(s)
+
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(resolvSystem, resolvable, nil)
+
+	entA := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"test"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active:         true,
+			CollisionShape: nil,
+		},
+	}
+
+	// asserts
+	assert.False(t, s.Contains(entA.CollisionShape), "space should be empty")
+	w.AddEntity(entA)
+	assert.NotNil(t, entA.CollisionShape, "collsion shape should be init")
+	assert.True(t, s.Contains(entA.CollisionShape), "space should contain shape")
+	assert.Equal(t, "test", entA.CollisionShape.GetTags()[0], "tags should be copied to shape")
+
+	w.RemoveEntity(entA.BasicEntity)
+	assert.False(t, s.Contains(entA.CollisionShape), "shape should be removed from space")
+
+	w.AddEntity(entA)
+
+	// don't need to test debug overlay so just do it here
+	renderQueue := make(game.RenderCmds, 0)
+	resolvSystem.OverlayEnabled = true
+	resolvSystem.Render(&renderQueue)
+	assert.Equal(t, 1, len(renderQueue))
+
+	renderQueue = make(game.RenderCmds, 0)
+	resolvSystem.OverlayEnabled = false
+	resolvSystem.Render(&renderQueue)
+	assert.Equal(t, 0, len(renderQueue))
 }
 
 func TestImageRenderSystem(t *testing.T) {
@@ -374,7 +413,9 @@ func TestTileImageRenderSystem(t *testing.T) {
 	}
 }
 
-func TestGameRuleSystem(t *testing.T) {
+func TestWrapInGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
 	w := &ecs.World{}
 	s := resolv.NewSpace()
 	mainGameInfo := &game.MainGameInfo{
@@ -388,7 +429,7 @@ func TestGameRuleSystem(t *testing.T) {
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
-	ent := &struct {
+	wrapEnt := &struct {
 		ecs.BasicEntity
 		*components.TransformComponent
 		*components.WrapComponent
@@ -400,7 +441,7 @@ func TestGameRuleSystem(t *testing.T) {
 			Max: math.Vector2{X: 50, Y: 0},
 		},
 	}
-	w.AddEntity(ent)
+	w.AddEntity(wrapEnt)
 
 	wrapTestCases := []struct {
 		Postion  math.Vector2
@@ -417,10 +458,61 @@ func TestGameRuleSystem(t *testing.T) {
 	}
 
 	for _, testCase := range wrapTestCases {
-		ent.Postion = testCase.Postion
+		wrapEnt.Postion = testCase.Postion
 		w.Update(1)
-		assert.Equal(t, testCase.Expected, ent.Postion, "No movement no change")
+		assert.Equal(t, testCase.Expected, wrapEnt.Postion, "No movement no change")
 	}
+
+	w.RemoveEntity(wrapEnt.BasicEntity)
+}
+
+func TestScrollInGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+
+	scrollEnt := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.VelocityComponent
+		*components.ScrollableComponent
+	}{
+		BasicEntity:         ecs.NewBasic(),
+		TransformComponent:  &components.TransformComponent{},
+		VelocityComponent:   &components.VelocityComponent{},
+		ScrollableComponent: &components.ScrollableComponent{},
+	}
+	w.AddEntity(scrollEnt)
+
+	scrollTestCases := []struct {
+		Vel         math.Vector2
+		ExpectedVel math.Vector2
+	}{
+		{
+			Vel:         math.Vector2{},
+			ExpectedVel: math.Vector2{X: 50},
+		},
+	}
+
+	for _, testCase := range scrollTestCases {
+		scrollEnt.Vel = testCase.Vel
+		w.Update(1)
+		assert.Equal(t, testCase.ExpectedVel, scrollEnt.Vel, "No vel no change")
+	}
+
+	w.RemoveEntity(scrollEnt.BasicEntity)
 }
 
 type testGame struct {

@@ -57,6 +57,9 @@ func (g *Game) addSystems() {
 
 	var velocityable *Velocityable
 	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
+
+	var resolvable *Resolvable
+	world.AddSystemInterface(CreateResolvSystem(g.space), resolvable, nil)
 }
 
 func (g *Game) startCityLevel() {
