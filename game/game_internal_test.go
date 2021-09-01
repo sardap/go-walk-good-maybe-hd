@@ -95,3 +95,33 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 
 	w.RemoveEntity(block.BasicEntity)
 }
+
+func TestPlayerGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
+		Level: &Level{
+			Width: 500,
+		},
+	}
+
+	gameRuleSystem := CreateGameRuleSystem(mainGameInfo, s)
+	var gameRuleable *GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+
+	var resolveable *Resolvable
+	w.AddSystemInterface(CreateResolvSystem(s), resolveable, nil)
+	var velocityable *Velocityable
+	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
+
+	player := entity.CreatePlayer()
+	player.Postion.X = 5
+	w.AddEntity(player)
+
+	w.Update(1)
+
+	w.RemoveEntity(player.BasicEntity)
+}
