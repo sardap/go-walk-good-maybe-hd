@@ -37,7 +37,7 @@ func (s *ResolvSystem) Priority() int {
 
 func (s *ResolvSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Resolvable)
-	s.overlay = ebiten.NewImage(windowWidth, gameHeight)
+	s.overlay = ebiten.NewImage(windowWidth, windowHeight)
 }
 
 func (s *ResolvSystem) Update(dt float32) {
@@ -97,7 +97,6 @@ func (s *ResolvSystem) Render(cmds *RenderCmds) {
 	}
 
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 	*cmds = append(*cmds, &RenderImageCmd{
 		Image:   s.overlay,
 		Options: op,

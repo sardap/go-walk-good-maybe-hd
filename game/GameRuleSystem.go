@@ -148,7 +148,7 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 		bullet.Postion.X = player.Postion.X + player.Size.X + 0.5
 		bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
 		bullet.Layer = bulletImageLayer
-		bullet.Speed.X = 70
+		bullet.Speed.X = 750
 		s.world.AddEntity(bullet)
 	}
 

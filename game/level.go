@@ -12,6 +12,7 @@ import (
 type Level struct {
 	StartX float64
 	Width  float64
+	Height float64
 }
 
 type LevelBlock struct {
@@ -81,13 +82,13 @@ func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
 
 func generateCityBuildings(mainGameInfo *MainGameInfo, w *ecs.World) {
 	x := mainGameInfo.Level.StartX
-	for x < mainGameInfo.Level.Width/scaleMultiplier {
+	for x < mainGameInfo.Level.Width {
 		ent := ecs.NewBasic()
 		levelBlock := createBuilding0(ent)
 		trans := levelBlock.GetTransformComponent()
-		levelBlock.GetTransformComponent().Postion.Y = gameHeight/scaleMultiplier - trans.Size.Y
+		levelBlock.GetTransformComponent().Postion.Y = mainGameInfo.Level.Height - trans.Size.Y
 		levelBlock.GetTransformComponent().Postion.X = x
-		x += levelBlock.Size.X + float64(utility.RandRange(30, 50))
+		x += levelBlock.Size.X + float64(utility.RandRange(minSpaceBetweenBuildings, minSpaceBetweenBuildings+20*scaleMultiplier))
 		w.AddEntity(levelBlock)
 		populateLevelBlock(w, levelBlock)
 	}

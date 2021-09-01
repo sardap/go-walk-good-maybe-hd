@@ -90,7 +90,10 @@ func (g *Game) startCityLevel() {
 	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
 
-	g.MainGameInfo.Level = &Level{}
+	g.MainGameInfo.Level = &Level{
+		Width:  windowWidth,
+		Height: windowHeight,
+	}
 
 	generateCityBuildings(g.MainGameInfo, g.world)
 }
@@ -145,9 +148,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(10, 10)
+	op.GeoM.Translate(float64(windowHeight-img.Bounds().Dx()), 0)
 	screen.DrawImage(img, op)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return windowWidth, gameHeight
+	return windowWidth, windowHeight
 }

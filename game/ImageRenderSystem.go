@@ -38,7 +38,6 @@ func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(trans.Postion.X, trans.Postion.Y)
-		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
 
 		var img *ebiten.Image
 		if imgCom.SubRect != nil {

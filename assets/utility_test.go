@@ -32,17 +32,20 @@ func TestLoadEbitenImage(t *testing.T) {
 	t.Parallel()
 
 	var asset struct {
-		Compressed bool
-		Data       string
+		Compressed      bool
+		Data            string
+		ScaleMultiplier int
 	}
 
 	// Uncompressed
 	asset = struct {
-		Compressed bool
-		Data       string
+		Compressed      bool
+		Data            string
+		ScaleMultiplier int
 	}{
-		Compressed: false,
-		Data:       testImg,
+		Compressed:      false,
+		Data:            testImg,
+		ScaleMultiplier: 1,
 	}
 
 	img, err := LoadEbitenImage(asset)
@@ -65,11 +68,13 @@ func TestLoadEbitenImage(t *testing.T) {
 
 	// Compressed
 	asset = struct {
-		Compressed bool
-		Data       string
+		Compressed      bool
+		Data            string
+		ScaleMultiplier int
 	}{
-		Compressed: true,
-		Data:       string(compress([]byte(testImg))),
+		Compressed:      true,
+		ScaleMultiplier: 1,
+		Data:            string(compress([]byte(testImg))),
 	}
 
 	img, err = LoadEbitenImage(asset)

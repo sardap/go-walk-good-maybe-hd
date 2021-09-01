@@ -32,8 +32,8 @@ func CreatePlayer() *Player {
 	result := &Player{
 		BasicEntity: ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
-			Speed:         70,
-			JumpPower:     90,
+			Speed:         700,
+			JumpPower:     900,
 			State:         components.MainGamePlayerStateFlying,
 			ShootCooldown: 250 * time.Millisecond,
 		},

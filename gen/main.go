@@ -104,17 +104,18 @@ func genByteArray(jf *jen.File, data []byte, name string) {
 }
 
 type GraphicsOutput struct {
-	Name        string
-	Type        string
-	Parts       []string
-	ScaleFactor int
-	FrameWidth  int
-	File        string
+	Name            string
+	Type            string
+	Parts           []string
+	FrameWidth      int
+	ScaleMultiplier int
+	File            string
 }
 
 func (g *GraphicsOutput) genImageAsset(jf *jen.File, img image.Image) {
 	var fields []jen.Code
 	fields = append(fields, jen.Id("Data").String())
+	fields = append(fields, jen.Id("ScaleMultiplier").Int())
 	fields = append(fields, jen.Id("Compressed").Bool())
 
 	if g.FrameWidth > 0 {
@@ -154,11 +155,16 @@ func (g *GraphicsOutput) genImageAsset(jf *jen.File, img image.Image) {
 		jf.Const().Id(id).Op("=").Lit(i)
 	}
 
+	if g.ScaleMultiplier == 0 {
+		g.ScaleMultiplier = 1
+	}
+
 	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
 		jf.Id("Data").Op(":").Lit(string(imgBytes)).Op(",")
+		jf.Id("ScaleMultiplier").Op(":").Lit(int(g.ScaleMultiplier)).Op(",")
 
 		if g.FrameWidth > 0 {
-			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
+			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth * g.ScaleMultiplier).Op(",")
 		}
 
 		jf.Id("Compressed").Op(":").Lit(useCompressed).Op(",")
