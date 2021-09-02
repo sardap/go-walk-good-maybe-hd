@@ -1,7 +1,6 @@
 package game
 
 import (
-	"container/heap"
 	"image/color"
 	"log"
 
@@ -83,7 +82,7 @@ func (s *TextRenderSystem) Render(cmds *RenderCmds) {
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Scale(2, 2)
 
-		heap.Push(cmds, &RenderImageCmd{
+		*cmds = append(*cmds, &RenderImageCmd{
 			Image:   value.img,
 			Options: op,
 			Layer:   textCom.Layer,

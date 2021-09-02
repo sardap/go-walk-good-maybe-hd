@@ -6,6 +6,12 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
+type Animeable interface {
+	ecs.BasicFace
+	components.AnimeFace
+	components.TileImageFace
+}
+
 type AnimeSystem struct {
 	ents map[uint64]Animeable
 }
@@ -50,12 +56,6 @@ func (s *AnimeSystem) Add(r Animeable) {
 
 func (s *AnimeSystem) Remove(e ecs.BasicEntity) {
 	delete(s.ents, e.ID())
-}
-
-type Animeable interface {
-	ecs.BasicFace
-	components.AnimeFace
-	components.TileImageFace
 }
 
 func (s *AnimeSystem) AddByInterface(o ecs.Identifier) {

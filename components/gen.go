@@ -10,6 +10,22 @@ type AnimeFace interface {
 	GetAnimeComponent() *AnimeComponent
 }
 
+func (b *BiscuitEnemyComponent) GetBiscuitEnemyComponent() *BiscuitEnemyComponent {
+	return b
+}
+
+type BiscuitEnemyFace interface {
+	GetBiscuitEnemyComponent() *BiscuitEnemyComponent
+}
+
+func (b *BulletComponent) GetBulletComponent() *BulletComponent {
+	return b
+}
+
+type BulletFace interface {
+	GetBulletComponent() *BulletComponent
+}
+
 func (c *CollisionComponent) GetCollisionComponent() *CollisionComponent {
 	return c
 }
@@ -72,6 +88,14 @@ func (s *SoundComponent) GetSoundComponent() *SoundComponent {
 
 type SoundFace interface {
 	GetSoundComponent() *SoundComponent
+}
+
+func (s *SoundPlayerComponent) GetSoundPlayerComponent() *SoundPlayerComponent {
+	return s
+}
+
+type SoundPlayerFace interface {
+	GetSoundPlayerComponent() *SoundPlayerComponent
 }
 
 func (t *TextComponent) GetTextComponent() *TextComponent {

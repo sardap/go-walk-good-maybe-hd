@@ -2,10 +2,6 @@ package game
 
 import "github.com/sardap/walk-good-maybe-hd/math"
 
-var (
-	mainGameInfo *MainGameInfo
-)
-
 type gameState int
 
 const (
@@ -14,8 +10,8 @@ const (
 )
 
 type MainGameInfo struct {
-	scrollingSpeed math.Vector2
-	gravity        float64
-	state          gameState
-	level          *Level
+	ScrollingSpeed math.Vector2
+	Gravity        float64
+	State          gameState
+	Level          *Level
 }

@@ -21,7 +21,7 @@ func WrapInt(x, min, max int) int {
 	return x
 }
 
-func WrapInt16(x, min, max int16) int16 {
+func WrapFloat64(x, min, max float64) float64 {
 	if x >= max {
 		return x + min - max
 	} else if x < min {
@@ -49,7 +49,17 @@ func ClampVec2(val, min, max math.Vector2) math.Vector2 {
 	}
 }
 
+func WrapVec2(val, min, max math.Vector2) math.Vector2 {
+	return math.Vector2{
+		X: WrapFloat64(val.X, min.X, max.X),
+		Y: WrapFloat64(val.Y, min.Y, max.Y),
+	}
+}
+
 func RandRange(min, max int) int {
 	return rand.Intn(max-min) + min
+}
 
+func RandRangeFloat64(min, max int) float64 {
+	return float64(rand.Intn(max-min)+min) + rand.Float64()
 }

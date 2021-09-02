@@ -13,8 +13,9 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/dave/jennifer/jen"
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/iancoleman/strcase"
+	"github.com/mjibson/go-dsp/wav"
+	"github.com/tcolgate/mp3"
 
 	_ "github.com/oov/psd"
 )
@@ -103,17 +104,18 @@ func genByteArray(jf *jen.File, data []byte, name string) {
 }
 
 type GraphicsOutput struct {
-	Name        string
-	Type        string
-	Parts       []string
-	ScaleFactor int
-	FrameWidth  int
-	File        string
+	Name            string
+	Type            string
+	Parts           []string
+	FrameWidth      int
+	ScaleMultiplier int
+	File            string
 }
 
 func (g *GraphicsOutput) genImageAsset(jf *jen.File, img image.Image) {
 	var fields []jen.Code
 	fields = append(fields, jen.Id("Data").String())
+	fields = append(fields, jen.Id("ScaleMultiplier").Int())
 	fields = append(fields, jen.Id("Compressed").Bool())
 
 	if g.FrameWidth > 0 {
@@ -153,38 +155,22 @@ func (g *GraphicsOutput) genImageAsset(jf *jen.File, img image.Image) {
 		jf.Const().Id(id).Op("=").Lit(i)
 	}
 
+	if g.ScaleMultiplier == 0 {
+		g.ScaleMultiplier = 1
+	}
+
 	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
 		jf.Id("Data").Op(":").Lit(string(imgBytes)).Op(",")
+		jf.Id("ScaleMultiplier").Op(":").Lit(int(g.ScaleMultiplier)).Op(",")
 
 		if g.FrameWidth > 0 {
-			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth).Op(",")
+			jf.Id("FrameWidth").Op(":").Lit(g.FrameWidth * g.ScaleMultiplier).Op(",")
 		}
 
 		jf.Id("Compressed").Op(":").Lit(useCompressed).Op(",")
 	})
 
 	jf.Line()
-}
-
-func (g *GraphicsOutput) genTileSetImageAsset(jf *jen.File, img image.Image) {
-
-	ebitenImg := ebiten.NewImageFromImage(img)
-	defer ebitenImg.Dispose()
-
-	for i, part := range g.Parts {
-		inG := &GraphicsOutput{
-			Name: g.Name + part,
-			Type: "single",
-		}
-
-		subRect := image.Rectangle{
-			Min: image.Point{X: i * g.FrameWidth, Y: 0},
-			Max: image.Point{},
-		}
-		subImg := ebitenImg.SubImage(subRect)
-
-		inG.genImageAsset(jf, subImg)
-	}
 }
 
 func (g *GraphicsOutput) genImageAssetFromFile(jf *jen.File, path string) {
@@ -208,12 +194,12 @@ func genImagesAssets(jf *jen.File, images []GraphicsOutput, assetsPath string) {
 	}
 }
 
-type SoundOutput struct {
+type MusicOutput struct {
 	Name string
 	File string
 }
 
-func (s *SoundOutput) genSouundAssetFromFile(jf *jen.File, path string) {
+func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -223,14 +209,87 @@ func (s *SoundOutput) genSouundAssetFromFile(jf *jen.File, path string) {
 	name = strcase.ToCamel(name)
 	name = "Music" + name
 
-	genByteArray(jf, data, name)
+	sampleRate := func() int {
+		mp3F, _ := os.Open(path)
+		defer mp3F.Close()
+		d := mp3.NewDecoder(mp3F)
+		var f mp3.Frame
+		skipped := 0
+		if err := d.Decode(&f, &skipped); err != nil {
+			panic(err)
+		}
+
+		sampleRate := f.Header().SampleRate()
+		if sampleRate == mp3.ErrInvalidSampleRate {
+			panic("Invalid sample rate")
+		}
+
+		return int(sampleRate)
+	}()
+
+	fields := []jen.Code{
+		jen.Id("Data").String(),
+		jen.Id("SampleRate").Int(),
+		jen.Id("SoundType").Op("SoundType"),
+	}
+
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("Data").Op(":").Lit(string(data)).Op(",")
+		jf.Id("SampleRate").Op(":").Lit(sampleRate).Op(",")
+		jf.Id("SoundType").Op(":").Op("SoundTypeMp3").Op(",")
+	})
 }
 
-func genMusicAssets(jf *jen.File, sounds []SoundOutput, assetsPath string) {
-	jf.Const().Id("Mp3SampleRate").Op("=").Lit(48000)
+func genMusicAssets(jf *jen.File, music []MusicOutput, assetsPath string) {
+	fmt.Printf("\nGenerating Music\n")
+
+	for _, target := range music {
+		fmt.Printf("...%s\n", target.Name)
+		target.genMusicAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+	}
+}
+
+type SoundOutput struct {
+	Name string
+	File string
+}
+
+func (s *SoundOutput) genSoundAssetFromFile(jf *jen.File, path string) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Sound" + name
+
+	sampleRate := func() int {
+		wavF, _ := os.Open(path)
+		defer wavF.Close()
+		w, _ := wav.New(wavF)
+		return int(w.SampleRate)
+	}()
+
+	fields := []jen.Code{
+		jen.Id("Data").String(),
+		jen.Id("SampleRate").Int(),
+		jen.Id("SoundType").Op("SoundType"),
+	}
+
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("Data").Op(":").Lit(string(data)).Op(",")
+		jf.Id("SampleRate").Op(":").Lit(sampleRate).Op(",")
+		jf.Id("SoundType").Op(":").Op("SoundTypeWav").Op(",")
+	})
+}
+
+func genSoundAssets(jf *jen.File, sounds []SoundOutput, assetsPath string) {
+	fmt.Printf("\nGenerating Sounds\n")
 
 	for _, target := range sounds {
-		target.genSouundAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+		fmt.Printf("...%s\n", target.Name)
+		target.genSoundAssetFromFile(jf, filepath.Join(assetsPath, target.File))
 	}
 }
 
@@ -244,7 +303,8 @@ func genAssets() {
 
 	var config struct {
 		Images []GraphicsOutput
-		Music  []SoundOutput
+		Music  []MusicOutput
+		Sounds []SoundOutput
 	}
 	if err := toml.Unmarshal(buildFile, &config); err != nil {
 		panic(err)
@@ -258,7 +318,15 @@ func genAssets() {
 	jf.Line()
 
 	genImagesAssets(jf, config.Images, filepath.Join(assetsPath, "images"))
+
+	// Create sound types
+	jf.Type().Id("SoundType").Int()
+	jf.Line()
+	jf.Const().Id("SoundTypeMp3").Op("SoundType").Op("=").Lit(0)
+	jf.Const().Id("SoundTypeWav").Op("SoundType").Op("=").Lit(1)
+
 	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
+	genSoundAssets(jf, config.Sounds, filepath.Join(assetsPath, "sounds"))
 
 	f, err := os.Create(filepath.Join(workspacePath, "assets", "gen.go"))
 	if err != nil {

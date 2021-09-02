@@ -1,11 +1,12 @@
 package game
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -14,14 +15,17 @@ import (
 )
 
 type GameRuleSystem struct {
-	ents  map[uint64]interface{}
-	world *ecs.World
-	space *resolv.Space
+	ents            map[uint64]interface{}
+	world           *ecs.World
+	space           *resolv.Space
+	mainGameInfo    *MainGameInfo
+	enemyDeathSound *entity.SoundPlayer
 }
 
-func CreateGameRuleSystem(space *resolv.Space) *GameRuleSystem {
+func CreateGameRuleSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *GameRuleSystem {
 	return &GameRuleSystem{
-		space: space,
+		space:        space,
+		mainGameInfo: mainGameInfo,
 	}
 }
 
@@ -32,15 +36,15 @@ func (s *GameRuleSystem) Priority() int {
 func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
-	mainGameInfo.state = gameStateStarting
+	s.mainGameInfo.State = gameStateStarting
 }
 
 func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
-	switch mainGameInfo.state {
+	switch s.mainGameInfo.State {
 	case gameStateStarting:
 		if player.TransformComponent.Postion.X > 50 {
-			mainGameInfo.state = gameStateScrolling
-			mainGameInfo.scrollingSpeed.X = xStartScrollSpeed
+			s.mainGameInfo.State = gameStateScrolling
+			s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
 		}
 	case gameStateScrolling:
 		break
@@ -60,6 +64,9 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 
 	changeToJumping := func() {
 		player.State = components.MainGamePlayerStateJumping
+
+		player.SoundComponent.Active = true
+		player.SoundComponent.Restart = true
 
 		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
@@ -131,22 +138,30 @@ func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
 
 	if move.MoveLeft {
 		vel.X = -horzSpeed
+		player.TileMap.Options.InvertX = true
 	} else if move.MoveRight {
 		vel.X = horzSpeed
+		player.TileMap.Options.InvertX = false
+	}
+
+	player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
+	if move.Shoot && player.ShootCooldownRemaning < 0 {
+		player.ShootCooldownRemaning = player.ShootCooldown
+		bullet := entity.CreateBullet()
+		bullet.Postion.X = player.Postion.X + player.Size.X + 0.5
+		bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
+		bullet.Layer = bulletImageLayer
+		bullet.Speed.X = 750
+		s.world.AddEntity(bullet)
 	}
 
 	// Must reset no matter what
 	move.MoveLeft = false
 	move.MoveRight = false
 	move.MoveUp = false
+	move.Shoot = false
 
 	player.GetVelocityComponent().Vel = vel
-}
-
-type Collideable interface {
-	ecs.BasicFace
-	components.CollisionFace
-	components.IdentityFace
 }
 
 type Wrapable interface {
@@ -157,40 +172,62 @@ type Wrapable interface {
 
 type Scrollable interface {
 	ecs.BasicFace
-	components.TransformFace
 	components.ScrollableFace
+	components.VelocityFace
 }
 
 type Gravityable interface {
 	ecs.BasicFace
-	components.VelocityFace
+	components.CollisionFace
 	components.GravityFace
 	components.IdentityFace
+	components.VelocityFace
+}
+
+type Bulletable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.BulletFace
+	components.CollisionFace
+	components.VelocityFace
+}
+
+type EnemyBiscuitable interface {
+	ecs.BasicFace
+	components.BiscuitEnemyFace
 	components.CollisionFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
+	if s.enemyDeathSound == nil {
+		s.enemyDeathSound = entity.CreateSoundPlayer(assets.SoundPdBiscuitDeath)
+		s.world.AddEntity(s.enemyDeathSound)
+	}
+
+	if inpututil.KeyPressDuration(ebiten.KeyJ) > 0 {
+		s.enemyDeathSound.Active = true
+		s.enemyDeathSound.Restart = true
+	}
+
 	ground := s.space.FilterByTags(entity.TagGround)
 
 	for _, ent := range s.ents {
+		// Here broken
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
-			if trans.Postion.X < -wrapable.GetWrapComponent().Threshold {
-				trans.Postion.X = wrapable.GetWrapComponent().Threshold
-			}
+			wrap := wrapable.GetWrapComponent()
+			trans.Postion = utility.WrapVec2(trans.Postion, wrap.Min, wrap.Max)
 		}
 
 		if scrollable, ok := ent.(Scrollable); ok {
-			trans := scrollable.GetTransformComponent().Postion
-			trans = trans.Add(mainGameInfo.scrollingSpeed.Mul(float64(dt)))
-			scrollable.GetTransformComponent().Postion = trans
+			velCom := scrollable.GetVelocityComponent()
+			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed)
 		}
 
-		if building, ok := ent.(*Building); ok {
+		if building, ok := ent.(*LevelBlock); ok {
 			trans := building.GetTransformComponent()
 			if trans.Postion.X+trans.Size.X < 0 {
 				defer s.world.RemoveEntity(building.BasicEntity)
-				fmt.Printf("Removing %d\n", building.ID())
 			}
 		}
 
@@ -198,9 +235,31 @@ func (s *GameRuleSystem) Update(dt float32) {
 			vel := gravityable.GetVelocityComponent()
 			colCom := gravityable.GetCollisionComponent()
 
-			collision := ground.Resolve(colCom.CollisionShape, 0, mainGameInfo.gravity*float64(dt))
+			collision := ground.Resolve(colCom.CollisionShape, 0, s.mainGameInfo.Gravity*float64(dt))
 			if !collision.Colliding() {
-				vel.Vel = vel.Vel.Add(math.Vector2{Y: mainGameInfo.gravity})
+				vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
+			}
+		}
+
+		if bullet, ok := ent.(Bulletable); ok {
+			velCom := bullet.GetVelocityComponent()
+			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
+			postion := bullet.GetTransformComponent().Postion
+			colCom := bullet.GetCollisionComponent()
+			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width ||
+				colCom.Collisions.CollidingWith(entity.TagGround, entity.TagEnemy) {
+				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
+			}
+		}
+
+		if biscuit, ok := ent.(EnemyBiscuitable); ok {
+			colCom := biscuit.GetCollisionComponent()
+			if colCom.Collisions.CollidingWith(entity.TagBullet) {
+				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
+					s.enemyDeathSound.Restart = true
+					s.enemyDeathSound.SoundComponent.Active = true
+				}
+				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
 			}
 		}
 
@@ -209,8 +268,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 	}
 
-	mainGameInfo.level.StartX += mainGameInfo.scrollingSpeed.X * float64(dt)
-	generateBuildings(s.world)
+	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
+	generateCityBuildings(s.mainGameInfo, s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

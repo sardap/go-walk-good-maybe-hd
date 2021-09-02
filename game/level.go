@@ -11,9 +11,11 @@ import (
 
 type Level struct {
 	StartX float64
+	Width  float64
+	Height float64
 }
 
-type Building struct {
+type LevelBlock struct {
 	ecs.BasicEntity
 	*components.TransformComponent
 	*components.VelocityComponent
@@ -23,7 +25,7 @@ type Building struct {
 	*components.IdentityComponent
 }
 
-func createBuilding0(ent ecs.BasicEntity) *Building {
+func createBuilding0(ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
 
 	width := utility.RandRange(5, 9)
@@ -39,7 +41,7 @@ func createBuilding0(ent ecs.BasicEntity) *Building {
 		tileMap.SetCol(x, 1, assets.IndexBuilding0Window)
 	}
 
-	result := &Building{
+	result := &LevelBlock{
 		BasicEntity: ent,
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{
@@ -64,16 +66,31 @@ func createBuilding0(ent ecs.BasicEntity) *Building {
 	return result
 }
 
-func generateBuildings(w *ecs.World) {
-	x := mainGameInfo.level.StartX
-	for x < gameWidth/scaleMultiplier {
+type LevelBlockable interface {
+	ecs.BasicFace
+	components.TransformFace
+}
+
+func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
+	trans := lb.GetTransformComponent()
+	biscuit := entity.CreateBiscuitEnemy()
+	biscuit.Postion.X = utility.RandRangeFloat64(int(trans.Postion.X), int(trans.Postion.X+trans.Size.X))
+	biscuit.Postion.Y = 30
+	biscuit.Layer = enemyLayer
+	w.AddEntity(biscuit)
+}
+
+func generateCityBuildings(mainGameInfo *MainGameInfo, w *ecs.World) {
+	x := mainGameInfo.Level.StartX
+	for x < mainGameInfo.Level.Width {
 		ent := ecs.NewBasic()
-		block := createBuilding0(ent)
-		trans := block.GetTransformComponent()
-		block.GetTransformComponent().Postion.Y = gameHeight/scaleMultiplier - trans.Size.Y
-		block.GetTransformComponent().Postion.X = x
-		x += block.Size.X + float64(utility.RandRange(30, 50))
-		w.AddEntity(block)
+		levelBlock := createBuilding0(ent)
+		trans := levelBlock.GetTransformComponent()
+		levelBlock.GetTransformComponent().Postion.Y = mainGameInfo.Level.Height - trans.Size.Y
+		levelBlock.GetTransformComponent().Postion.X = x
+		x += levelBlock.Size.X + float64(utility.RandRange(minSpaceBetweenBuildings, minSpaceBetweenBuildings+20*scaleMultiplier))
+		w.AddEntity(levelBlock)
+		populateLevelBlock(w, levelBlock)
 	}
-	mainGameInfo.level.StartX = x
+	mainGameInfo.Level.StartX = x
 }

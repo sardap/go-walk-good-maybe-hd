@@ -20,10 +20,7 @@ func CreateCityMusic() *CityMusic {
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
 		SoundComponent: &components.SoundComponent{
-			Sound: components.Sound{
-				Source:    assets.MusicPdCity0,
-				SoundType: components.SoundTypeMp3,
-			},
+			Sound:  loadSound(assets.MusicPdCity0),
 			Active: true,
 			Loop:   true,
 			Intro:  time.Duration(8) * time.Second,
@@ -60,7 +57,8 @@ func CreateCityBackground() *CityBackground {
 			Vel: math.Vector2{},
 		},
 		WrapComponent: &components.WrapComponent{
-			Threshold: float64(w),
+			Max: math.Vector2{X: float64(w), Y: 0},
+			Min: math.Vector2{X: -float64(w), Y: 0},
 		},
 	}
 }

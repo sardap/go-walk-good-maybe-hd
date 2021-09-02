@@ -5,4 +5,5 @@ type MovementComponent struct {
 	MoveDown  bool
 	MoveLeft  bool
 	MoveRight bool
+	Shoot     bool
 }

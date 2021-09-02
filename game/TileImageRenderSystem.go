@@ -1,7 +1,6 @@
 package game
 
 import (
-	"container/heap"
 	"image"
 
 	"github.com/EngoEngine/ecs"
@@ -30,16 +29,9 @@ func (s *TileImageRenderSystem) Update(dt float32) {
 
 func (s *TileImageRenderSystem) Render(cmds *RenderCmds) {
 	for _, ent := range s.ents {
-		trans := ent.GetTransformComponent()
-
-		op := &ebiten.DrawImageOptions{}
-		op.GeoM.Translate(trans.Postion.X, trans.Postion.Y)
-		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
-
-		heap.Push(cmds, &RenderTileMapCmd{
+		*cmds = append(*cmds, &RenderTileMapCmd{
 			TransformComponent: ent.GetTransformComponent(),
 			TileImageComponent: ent.GetTileImageComponent(),
-			Options:            op,
 		})
 	}
 }
@@ -72,10 +64,8 @@ func (s *TileImageRenderSystem) AddByInterface(o ecs.Identifier) {
 }
 
 type RenderTileMapCmd struct {
-	HeapSortable
 	*components.TransformComponent
 	*components.TileImageComponent
-	Options *ebiten.DrawImageOptions
 }
 
 func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
@@ -84,13 +74,25 @@ func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
 
 	for i, t := range c.TileMap.Map {
 		op := &ebiten.DrawImageOptions{}
+
+		if c.TileMap.Options.InvertX {
+			op.GeoM.Scale(-1, 1)
+			op.GeoM.Translate(float64(tileSize), 0)
+		}
+
+		if c.TileMap.Options.InvertY {
+			op.GeoM.Scale(1, -1)
+			op.GeoM.Translate(0, float64(tileSize))
+		}
+
 		op.GeoM.Translate(c.Postion.X, c.Postion.Y)
 		op.GeoM.Translate(float64((i%tileXNum)*tileSize), float64((i/tileXNum)*tileSize))
-		op.GeoM.Scale(scaleMultiplier, scaleMultiplier)
+		op.GeoM.Scale(c.TileMap.Options.Scale.X, c.TileMap.Options.Scale.Y)
 
 		sx := int(t) * tileSize
-		sy := 0
-		screen.DrawImage(c.TileMap.TilesImg.SubImage(image.Rect(sx, sy, sx+tileSize, sy+tileSize)).(*ebiten.Image), op)
+		rect := image.Rect(sx, 0, sx+tileSize, c.TileMap.TilesImg.Bounds().Dy())
+		subImg := c.TileMap.TilesImg.SubImage(rect).(*ebiten.Image)
+		screen.DrawImage(subImg, op)
 	}
 }
 

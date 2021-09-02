@@ -1,7 +1,6 @@
 package game
 
 import (
-	"container/heap"
 	"fmt"
 	"image/color"
 	"time"
@@ -10,6 +9,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
@@ -17,15 +17,18 @@ import (
 const (
 	bottomImageLayer components.ImageLayer = iota
 	playerImageLayer
+	enemyLayer
+	bulletImageLayer
 	buildingForground
 	uiImageLayer
 	debugImageLayer
 )
 
 type Game struct {
-	world    *ecs.World
-	space    *resolv.Space
-	lastTime time.Time
+	world        *ecs.World
+	space        *resolv.Space
+	lastTime     time.Time
+	MainGameInfo *MainGameInfo
 }
 
 func (g *Game) addSystems() {
@@ -50,15 +53,18 @@ func (g *Game) addSystems() {
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
 	var gameRuleable *GameRuleable
-	world.AddSystemInterface(CreateGameRuleSystem(g.space), gameRuleable, nil)
+	world.AddSystemInterface(CreateGameRuleSystem(g.MainGameInfo, g.space), gameRuleable, nil)
 
-	var Velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(g.space), Velocityable, nil)
+	var velocityable *Velocityable
+	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
+
+	var resolvable *Resolvable
+	world.AddSystemInterface(CreateResolvSystem(g.space), resolvable, nil)
 }
 
 func (g *Game) startCityLevel() {
-	mainGameInfo = &MainGameInfo{
-		gravity: startingGravity,
+	g.MainGameInfo = &MainGameInfo{
+		Gravity: startingGravity,
 	}
 
 	g.addSystems()
@@ -84,22 +90,25 @@ func (g *Game) startCityLevel() {
 	testBox.TransformComponent.Postion.Y = 500
 	g.world.AddEntity(testBox)
 
-	mainGameInfo.level = &Level{}
+	g.MainGameInfo.Level = &Level{
+		Width:  windowWidth,
+		Height: windowHeight,
+	}
 
-	generateBuildings(g.world)
+	generateCityBuildings(g.MainGameInfo, g.world)
+}
+
+func (g *Game) Reset() {
+	g.world = &ecs.World{}
+	g.lastTime = time.Unix(0, 0)
+	g.space = resolv.NewSpace()
+
+	g.startCityLevel()
 }
 
 func CreateGame() *Game {
-	world := &ecs.World{}
-
-	result := &Game{
-		world:    world,
-		lastTime: time.Unix(0, 0),
-		space:    resolv.NewSpace(),
-	}
-
-	result.startCityLevel()
-
+	result := &Game{}
+	result.Reset()
 	return result
 }
 
@@ -112,23 +121,26 @@ func (g *Game) Update() error {
 	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
 
+	if inpututil.IsKeyJustReleased(ebiten.KeyR) {
+		g.Reset()
+	}
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	queue := &RenderCmds{}
+	queue := RenderCmds{}
 
 	screen.Fill(color.White)
 	for _, system := range g.world.Systems() {
 		if rendSys, ok := system.(RenderingSystem); ok {
-			rendSys.Render(queue)
+			rendSys.Render(&queue)
 		}
 	}
 
-	heap.Init(queue)
+	queue.Sort()
 
-	for queue.Len() > 0 {
-		item := heap.Pop(queue).(RenderCmd)
+	for _, item := range queue {
 		item.Draw(screen)
 	}
 
@@ -136,9 +148,10 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(10, 10)
+	op.GeoM.Translate(float64(windowHeight-img.Bounds().Dx()), 0)
 	screen.DrawImage(img, op)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
-	return gameWidth, gameHeight
+	return windowWidth, windowHeight
 }

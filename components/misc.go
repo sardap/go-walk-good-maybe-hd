@@ -4,7 +4,14 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
+
+type DrawOptions struct {
+	InvertX bool
+	InvertY bool
+	Scale   math.Vector2
+}
 
 type ImageLayer int
 

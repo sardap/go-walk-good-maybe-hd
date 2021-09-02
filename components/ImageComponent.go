@@ -8,6 +8,7 @@ import (
 
 type ImageComponent struct {
 	Active  bool
+	Options DrawOptions
 	Image   *ebiten.Image
 	SubRect *image.Rectangle
 	Layer   ImageLayer

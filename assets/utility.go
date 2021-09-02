@@ -10,6 +10,9 @@ import (
 	"sync"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/nfnt/resize"
+
+	_ "image/png"
 )
 
 var (
@@ -31,6 +34,7 @@ func LoadEbitenImage(asset interface{}) (*ebiten.Image, error) {
 
 	compressed := t.FieldByName("Compressed").Bool()
 	data := []byte(t.FieldByName("Data").String())
+	scale := int(t.FieldByName("ScaleMultiplier").Int())
 
 	hash := getHash(data)
 
@@ -55,10 +59,21 @@ func LoadEbitenImage(asset interface{}) (*ebiten.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	img = resize.Resize(uint(img.Bounds().Dx()*scale), uint(img.Bounds().Dy()*scale), img, resize.NearestNeighbor)
 
 	eImg = ebiten.NewImageFromImage(img)
 
 	imageCache[hash] = eImg
 
 	return eImg, nil
+}
+
+func LoadSound(asset interface{}) (data []byte, sampleRate int, soundType SoundType) {
+	t := reflect.ValueOf(asset)
+
+	sampleRate = int(t.FieldByName("SampleRate").Int())
+	data = []byte(t.FieldByName("Data").String())
+	soundType = SoundType(t.FieldByName("SoundType").Int())
+
+	return
 }

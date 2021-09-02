@@ -21,6 +21,7 @@ type Player struct {
 	*components.ScrollableComponent
 	*components.GravityComponent
 	*components.IdentityComponent
+	*components.SoundComponent
 }
 
 func CreatePlayer() *Player {
@@ -31,9 +32,10 @@ func CreatePlayer() *Player {
 	result := &Player{
 		BasicEntity: ecs.NewBasic(),
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
-			Speed:     70,
-			JumpPower: 90,
-			State:     components.MainGamePlayerStateFlying,
+			Speed:         700,
+			JumpPower:     900,
+			State:         components.MainGamePlayerStateFlying,
+			ShootCooldown: 250 * time.Millisecond,
 		},
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{
@@ -59,6 +61,10 @@ func CreatePlayer() *Player {
 		GravityComponent:    &components.GravityComponent{},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagPlayer},
+		},
+		SoundComponent: &components.SoundComponent{
+			Active: false,
+			Sound:  loadSound(assets.SoundByJumpTwo),
 		},
 	}
 

@@ -9,8 +9,13 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/audio/wav"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+)
+
+var (
+	audioCtx *audio.Context
 )
 
 type SoundSystem struct {
@@ -28,44 +33,70 @@ func (s *SoundSystem) Priority() int {
 
 func (s *SoundSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Soundable)
-	s.audioCtx = audio.NewContext(48000)
+	if audioCtx == nil {
+		audioCtx = audio.NewContext(48000)
+	}
+	s.audioCtx = audioCtx
 }
 
 func (s *SoundSystem) Update(dt float32) {
 	for _, ent := range s.ents {
 		soundCom := ent.GetSoundComponent()
-		if soundCom.Active {
-			if soundCom.Player == nil {
-				switch soundCom.Sound.SoundType {
-				case components.SoundTypeMp3:
-					buffer := bytes.NewReader(soundCom.Sound.Source)
-					var stream io.Reader
-					stream, _ = mp3.DecodeWithSampleRate(assets.Mp3SampleRate, buffer)
-					if soundCom.Loop {
-						mp3Stream := stream.(*mp3.Stream)
-						if soundCom.Intro > 0 {
-							introLength := int64((soundCom.Intro / time.Second) * 4 * assets.Mp3SampleRate)
 
-							stream = audio.NewInfiniteLoopWithIntro(
-								mp3Stream,
-								introLength,
-								mp3Stream.Length()-introLength)
-						} else {
-							stream = audio.NewInfiniteLoop(mp3Stream, mp3Stream.Length())
-						}
+		// Reloading the assets is fucking stupid should be using rewind with
+		// checking if the sound has been changed
+		if soundCom.Restart {
+			soundCom.Player = nil
+			soundCom.Restart = false
+		}
+
+		if !soundCom.Active {
+			if soundCom.Player != nil && soundCom.Player.IsPlaying() {
+				soundCom.Player.Rewind()
+				soundCom.Player.Pause()
+			}
+
+			continue
+		}
+
+		if soundCom.Player == nil {
+			var stream io.Reader
+
+			switch soundCom.Sound.SoundType {
+			case assets.SoundTypeMp3:
+				buffer := bytes.NewReader(soundCom.Sound.Source)
+				stream, _ = mp3.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				if soundCom.Loop {
+					mp3Stream := stream.(*mp3.Stream)
+					if soundCom.Intro > 0 {
+						introLength := int64(int(soundCom.Intro/time.Second) * 4 * soundCom.Sound.SampleRate)
+
+						stream = audio.NewInfiniteLoopWithIntro(
+							mp3Stream,
+							introLength,
+							mp3Stream.Length()-introLength,
+						)
+					} else {
+						stream = audio.NewInfiniteLoop(mp3Stream, mp3Stream.Length())
 					}
-
-					soundCom.Player, _ = audio.NewPlayer(s.audioCtx, stream)
-
-				default:
-					log.Fatalf("Unkown sound type %v", soundCom.Sound.SoundType)
-					continue
 				}
+
+			case assets.SoundTypeWav:
+				buffer := bytes.NewReader(soundCom.Sound.Source)
+				stream, _ = wav.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+
+			default:
+				log.Fatalf("Unknown sound type %v", soundCom.Sound.SoundType)
+				continue
 			}
 
-			if !soundCom.Player.IsPlaying() {
-				soundCom.Player.Play()
-			}
+			soundCom.Player, _ = audio.NewPlayer(s.audioCtx, stream)
+
+			soundCom.Player.Play()
+		}
+
+		if !soundCom.Player.IsPlaying() {
+			soundCom.Active = false
 		}
 	}
 }

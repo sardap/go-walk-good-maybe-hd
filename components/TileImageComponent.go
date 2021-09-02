@@ -2,9 +2,11 @@ package components
 
 import (
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type TileMap struct {
+	Options   DrawOptions
 	TilesImg  *ebiten.Image
 	Map       []int16
 	TileWidth int
@@ -17,6 +19,9 @@ func CreateTileMap(width int, height int, tiles *ebiten.Image, tileWIdth int) *T
 		TileWidth: tileWIdth,
 		TileXNum:  width,
 		Map:       make([]int16, width*height),
+		Options: DrawOptions{
+			Scale: math.Vector2{X: 1, Y: 1},
+		},
 	}
 
 	for i := range result.Map {
