@@ -341,12 +341,10 @@ func TestTileImageRenderSystem(t *testing.T) {
 
 	w := &ecs.World{}
 
-	imageRenderSystem := game.CreateTileImageRenderSystem()
+	tileImageRenderSystem := game.CreateTileImageRenderSystem()
 
 	var tileImageRenderable *game.TileImageRenderable
-	w.AddSystemInterface(imageRenderSystem, tileImageRenderable, nil)
-
-	renderQueue := make(game.RenderCmds, 0)
+	w.AddSystemInterface(tileImageRenderSystem, tileImageRenderable, nil)
 
 	ents := []*struct {
 		ecs.BasicEntity
@@ -363,11 +361,11 @@ func TestTileImageRenderSystem(t *testing.T) {
 			A: 255,
 		})
 		img.Set(1, 0, color.RGBA{
-			G: value,
+			G: value + 1,
 			A: 255,
 		})
 		img.Set(2, 0, color.RGBA{
-			B: value,
+			B: value + 2,
 			A: 255,
 		})
 
@@ -394,7 +392,8 @@ func TestTileImageRenderSystem(t *testing.T) {
 		w.AddEntity(ents[i])
 	}
 
-	imageRenderSystem.Render(&renderQueue)
+	renderQueue := make(game.RenderCmds, 0)
+	tileImageRenderSystem.Render(&renderQueue)
 
 	renderQueue.Sort()
 	assert.Equal(t, len(renderQueue), len(ents), "missing ents from render queue")
@@ -408,10 +407,37 @@ func TestTileImageRenderSystem(t *testing.T) {
 		expectedValue := byte((i + 1) * 10)
 
 		assert.Equal(t, color.RGBA{R: expectedValue, A: 255}, screen.At(0, 0), "incorrect colour at 0,0")
-		assert.Equal(t, color.RGBA{G: expectedValue, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
-		assert.Equal(t, color.RGBA{B: expectedValue, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
+		assert.Equal(t, color.RGBA{G: expectedValue + 1, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
+		assert.Equal(t, color.RGBA{B: expectedValue + 2, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
 		assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
 	}
+
+	for _, ent := range ents {
+		w.RemoveEntity(ent.BasicEntity)
+	}
+
+	ent := ents[0]
+	w.AddEntity(ent)
+
+	ent.TileMap.Options.InvertX = true
+	ent.TileMap.Options.InvertY = true
+
+	renderQueue = make(game.RenderCmds, 0)
+	tileImageRenderSystem.Render(&renderQueue)
+	renderQueue.Sort()
+
+	screen.Fill(color.Black)
+	renderQueue[0].Draw(screen)
+
+	// I really don't think this works right
+	expectedValue := byte(10)
+	assert.Equal(t, color.RGBA{R: expectedValue, A: 255}, screen.At(0, 0), "incorrect colour at 0,0")
+	assert.Equal(t, color.RGBA{G: expectedValue + 1, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
+	assert.Equal(t, color.RGBA{B: expectedValue + 2, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
+	assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
+
+	assert.NotZero(t, tileImageRenderSystem.Priority())
+	tileImageRenderSystem.Update(0)
 }
 
 func TestWrapInGameRuleSystem(t *testing.T) {
