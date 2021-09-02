@@ -18,7 +18,22 @@ func loadSound(asset interface{}) components.Sound {
 		SampleRate: sampleRate,
 		SoundType:  assets.SoundType(soundType),
 	}
+}
 
+type SoundPlayer struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.SoundComponent
+}
+
+func CreateSoundPlayer(asset interface{}) *SoundPlayer {
+	return &SoundPlayer{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		SoundComponent: &components.SoundComponent{
+			Sound: loadSound(asset),
+		},
+	}
 }
 
 type InputInfo struct {

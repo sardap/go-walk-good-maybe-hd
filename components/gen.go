@@ -90,6 +90,14 @@ type SoundFace interface {
 	GetSoundComponent() *SoundComponent
 }
 
+func (s *SoundPlayerComponent) GetSoundPlayerComponent() *SoundPlayerComponent {
+	return s
+}
+
+type SoundPlayerFace interface {
+	GetSoundPlayerComponent() *SoundPlayerComponent
+}
+
 func (t *TextComponent) GetTextComponent() *TextComponent {
 	return t
 }

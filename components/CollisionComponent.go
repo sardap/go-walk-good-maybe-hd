@@ -9,11 +9,13 @@ type CollisionEvent struct {
 
 type CollisionEvents []*CollisionEvent
 
-func (c CollisionEvents) CollidingWith(tag string) bool {
+func (c CollisionEvents) CollidingWith(tags ...string) bool {
 	for _, event := range c {
 		for _, otherTag := range event.Tags {
-			if otherTag == tag {
-				return true
+			for _, sTag := range tags {
+				if otherTag == sTag {
+					return true
+				}
 			}
 		}
 	}

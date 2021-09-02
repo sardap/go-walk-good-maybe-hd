@@ -44,7 +44,7 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 			Active: true,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{tagEnemy},
+			Tags: []string{TagEnemy},
 		},
 		GravityComponent: &components.GravityComponent{},
 		TileImageComponent: &components.TileImageComponent{

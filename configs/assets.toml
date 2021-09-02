@@ -67,6 +67,10 @@ file="building/building0TileSet.psd"
 name="byJumpTwo"
 file="byJumpTwo.wav"
 
+[[Sounds]]
+name="biscuitDeath"
+file="pdBiscuitDeath.wav"
+
 [[Music]]
 name="city"
 file="pd_city_0.mp3"

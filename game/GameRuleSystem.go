@@ -5,6 +5,8 @@ import (
 
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
+	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -13,10 +15,11 @@ import (
 )
 
 type GameRuleSystem struct {
-	ents         map[uint64]interface{}
-	world        *ecs.World
-	space        *resolv.Space
-	mainGameInfo *MainGameInfo
+	ents            map[uint64]interface{}
+	world           *ecs.World
+	space           *resolv.Space
+	mainGameInfo    *MainGameInfo
+	enemyDeathSound *entity.SoundPlayer
 }
 
 func CreateGameRuleSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *GameRuleSystem {
@@ -189,7 +192,23 @@ type Bulletable interface {
 	components.VelocityFace
 }
 
+type EnemyBiscuitable interface {
+	ecs.BasicFace
+	components.BiscuitEnemyFace
+	components.CollisionFace
+}
+
 func (s *GameRuleSystem) Update(dt float32) {
+	if s.enemyDeathSound == nil {
+		s.enemyDeathSound = entity.CreateSoundPlayer(assets.SoundPdBiscuitDeath)
+		s.world.AddEntity(s.enemyDeathSound)
+	}
+
+	if inpututil.KeyPressDuration(ebiten.KeyJ) > 0 {
+		s.enemyDeathSound.Active = true
+		s.enemyDeathSound.Restart = true
+	}
+
 	ground := s.space.FilterByTags(entity.TagGround)
 
 	for _, ent := range s.ents {
@@ -227,8 +246,20 @@ func (s *GameRuleSystem) Update(dt float32) {
 			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
 			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
-			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width || colCom.Collisions.CollidingWith(entity.TagGround) {
+			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width ||
+				colCom.Collisions.CollidingWith(entity.TagGround, entity.TagEnemy) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
+			}
+		}
+
+		if biscuit, ok := ent.(EnemyBiscuitable); ok {
+			colCom := biscuit.GetCollisionComponent()
+			if colCom.Collisions.CollidingWith(entity.TagBullet) {
+				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
+					s.enemyDeathSound.Restart = true
+					s.enemyDeathSound.SoundComponent.Active = true
+				}
+				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
 			}
 		}
 
