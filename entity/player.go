@@ -64,7 +64,7 @@ func CreatePlayer() *Player {
 		},
 		SoundComponent: &components.SoundComponent{
 			Active: false,
-			Sound:  loadSound(assets.SoundByJumpTwo),
+			Sound:  components.LoadSound(assets.SoundByJumpTwo),
 		},
 	}
 

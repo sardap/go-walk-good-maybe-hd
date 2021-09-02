@@ -12,6 +12,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/game"
@@ -81,6 +82,51 @@ func TestAnimeSystem(t *testing.T) {
 	w.Update(float32(51*time.Millisecond) / float32(time.Second))
 	assert.Equal(t, int(1), ent.Cycles, "complete cycle should be complete")
 	assert.Zero(t, ent.TileMap.Get(0, 0), "frame should wrap")
+
+	w.RemoveEntity(ent.BasicEntity)
+	assert.NotZero(t, animeSystem.Priority())
+}
+
+func TestSoundSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	soundSystem := game.CreateSoundSystem()
+	var soundable *game.Soundable
+	w.AddSystemInterface(soundSystem, soundable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.SoundComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		SoundComponent: &components.SoundComponent{
+			Sound: components.LoadSound(assets.SoundByJumpTwo),
+		},
+	}
+	w.AddEntity(ent)
+
+	w.Update(0)
+	assert.Nil(t, ent.Player, "Sound com is not active so it should be nil")
+
+	ent.Active = true
+	w.Update(0)
+	assert.NotNil(t, ent.Player, "player should be not nil since it's active")
+	assert.True(t, ent.Player.IsPlaying())
+
+	ent.Active = false
+	w.Update(0)
+	assert.True(t, !ent.Player.IsPlaying(), "player should stop when not active")
+
+	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Restart = true
+	ent.Active = true
+	w.Update(0)
+	assert.True(t, ent.Player.IsPlaying(), "player should be playing when restarted")
+
+	w.RemoveEntity(ent.BasicEntity)
+	assert.NotZero(t, soundSystem.Priority())
 }
 
 func TestVelocitySystem(t *testing.T) {

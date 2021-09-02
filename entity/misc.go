@@ -6,19 +6,9 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
 )
-
-func loadSound(asset interface{}) components.Sound {
-	data, sampleRate, soundType := assets.LoadSound(asset)
-	return components.Sound{
-		Source:     data,
-		SampleRate: sampleRate,
-		SoundType:  assets.SoundType(soundType),
-	}
-}
 
 type SoundPlayer struct {
 	ecs.BasicEntity
@@ -31,7 +21,7 @@ func CreateSoundPlayer(asset interface{}) *SoundPlayer {
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
 		SoundComponent: &components.SoundComponent{
-			Sound: loadSound(asset),
+			Sound: components.LoadSound(asset),
 		},
 	}
 }

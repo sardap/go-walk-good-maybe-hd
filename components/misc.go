@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
@@ -29,4 +30,13 @@ func ChangeAnimeImage(a Animeable, img *ebiten.Image, frameDuration time.Duratio
 	animeCom.FrameDuration = frameDuration
 	animeCom.FrameRemaining = animeCom.FrameDuration
 	animeCom.Cycles = 0
+}
+
+func LoadSound(asset interface{}) Sound {
+	data, sampleRate, soundType := assets.LoadSound(asset)
+	return Sound{
+		Source:     data,
+		SampleRate: sampleRate,
+		SoundType:  assets.SoundType(soundType),
+	}
 }
