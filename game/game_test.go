@@ -497,6 +497,54 @@ func TestTileImageRenderSystem(t *testing.T) {
 	tileImageRenderSystem.Update(0)
 }
 
+func TestTextRenderSystem(t *testing.T) {
+
+	w := &ecs.World{}
+
+	textRenderSystem := game.CreateTextRenderSystem()
+	var textRenderable *game.TextRenderable
+	w.AddSystemInterface(textRenderSystem, textRenderable, nil)
+
+	renderQueue := make(game.RenderCmds, 0)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.TextComponent
+	}{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		TextComponent: &components.TextComponent{
+			Text:  "why i'm I chasing test coverage",
+			Layer: 0,
+		},
+	}
+	w.AddEntity(ent)
+
+	textRenderSystem.Render(&renderQueue)
+	renderQueue.Sort()
+
+	assert.Equal(t, 1, len(renderQueue))
+
+	screen := ebiten.NewImage(300, 300)
+	screen.Fill(color.White)
+	renderQueue[0].Draw(screen)
+
+	valid := false
+	for y := screen.Bounds().Min.Y; y < screen.Bounds().Dy(); y++ {
+		for x := screen.Bounds().Min.X; x < screen.Bounds().Dx(); x++ {
+			if r, _, _, _ := screen.At(x, y).RGBA(); r != 255 {
+				valid = true
+			}
+		}
+	}
+	assert.True(t, valid, "at least one pixel should not be white")
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	assert.NotZero(t, textRenderSystem.Priority())
+}
+
 func TestWrapInGameRuleSystem(t *testing.T) {
 	t.Parallel()
 
