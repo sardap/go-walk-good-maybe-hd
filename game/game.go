@@ -60,6 +60,9 @@ func (g *Game) addSystems() {
 
 	var resolvable *Resolvable
 	world.AddSystemInterface(CreateResolvSystem(g.space), resolvable, nil)
+
+	var playerable *Playerable
+	world.AddSystemInterface(CreatePlayerSystem(g.MainGameInfo), playerable, nil)
 }
 
 func (g *Game) startCityLevel() {

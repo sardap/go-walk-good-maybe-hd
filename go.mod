@@ -17,4 +17,4 @@ require (
 	golang.org/x/sys v0.0.0-20210902050250-f475640dd07b // indirect
 )
 
-replace github.com/SolarLune/resolv => github.com/sardap/resolv v0.0.0-20210826124450-340ecca2ee89
+replace github.com/SolarLune/resolv => github.com/sardap/resolv v0.0.0-20210902211026-4d638d041cd3

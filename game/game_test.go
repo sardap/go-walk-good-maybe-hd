@@ -125,6 +125,17 @@ func TestSoundSystem(t *testing.T) {
 	w.Update(0)
 	assert.True(t, ent.Player.IsPlaying(), "player should be playing when restarted")
 
+	ent.Player.Pause()
+	w.Update(0)
+	assert.False(t, ent.Active)
+
+	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Loop = true
+	ent.Restart = true
+	ent.Active = true
+	w.Update(0)
+	assert.True(t, ent.Player.IsPlaying())
+
 	w.RemoveEntity(ent.BasicEntity)
 	assert.NotZero(t, soundSystem.Priority())
 }
@@ -664,10 +675,8 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 		assert.Equal(t, float64((i+1)*10), fallingEnt.Postion.Y, "no postion change")
 	}
 
-	lastPostion := fallingEnt.Postion
 	w.Update(1)
-	assert.Equal(t, lastPostion, fallingEnt.Postion, "postion change should not be changing")
-	assert.False(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
+	assert.True(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
 
 	w.RemoveEntity(fallingEnt.BasicEntity)
 }

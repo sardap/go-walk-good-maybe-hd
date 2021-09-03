@@ -96,7 +96,7 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 	w.RemoveEntity(block.BasicEntity)
 }
 
-func TestPlayerGameRuleSystem(t *testing.T) {
+func TestPlayerSystem(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
@@ -108,10 +108,12 @@ func TestPlayerGameRuleSystem(t *testing.T) {
 		},
 	}
 
-	gameRuleSystem := CreateGameRuleSystem(mainGameInfo, s)
-	var gameRuleable *GameRuleable
-	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	playerSystem := CreatePlayerSystem(mainGameInfo)
+	var playerable *Playerable
+	w.AddSystemInterface(playerSystem, playerable, nil)
 
+	var gameRuleable *GameRuleable
+	w.AddSystemInterface(CreateGameRuleSystem(mainGameInfo, s), gameRuleable, nil)
 	var resolveable *Resolvable
 	w.AddSystemInterface(CreateResolvSystem(s), resolveable, nil)
 	var velocityable *Velocityable
@@ -122,6 +124,29 @@ func TestPlayerGameRuleSystem(t *testing.T) {
 	w.AddEntity(player)
 
 	w.Update(1)
+
+	// Loop until hit ground
+	for !player.Collisions.CollidingWith(entity.TagGround) {
+		w.Update(0.1)
+	}
+	// Change state
+	w.Update(0.1)
+
+	// Jump
+	player.MoveUp = true
+	w.Update(0.1)
+	assert.False(t, player.MoveUp, "movement should be reset every update")
+	player.Cycles = 1
+	w.Update(0.1)
+	assert.Equal(t, player.Cycles, 0, "cycles should get changed on anime change")
+	lastPostion := player.Postion
+	w.Update(0.1)
+	assert.Less(t, lastPostion.Y, player.Postion.Y)
+
+	// Player jumping
+	for !player.Collisions.CollidingWith(entity.TagGround) {
+		w.Update(0.1)
+	}
 
 	w.RemoveEntity(player.BasicEntity)
 }

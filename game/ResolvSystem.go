@@ -55,9 +55,9 @@ func (s *ResolvSystem) Update(dt float32) {
 		colShape.W += 5
 		colShape.H += 5
 
-		if collision := s.space.Collision(colShape); collision != nil && collision.Colliding() {
+		for _, collidingShape := range s.space.Collisions(colShape) {
 			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
-				Tags: collision.ShapeB.GetTags(),
+				Tags: collidingShape.GetTags(),
 			})
 		}
 

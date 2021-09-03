@@ -255,6 +255,8 @@ github.com/sardap/resolv v0.0.0-20210826120632-a4619f00bd2b h1:RHGisY1tmXh2bW/Pe
 github.com/sardap/resolv v0.0.0-20210826120632-a4619f00bd2b/go.mod h1:INI36cColVDZdZZKepCJDRRhOfWUarQ3CBzcrDuwetw=
 github.com/sardap/resolv v0.0.0-20210826124450-340ecca2ee89 h1:Ho1oPEhF+n7a6UvplHBTVCqM1AQBxkf69yhqvFarm5Y=
 github.com/sardap/resolv v0.0.0-20210826124450-340ecca2ee89/go.mod h1:INI36cColVDZdZZKepCJDRRhOfWUarQ3CBzcrDuwetw=
+github.com/sardap/resolv v0.0.0-20210902211026-4d638d041cd3 h1:S5pcuokEm4U+lDcSiGXBwJ5nLuVqa8o5KJc/1p3gBNg=
+github.com/sardap/resolv v0.0.0-20210902211026-4d638d041cd3/go.mod h1:INI36cColVDZdZZKepCJDRRhOfWUarQ3CBzcrDuwetw=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/shurcooL/sanitized_anchor_name v1.0.0/go.mod h1:1NzhyTcUVG4SuEtjjoZeVRXNmyL/1OwPU0+IJeTBvfc=
 github.com/sirupsen/logrus v1.2.0/go.mod h1:LxeOpSwHxABJmUn/MG1IvRgCAasNZTLOkJPxbbu5VWo=
