@@ -123,6 +123,16 @@ func TestPlayerSystem(t *testing.T) {
 	player.Postion.X = 5
 	w.AddEntity(player)
 
+	player.MoveRight = true
+	lastPostion := player.Postion
+	w.Update(0.1)
+	assert.Less(t, lastPostion.X, player.Postion.X, "player should move right")
+
+	player.MoveLeft = true
+	lastPostion = player.Postion
+	w.Update(0.1)
+	assert.Greater(t, lastPostion.X, player.Postion.X, "player should move left")
+
 	w.Update(1)
 
 	// Loop until hit ground
@@ -139,7 +149,7 @@ func TestPlayerSystem(t *testing.T) {
 	player.Cycles = 1
 	w.Update(0.1)
 	assert.Equal(t, player.Cycles, 0, "cycles should get changed on anime change")
-	lastPostion := player.Postion
+	lastPostion = player.Postion
 	w.Update(0.1)
 	assert.Less(t, lastPostion.Y, player.Postion.Y)
 
