@@ -1,6 +1,9 @@
 package components
 
-import "github.com/SolarLune/resolv"
+import (
+	"github.com/SolarLune/resolv"
+	"github.com/sardap/walk-good-maybe-hd/utility"
+)
 
 type CollisionEvent struct {
 	ID   uint64
@@ -11,12 +14,8 @@ type CollisionEvents []*CollisionEvent
 
 func (c CollisionEvents) CollidingWith(tags ...string) bool {
 	for _, event := range c {
-		for _, otherTag := range event.Tags {
-			for _, sTag := range tags {
-				if otherTag == sTag {
-					return true
-				}
-			}
+		if utility.ContainsString(event.Tags, tags...) {
+			return true
 		}
 	}
 

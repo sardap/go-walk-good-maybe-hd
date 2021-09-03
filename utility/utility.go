@@ -63,3 +63,15 @@ func RandRange(min, max int) int {
 func RandRangeFloat64(min, max int) float64 {
 	return float64(rand.Intn(max-min)+min) + rand.Float64()
 }
+
+func ContainsString(ary []string, tags ...string) bool {
+	for _, otherTag := range ary {
+		for _, sTag := range tags {
+			if otherTag == sTag {
+				return true
+			}
+		}
+	}
+
+	return false
+}
