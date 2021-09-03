@@ -71,6 +71,10 @@ file="byJumpTwo.wav"
 name="biscuitDeath"
 file="pdBiscuitDeath.wav"
 
+[[Sounds]]
+name="byLaserFour"
+file="byLaserFour.wav"
+
 [[Music]]
 name="city"
 file="pd_city_0.mp3"

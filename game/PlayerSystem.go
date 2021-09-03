@@ -46,6 +46,7 @@ func (s *PlayerSystem) changeToPrepareJump(player *entity.Player) {
 func (s *PlayerSystem) changeToJumping(player *entity.Player) {
 	player.State = components.MainGamePlayerStateJumping
 
+	player.Sound = components.LoadSound(assets.SoundByJumpTwo)
 	player.SoundComponent.Active = true
 	player.SoundComponent.Restart = true
 
@@ -160,6 +161,10 @@ func (s *PlayerSystem) Update(dt float32) {
 			bullet.Postion.X += xOffset
 
 			s.world.AddEntity(bullet)
+
+			player.Sound = components.LoadSound(assets.SoundByLaserFour)
+			player.SoundComponent.Active = true
+			player.SoundComponent.Restart = true
 		}
 
 		// Must reset no matter what
