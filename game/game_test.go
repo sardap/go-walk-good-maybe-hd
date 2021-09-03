@@ -540,7 +540,25 @@ func TestTextRenderSystem(t *testing.T) {
 	}
 	assert.True(t, valid, "at least one pixel should not be white")
 
+	ent.TextComponent.Text = "updatedText"
+	renderQueue = nil
+	textRenderSystem.Render(&renderQueue)
+	screen.Fill(color.White)
+	renderQueue[0].Draw(screen)
+
+	valid = false
+	for y := screen.Bounds().Min.Y; y < screen.Bounds().Dy(); y++ {
+		for x := screen.Bounds().Min.X; x < screen.Bounds().Dx(); x++ {
+			if r, _, _, _ := screen.At(x, y).RGBA(); r != 255 {
+				valid = true
+			}
+		}
+	}
+	assert.True(t, valid, "at least one pixel should not be white")
+
 	w.RemoveEntity(ent.BasicEntity)
+
+	w.Update(0.1)
 
 	assert.NotZero(t, textRenderSystem.Priority())
 }
