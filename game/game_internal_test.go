@@ -153,11 +153,6 @@ func TestPlayerSystem(t *testing.T) {
 	w.Update(0.1)
 	assert.Less(t, lastPostion.Y, player.Postion.Y)
 
-	player.Shoot = true
-	// Create bullet
-	w.Update(0.1)
-	assert.GreaterOrEqual(t, s.FilterByTags(entity.TagBullet).Length(), 1, "bullet should be created")
-
 	// Player jumping
 	for !player.Collisions.CollidingWith(entity.TagGround) {
 		w.Update(0.1)
@@ -165,13 +160,22 @@ func TestPlayerSystem(t *testing.T) {
 
 	player.MoveRight = true
 	lastPostion = player.Postion
-	w.Update(0.1)
+	w.Update(0.9)
 	assert.Less(t, lastPostion.X, player.Postion.X, "player should move right")
 
 	player.MoveLeft = true
 	lastPostion = player.Postion
-	w.Update(0.1)
+	w.Update(0.01)
 	assert.Greater(t, lastPostion.X, player.Postion.X, "player should move left")
+
+	// Check bullet is flipped
+	player.Shoot = true
+	// This is very sensitive since a bullet can be destroyed if the player is too far left
+	w.Update(0.001)
+	bullet, ok := s.FilterByTags(entity.TagBullet).Get(0).GetData().(*entity.Bullet)
+	assert.True(t, ok, "should be bullet attached to data")
+	assert.True(t, bullet.Options.InvertX, "bullet should be flipped")
+	assert.Less(t, bullet.Speed.X, float64(0), "bullet should be moving left")
 
 	w.RemoveEntity(player.BasicEntity)
 }

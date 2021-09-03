@@ -124,6 +124,9 @@ func (s *ResolvSystem) Add(r Resolvable) {
 
 	rectangle.AddTags(ident.Tags...)
 
+	// THIS DATA SHOULD ONLY BE USED FOR TESTING
+	rectangle.Data = r
+
 	s.space.Add(rectangle)
 
 	r.GetCollisionComponent().CollisionShape = rectangle

@@ -392,6 +392,28 @@ func TestImageRenderSystem(t *testing.T) {
 
 		last = current
 	}
+
+	for _, ent := range ents {
+		w.RemoveEntity(ent.BasicEntity)
+	}
+
+	ents[0].Options.InvertX = true
+	ents[0].Options.InvertY = true
+	img := ebiten.NewImage(2, 1)
+	img.Set(0, 0, color.RGBA{R: 255, A: 255})
+	img.Set(1, 0, color.RGBA{G: 255, A: 255})
+	ents[0].Image = img
+	w.AddEntity(ents[0])
+	renderQueue = nil
+	imageRenderSystem.Render(&renderQueue)
+	screen.Fill(color.Black)
+	renderQueue[0].Draw(screen)
+	assert.Equal(t, color.RGBA{G: 255, A: 255}, screen.At(0, 0))
+	assert.Equal(t, color.RGBA{R: 255, A: 255}, screen.At(1, 0))
+
+	w.Update(0.1)
+
+	assert.Zero(t, imageRenderSystem.Priority())
 }
 
 func TestTileImageRenderSystem(t *testing.T) {

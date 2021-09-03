@@ -145,10 +145,20 @@ func (s *PlayerSystem) Update(dt float32) {
 		if move.Shoot && player.ShootCooldownRemaning < 0 {
 			player.ShootCooldownRemaning = player.ShootCooldown
 			bullet := entity.CreateBullet()
-			bullet.Postion.X = player.Postion.X + player.Size.X + 0.5
+			bullet.Postion.X = player.Postion.X
 			bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
 			bullet.Layer = bulletImageLayer
 			bullet.Speed.X = 750
+
+			xOffset := player.Size.X + 0.5
+			// Flip bullet if facing the other way
+			if player.TileMap.Options.InvertX {
+				xOffset = -xOffset + 90
+				bullet.Speed.X = -bullet.Speed.X
+				bullet.ImageComponent.Options.InvertX = true
+			}
+			bullet.Postion.X += xOffset
+
 			s.world.AddEntity(bullet)
 		}
 
