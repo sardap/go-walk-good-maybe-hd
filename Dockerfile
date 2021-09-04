@@ -1,6 +1,20 @@
 FROM golang:1.16 as builder
 
-RUN apt-get update -y && apt-get install -y --no-install-recommends libasound2-dev xorg-dev libgl1-mesa-dev
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+	xorg-dev \
+	libx11-dev \
+	libgl1-mesa-dev \
+	libasound2-dev \
+	libgles2-mesa-dev \
+	libalut-dev \
+	libxcursor-dev \
+	libxi-dev \
+	libxinerama-dev \
+	libxrandr-dev \
+	libxxf86vm-dev \
+	libglfw3-dev \
+	xvfb \
+	xauth
 
 RUN mkdir /app
 WORKDIR /app
@@ -13,7 +27,7 @@ COPY . .
 
 FROM builder as linux
 
-RUN go test ./... && go build .
+RUN xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./... && go build .
 
 FROM builder as windows
 

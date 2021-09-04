@@ -66,6 +66,7 @@ func DefaultKeyboardInputType() KeyboardInputType {
 type GamepadDriver interface {
 	GamepadAxis(ebiten.GamepadID, int) float64
 	IsGamepadButtonJustPressed(ebiten.GamepadID, ebiten.GamepadButton) bool
+	Ready(g *GamepadInputType) bool
 }
 
 type EbitenGamepadDriver struct {
@@ -77,7 +78,10 @@ func (EbitenGamepadDriver) GamepadAxis(id ebiten.GamepadID, axis int) float64 {
 
 func (EbitenGamepadDriver) IsGamepadButtonJustPressed(id ebiten.GamepadID, btn ebiten.GamepadButton) bool {
 	return inpututil.IsGamepadButtonJustPressed(id, btn)
+}
 
+func (EbitenGamepadDriver) Ready(g *GamepadInputType) bool {
+	return g.Id < 0 || inpututil.IsGamepadJustDisconnected(g.Id)
 }
 
 type GamepadInputType struct {

@@ -852,6 +852,10 @@ type testDriver struct {
 	keys map[ebiten.Key]int
 }
 
+func (t *testDriver) Ready(g *components.GamepadInputType) bool {
+	return false
+}
+
 func (t *testDriver) GamepadAxis(id ebiten.GamepadID, axis int) float64 {
 	return t.axis[axis]
 }

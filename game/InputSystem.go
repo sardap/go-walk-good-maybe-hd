@@ -2,7 +2,6 @@ package game
 
 import (
 	"fmt"
-	"log"
 	"math"
 
 	"github.com/EngoEngine/ecs"
@@ -48,8 +47,9 @@ func (s *InputSystem) setInputMode(com *components.InputComponent, mode componen
 
 func (s *InputSystem) processGamepad(ent Inputable) {
 	inputCom := ent.GetInputComponent()
+	driver := inputCom.Gamepad.Driver
 
-	if inputCom.Gamepad.Id < 0 || inpututil.IsGamepadJustDisconnected(inputCom.Gamepad.Id) {
+	if driver.Ready(&inputCom.Gamepad) {
 		if len(inpututil.JustConnectedGamepadIDs()) <= 0 {
 			s.setInputMode(ent.GetInputComponent(), components.InputModeKeyboard)
 			return
@@ -58,18 +58,16 @@ func (s *InputSystem) processGamepad(ent Inputable) {
 	}
 
 	id := inputCom.Gamepad.Id
-	maxButton := ebiten.GamepadButton(ebiten.GamepadButtonNum(id))
-	for b := ebiten.GamepadButton(id); b < maxButton; b++ {
-		// Log button events.
-		if inpututil.IsGamepadButtonJustPressed(id, b) {
-			log.Printf("button pressed: id: %d, button: %d", id, b)
-		}
-		if inpututil.IsGamepadButtonJustReleased(id, b) {
-			log.Printf("button released: id: %d, button: %d", id, b)
-		}
-	}
-
-	driver := inputCom.Gamepad.Driver
+	// maxButton := ebiten.GamepadButton(ebiten.GamepadButtonNum(id))
+	// for b := ebiten.GamepadButton(id); b < maxButton; b++ {
+	// 	// Log button events.
+	// 	if inpututil.IsGamepadButtonJustPressed(id, b) {
+	// 		log.Printf("button pressed: id: %d, button: %d", id, b)
+	// 	}
+	// 	if inpututil.IsGamepadButtonJustReleased(id, b) {
+	// 		log.Printf("button released: id: %d, button: %d", id, b)
+	// 	}
+	// }
 
 	vx := driver.GamepadAxis(id, inputCom.Gamepad.MoveAxisX)
 	move := ent.GetMovementComponent()
