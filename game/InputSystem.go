@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/EngoEngine/ecs"
-	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -124,25 +123,16 @@ func (s *InputSystem) processKeyboard(ent Inputable) {
 }
 
 func (s *InputSystem) Update(dt float32) {
-	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
-		for _, ent := range s.ents {
-			// Can be null since not everything cares about gamepads
-			if ent.GetInputComponent().Gamepad.Driver == nil {
-				continue
-			}
-
-			s.setInputMode(ent.GetInputComponent(), components.InputModeGamepad)
-		}
-		return
-	}
-	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
-		for _, ent := range s.ents {
-			s.setInputMode(ent.GetInputComponent(), components.InputModeKeyboard)
-		}
-		return
-	}
-
 	for _, ent := range s.ents {
+		keyboard := ent.GetInputComponent().Keyboard
+		gamepad := ent.GetInputComponent().Gamepad
+
+		if gamepad.Driver != nil && keyboard.Driver.KeyPressDuration(keyboard.KeyChangeToGamepad) > 0 {
+			ent.GetMovementComponent().ChangeToGamepad = true
+		} else if keyboard.Driver.KeyPressDuration(keyboard.KeyChangeToKeyboard) > 0 {
+			ent.GetMovementComponent().ChangeToKeyboard = true
+		}
+
 		switch ent.GetInputComponent().InputMode {
 		case components.InputModeGamepad:
 			s.processGamepad(ent)

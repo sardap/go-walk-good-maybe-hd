@@ -946,12 +946,15 @@ func TestInputSystem(t *testing.T) {
 		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
 		{key: ent.Keyboard.KeyScrollSpeedUp, target: &ent.MovementComponent.ScrollSpeedUp, name: "Scrolling speed up"},
 		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
+		{key: ent.Keyboard.KeyChangeToGamepad, target: &ent.MovementComponent.ChangeToGamepad, name: "Change to gamepad"},
+		{key: ent.Keyboard.KeyChangeToKeyboard, target: &ent.MovementComponent.ChangeToKeyboard, name: "change to keyboard"},
 	}
 	for _, testCase := range keyboardTestCases {
 		driver.keys[testCase.key] = 1
 		w.Update(1)
 		assert.True(t, *testCase.target, testCase.name)
 		*testCase.target = false
+		driver.keys[testCase.key] = 0
 	}
 
 	w.RemoveEntity(ent.BasicEntity)

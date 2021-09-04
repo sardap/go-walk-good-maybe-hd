@@ -35,10 +35,12 @@ func (EbitenKeyboardDriver) KeyPressDuration(k ebiten.Key) int {
 }
 
 type KeyboardInputType struct {
-	KeyMoveUp    ebiten.Key
-	KeyMoveDown  ebiten.Key
-	KeyMoveLeft  ebiten.Key
-	KeyMoveRight ebiten.Key
+	KeyMoveUp           ebiten.Key
+	KeyMoveDown         ebiten.Key
+	KeyMoveLeft         ebiten.Key
+	KeyMoveRight        ebiten.Key
+	KeyChangeToGamepad  ebiten.Key
+	KeyChangeToKeyboard ebiten.Key
 	// Main game stuff
 	KeyJump  ebiten.Key
 	KeyShoot ebiten.Key
@@ -55,6 +57,8 @@ func DefaultKeyboardInputType() KeyboardInputType {
 		KeyMoveRight:             ebiten.KeyRight,
 		KeyMoveUp:                ebiten.KeyUp,
 		KeyMoveDown:              ebiten.KeyDown,
+		KeyChangeToGamepad:       ebiten.KeyG,
+		KeyChangeToKeyboard:      ebiten.KeyK,
 		KeyJump:                  ebiten.KeyZ,
 		KeyShoot:                 ebiten.KeyX,
 		KeyScrollSpeedUp:         ebiten.KeyTab,
