@@ -1,6 +1,9 @@
 package game
 
-import "github.com/sardap/walk-good-maybe-hd/math"
+import (
+	"github.com/sardap/walk-good-maybe-hd/entity"
+	"github.com/sardap/walk-good-maybe-hd/math"
+)
 
 type gameState int
 
@@ -14,4 +17,5 @@ type MainGameInfo struct {
 	Gravity        float64
 	State          gameState
 	Level          *Level
+	InputEnt       *entity.DebugInput
 }

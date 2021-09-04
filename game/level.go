@@ -72,6 +72,10 @@ type LevelBlockable interface {
 }
 
 func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
+	if lb.GetTransformComponent().Postion.X < 50 {
+		return
+	}
+
 	trans := lb.GetTransformComponent()
 	biscuit := entity.CreateBiscuitEnemy()
 	biscuit.Postion.X = utility.RandRangeFloat64(int(trans.Postion.X), int(trans.Postion.X+trans.Size.X))

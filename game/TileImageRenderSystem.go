@@ -40,14 +40,10 @@ func (s *TileImageRenderSystem) Add(r TileImageRenderable) {
 	s.ents = append(s.ents, r)
 }
 
-func (s *TileImageRenderSystem) remove(i int) {
-	s.ents = append(s.ents[:i], s.ents[i+1:]...)
-}
-
 func (s *TileImageRenderSystem) Remove(e ecs.BasicEntity) {
 	for i, ent := range s.ents {
 		if ent.GetBasicEntity().ID() == e.ID() {
-			s.remove(i)
+			s.ents = append(s.ents[:i], s.ents[i+1:]...)
 			break
 		}
 	}

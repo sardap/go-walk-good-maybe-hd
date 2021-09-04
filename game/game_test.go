@@ -12,6 +12,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/game"
@@ -81,6 +82,62 @@ func TestAnimeSystem(t *testing.T) {
 	w.Update(float32(51*time.Millisecond) / float32(time.Second))
 	assert.Equal(t, int(1), ent.Cycles, "complete cycle should be complete")
 	assert.Zero(t, ent.TileMap.Get(0, 0), "frame should wrap")
+
+	w.RemoveEntity(ent.BasicEntity)
+	assert.NotZero(t, animeSystem.Priority())
+}
+
+func TestSoundSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	soundSystem := game.CreateSoundSystem()
+	var soundable *game.Soundable
+	w.AddSystemInterface(soundSystem, soundable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.SoundComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		SoundComponent: &components.SoundComponent{
+			Sound: components.LoadSound(assets.SoundByJumpTwo),
+		},
+	}
+	w.AddEntity(ent)
+
+	w.Update(0)
+	assert.Nil(t, ent.Player, "Sound com is not active so it should be nil")
+
+	ent.Active = true
+	w.Update(0)
+	assert.NotNil(t, ent.Player, "player should be not nil since it's active")
+	assert.True(t, ent.Player.IsPlaying())
+
+	ent.Active = false
+	w.Update(0)
+	assert.True(t, !ent.Player.IsPlaying(), "player should stop when not active")
+
+	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Restart = true
+	ent.Active = true
+	w.Update(0)
+	assert.True(t, ent.Player.IsPlaying(), "player should be playing when restarted")
+
+	ent.Player.Pause()
+	w.Update(0)
+	assert.False(t, ent.Active)
+
+	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Loop = true
+	ent.Restart = true
+	ent.Active = true
+	w.Update(0)
+	assert.True(t, ent.Player.IsPlaying())
+
+	w.RemoveEntity(ent.BasicEntity)
+	assert.NotZero(t, soundSystem.Priority())
 }
 
 func TestVelocitySystem(t *testing.T) {
@@ -88,6 +145,12 @@ func TestVelocitySystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
 
 	// Setup
 	velocitySystem := game.CreateVelocitySystem(s)
@@ -95,7 +158,7 @@ func TestVelocitySystem(t *testing.T) {
 	w.AddSystemInterface(velocitySystem, velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity
@@ -214,9 +277,15 @@ func TestResolvSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
 
 	// Setup
-	resolvSystem := game.CreateResolvSystem(s)
+	resolvSystem := game.CreateResolvSystem(mainGameInfo, s)
 
 	var resolvable *game.Resolvable
 	w.AddSystemInterface(resolvSystem, resolvable, nil)
@@ -335,18 +404,38 @@ func TestImageRenderSystem(t *testing.T) {
 
 		last = current
 	}
+
+	for _, ent := range ents {
+		w.RemoveEntity(ent.BasicEntity)
+	}
+
+	ents[0].Options.InvertX = true
+	ents[0].Options.InvertY = true
+	img := ebiten.NewImage(2, 1)
+	img.Set(0, 0, color.RGBA{R: 255, A: 255})
+	img.Set(1, 0, color.RGBA{G: 255, A: 255})
+	ents[0].Image = img
+	w.AddEntity(ents[0])
+	renderQueue = nil
+	imageRenderSystem.Render(&renderQueue)
+	screen.Fill(color.Black)
+	renderQueue[0].Draw(screen)
+	assert.Equal(t, color.RGBA{G: 255, A: 255}, screen.At(0, 0))
+	assert.Equal(t, color.RGBA{R: 255, A: 255}, screen.At(1, 0))
+
+	w.Update(0.1)
+
+	assert.Zero(t, imageRenderSystem.Priority())
 }
 
 func TestTileImageRenderSystem(t *testing.T) {
 
 	w := &ecs.World{}
 
-	imageRenderSystem := game.CreateTileImageRenderSystem()
+	tileImageRenderSystem := game.CreateTileImageRenderSystem()
 
 	var tileImageRenderable *game.TileImageRenderable
-	w.AddSystemInterface(imageRenderSystem, tileImageRenderable, nil)
-
-	renderQueue := make(game.RenderCmds, 0)
+	w.AddSystemInterface(tileImageRenderSystem, tileImageRenderable, nil)
 
 	ents := []*struct {
 		ecs.BasicEntity
@@ -363,11 +452,11 @@ func TestTileImageRenderSystem(t *testing.T) {
 			A: 255,
 		})
 		img.Set(1, 0, color.RGBA{
-			G: value,
+			G: value + 1,
 			A: 255,
 		})
 		img.Set(2, 0, color.RGBA{
-			B: value,
+			B: value + 2,
 			A: 255,
 		})
 
@@ -394,7 +483,8 @@ func TestTileImageRenderSystem(t *testing.T) {
 		w.AddEntity(ents[i])
 	}
 
-	imageRenderSystem.Render(&renderQueue)
+	renderQueue := make(game.RenderCmds, 0)
+	tileImageRenderSystem.Render(&renderQueue)
 
 	renderQueue.Sort()
 	assert.Equal(t, len(renderQueue), len(ents), "missing ents from render queue")
@@ -408,10 +498,103 @@ func TestTileImageRenderSystem(t *testing.T) {
 		expectedValue := byte((i + 1) * 10)
 
 		assert.Equal(t, color.RGBA{R: expectedValue, A: 255}, screen.At(0, 0), "incorrect colour at 0,0")
-		assert.Equal(t, color.RGBA{G: expectedValue, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
-		assert.Equal(t, color.RGBA{B: expectedValue, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
+		assert.Equal(t, color.RGBA{G: expectedValue + 1, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
+		assert.Equal(t, color.RGBA{B: expectedValue + 2, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
 		assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
 	}
+
+	for _, ent := range ents {
+		w.RemoveEntity(ent.BasicEntity)
+	}
+
+	ent := ents[0]
+	w.AddEntity(ent)
+
+	ent.TileMap.Options.InvertX = true
+	ent.TileMap.Options.InvertY = true
+
+	renderQueue = make(game.RenderCmds, 0)
+	tileImageRenderSystem.Render(&renderQueue)
+	renderQueue.Sort()
+
+	screen.Fill(color.Black)
+	renderQueue[0].Draw(screen)
+
+	// I really don't think this works right
+	expectedValue := byte(10)
+	assert.Equal(t, color.RGBA{R: expectedValue, A: 255}, screen.At(0, 0), "incorrect colour at 0,0")
+	assert.Equal(t, color.RGBA{G: expectedValue + 1, A: 255}, screen.At(1, 0), "incorrect colour at 1,0")
+	assert.Equal(t, color.RGBA{B: expectedValue + 2, A: 255}, screen.At(0, 1), "incorrect colour at 0,1")
+	assert.Equal(t, color.RGBA{A: 255}, screen.At(1, 1), "incorrect colour at 0,1")
+
+	assert.NotZero(t, tileImageRenderSystem.Priority())
+	tileImageRenderSystem.Update(0)
+}
+
+func TestTextRenderSystem(t *testing.T) {
+
+	w := &ecs.World{}
+
+	textRenderSystem := game.CreateTextRenderSystem()
+	var textRenderable *game.TextRenderable
+	w.AddSystemInterface(textRenderSystem, textRenderable, nil)
+
+	renderQueue := make(game.RenderCmds, 0)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.TextComponent
+	}{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		TextComponent: &components.TextComponent{
+			Text:  "why i'm I chasing test coverage",
+			Layer: 0,
+		},
+	}
+	w.AddEntity(ent)
+
+	textRenderSystem.Render(&renderQueue)
+	renderQueue.Sort()
+
+	assert.Equal(t, 1, len(renderQueue))
+
+	screen := ebiten.NewImage(300, 300)
+	screen.Fill(color.White)
+	renderQueue[0].Draw(screen)
+
+	valid := false
+	for y := screen.Bounds().Min.Y; y < screen.Bounds().Dy(); y++ {
+		for x := screen.Bounds().Min.X; x < screen.Bounds().Dx(); x++ {
+			if r, _, _, _ := screen.At(x, y).RGBA(); r != 255 {
+				valid = true
+			}
+		}
+	}
+	assert.True(t, valid, "at least one pixel should not be white")
+
+	ent.TextComponent.Text = "updatedText"
+	renderQueue = nil
+	textRenderSystem.Render(&renderQueue)
+	screen.Fill(color.White)
+	renderQueue[0].Draw(screen)
+
+	valid = false
+	for y := screen.Bounds().Min.Y; y < screen.Bounds().Dy(); y++ {
+		for x := screen.Bounds().Min.X; x < screen.Bounds().Dx(); x++ {
+			if r, _, _, _ := screen.At(x, y).RGBA(); r != 255 {
+				valid = true
+			}
+		}
+	}
+	assert.True(t, valid, "at least one pixel should not be white")
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	w.Update(0.1)
+
+	assert.NotZero(t, textRenderSystem.Priority())
 }
 
 func TestWrapInGameRuleSystem(t *testing.T) {
@@ -538,7 +721,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	fallingEnt := &struct {
 		ecs.BasicEntity
@@ -592,10 +775,8 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 		assert.Equal(t, float64((i+1)*10), fallingEnt.Postion.Y, "no postion change")
 	}
 
-	lastPostion := fallingEnt.Postion
 	w.Update(1)
-	assert.Equal(t, lastPostion, fallingEnt.Postion, "postion change should not be changing")
-	assert.False(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
+	assert.True(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
 
 	w.RemoveEntity(fallingEnt.BasicEntity)
 }
@@ -622,7 +803,7 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	bullet := &struct {
 		ecs.BasicEntity
@@ -663,6 +844,122 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	}
 	w.Update(1)
 	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
+}
+
+type testDriver struct {
+	btns map[ebiten.GamepadButton]bool
+	axis map[int]float64
+	keys map[ebiten.Key]int
+}
+
+func (t *testDriver) Ready(g *components.GamepadInputType) bool {
+	return false
+}
+
+func (t *testDriver) GamepadAxis(id ebiten.GamepadID, axis int) float64 {
+	return t.axis[axis]
+}
+
+func (t *testDriver) IsGamepadButtonJustPressed(id ebiten.GamepadID, btn ebiten.GamepadButton) bool {
+	return t.btns[btn]
+}
+
+func (t *testDriver) KeyPressDuration(k ebiten.Key) int {
+	return t.keys[k]
+}
+
+func TestInputSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	inputSystem := game.CreateInputSystem()
+	var inputable *game.Inputable
+	w.AddSystemInterface(inputSystem, inputable, nil)
+
+	driver := &testDriver{}
+	driver.btns = make(map[ebiten.GamepadButton]bool)
+	driver.axis = make(map[int]float64)
+	driver.keys = make(map[ebiten.Key]int)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.MovementComponent
+		*components.InputComponent
+	}{
+		BasicEntity:       ecs.NewBasic(),
+		MovementComponent: &components.MovementComponent{},
+		InputComponent: &components.InputComponent{
+			InputMode: components.InputModeGamepad,
+			Gamepad:   components.DefaultGamepadInputType(),
+			Keyboard:  components.DefaultKeyboardInputType(),
+		},
+	}
+	ent.Gamepad.Driver = driver
+	ent.Keyboard.Driver = driver
+	w.AddEntity(ent)
+
+	xAxisTestCases := []struct {
+		xAxis  int
+		target *bool
+		name   string
+	}{
+		{xAxis: 1, target: &ent.MovementComponent.MoveRight, name: "Move right"},
+		{xAxis: -1, target: &ent.MovementComponent.MoveLeft, name: "Move left"},
+	}
+	for _, testCase := range xAxisTestCases {
+		driver.axis[ent.Gamepad.MoveAxisX] = float64(testCase.xAxis)
+		assert.False(t, *testCase.target, testCase.name)
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+	}
+
+	gamepadButtonTestCases := []struct {
+		btn    ebiten.GamepadButton
+		target *bool
+		name   string
+	}{
+		{btn: ent.Gamepad.ButtonJump, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
+		{btn: ent.Gamepad.ButtonShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
+	}
+	for _, testCase := range gamepadButtonTestCases {
+		driver.btns[testCase.btn] = true
+		assert.False(t, *testCase.target, testCase.name)
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+	}
+
+	ent.InputComponent.InputMode = components.InputModeKeyboard
+
+	keyboardTestCases := []struct {
+		key    ebiten.Key
+		target *bool
+		name   string
+	}{
+		{key: ent.Keyboard.KeyMoveLeft, target: &ent.MovementComponent.MoveLeft, name: "Move Left"},
+		{key: ent.Keyboard.KeyMoveRight, target: &ent.MovementComponent.MoveRight, name: "Move Right"},
+		{key: ent.Keyboard.KeyMoveDown, target: &ent.MovementComponent.MoveDown, name: "Move Down"},
+		{key: ent.Keyboard.KeyMoveUp, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
+		{key: ent.Keyboard.KeyJump, target: &ent.MovementComponent.MoveUp, name: "Move Jump"},
+		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
+		{key: ent.Keyboard.KeyScrollSpeedUp, target: &ent.MovementComponent.ScrollSpeedUp, name: "Scrolling speed up"},
+		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
+		{key: ent.Keyboard.KeyChangeToGamepad, target: &ent.MovementComponent.ChangeToGamepad, name: "Change to gamepad"},
+		{key: ent.Keyboard.KeyChangeToKeyboard, target: &ent.MovementComponent.ChangeToKeyboard, name: "change to keyboard"},
+	}
+	for _, testCase := range keyboardTestCases {
+		driver.keys[testCase.key] = 1
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+		driver.keys[testCase.key] = 0
+	}
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	assert.NotZero(t, inputSystem.Priority())
 }
 
 type testGame struct {

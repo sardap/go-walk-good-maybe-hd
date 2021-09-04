@@ -32,6 +32,25 @@ func TestWrapInt(t *testing.T) {
 	assert.Equal(t, result, int(255), "complete double wrap")
 }
 
+func TestWrapFloat64(t *testing.T) {
+	t.Parallel()
+
+	result := utility.WrapFloat64(1, 0, 10)
+	assert.Equal(t, result, float64(1), "should have not wrapped")
+
+	result = utility.WrapFloat64(-1, 0, 10)
+	assert.Equal(t, result, float64(9), "should have wrapped min")
+
+	result = utility.WrapFloat64(11, 0, 10)
+	assert.Equal(t, result, float64(1), "should have wrapped max")
+
+	result = utility.WrapFloat64(20, 0, 10)
+	assert.Equal(t, result, float64(10), "complete double wrap")
+
+	result = utility.WrapFloat64(-257, -256, 256)
+	assert.Equal(t, result, float64(255), "complete double wrap")
+}
+
 func TestClampVec2(t *testing.T) {
 	t.Parallel()
 
@@ -106,4 +125,13 @@ func TestRandRangeFloat64(t *testing.T) {
 			t.FailNow()
 		}
 	}
+}
+
+func TestContainsString(t *testing.T) {
+	t.Parallel()
+
+	ary := []string{"foo", "bar"}
+	assert.True(t, utility.ContainsString(ary, "foo"))
+	assert.True(t, utility.ContainsString(ary, "greg", "bar"))
+	assert.False(t, utility.ContainsString(ary, "greg", "got"))
 }

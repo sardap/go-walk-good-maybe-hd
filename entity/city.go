@@ -20,7 +20,7 @@ func CreateCityMusic() *CityMusic {
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
 		SoundComponent: &components.SoundComponent{
-			Sound:  loadSound(assets.MusicPdCity0),
+			Sound:  components.LoadSound(assets.MusicPdCity0),
 			Active: true,
 			Loop:   true,
 			Intro:  time.Duration(8) * time.Second,

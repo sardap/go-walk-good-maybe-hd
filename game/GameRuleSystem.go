@@ -1,12 +1,8 @@
 package game
 
 import (
-	"time"
-
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
-	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -37,131 +33,6 @@ func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
 	s.mainGameInfo.State = gameStateStarting
-}
-
-func (s *GameRuleSystem) updatePlayer(dt float32, player *entity.Player) {
-	switch s.mainGameInfo.State {
-	case gameStateStarting:
-		if player.TransformComponent.Postion.X > 50 {
-			s.mainGameInfo.State = gameStateScrolling
-			s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
-		}
-	case gameStateScrolling:
-		break
-	}
-
-	playerCom := player.GetMainGamePlayerComponent()
-
-	move := player.GetMovementComponent()
-	vel := player.GetVelocityComponent().Vel
-
-	changeToPrepareJump := func() {
-		player.State = components.MainGamePlayerStatePrepareJumping
-
-		img, _ := assets.LoadEbitenImage(assets.ImageWhaleJumpTileSet)
-		components.ChangeAnimeImage(player, img, 125*time.Millisecond)
-	}
-
-	changeToJumping := func() {
-		player.State = components.MainGamePlayerStateJumping
-
-		player.SoundComponent.Active = true
-		player.SoundComponent.Restart = true
-
-		img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
-		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
-		player.JumpTime = 0
-	}
-
-	changeToFlying := func() {
-		player.State = components.MainGamePlayerStateFlying
-	}
-
-	changeToIdle := func() {
-		player.State = components.MainGamePlayerStateGroundIdling
-
-		img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
-		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
-	}
-
-	changeToWalk := func() {
-		player.State = components.MainGamePlayerStateGroundMoving
-
-		img, _ := assets.LoadEbitenImage(assets.ImageWhaleWalkTileSet)
-		components.ChangeAnimeImage(player, img, 50*time.Millisecond)
-	}
-
-	horzSpeed := playerCom.Speed
-
-	switch playerCom.State {
-	case components.MainGamePlayerStateGroundIdling:
-		if move.MoveUp {
-			changeToPrepareJump()
-		} else if move.MoveLeft || move.MoveRight {
-			changeToWalk()
-		}
-
-	case components.MainGamePlayerStateGroundMoving:
-		if move.MoveUp {
-			changeToPrepareJump()
-		} else if !move.MoveLeft && !move.MoveRight {
-			changeToIdle()
-		}
-
-	case components.MainGamePlayerStatePrepareJumping:
-		horzSpeed = 0
-
-		if player.Cycles >= 1 {
-			changeToJumping()
-		}
-
-	case components.MainGamePlayerStateJumping:
-		horzSpeed /= 2
-
-		vel.Y -= player.JumpPower
-		player.JumpTime += utility.DeltaToDuration(dt)
-
-		if player.JumpTime > time.Duration(1000)*time.Millisecond {
-			changeToFlying()
-		}
-
-	case components.MainGamePlayerStateFlying:
-		horzSpeed /= 2
-
-		if player.Collisions.CollidingWith(entity.TagGround) {
-			changeToIdle()
-		}
-
-	default:
-		panic("Unimplemented")
-	}
-
-	if move.MoveLeft {
-		vel.X = -horzSpeed
-		player.TileMap.Options.InvertX = true
-	} else if move.MoveRight {
-		vel.X = horzSpeed
-		player.TileMap.Options.InvertX = false
-	}
-
-	player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
-	if move.Shoot && player.ShootCooldownRemaning < 0 {
-		player.ShootCooldownRemaning = player.ShootCooldown
-		bullet := entity.CreateBullet()
-		bullet.Postion.X = player.Postion.X + player.Size.X + 0.5
-		bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
-		bullet.Layer = bulletImageLayer
-		bullet.Speed.X = 750
-		s.world.AddEntity(bullet)
-	}
-
-	// Must reset no matter what
-	move.MoveLeft = false
-	move.MoveRight = false
-	move.MoveUp = false
-	move.Shoot = false
-
-	player.GetVelocityComponent().Vel = vel
 }
 
 type Wrapable interface {
@@ -204,15 +75,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 		s.world.AddEntity(s.enemyDeathSound)
 	}
 
-	if inpututil.KeyPressDuration(ebiten.KeyJ) > 0 {
-		s.enemyDeathSound.Active = true
-		s.enemyDeathSound.Restart = true
-	}
-
-	ground := s.space.FilterByTags(entity.TagGround)
-
 	for _, ent := range s.ents {
-		// Here broken
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
 			wrap := wrapable.GetWrapComponent()
@@ -233,12 +96,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if gravityable, ok := ent.(Gravityable); ok {
 			vel := gravityable.GetVelocityComponent()
-			colCom := gravityable.GetCollisionComponent()
-
-			collision := ground.Resolve(colCom.CollisionShape, 0, s.mainGameInfo.Gravity*float64(dt))
-			if !collision.Colliding() {
-				vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
-			}
+			vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
 		}
 
 		if bullet, ok := ent.(Bulletable); ok {
@@ -261,10 +119,6 @@ func (s *GameRuleSystem) Update(dt float32) {
 				}
 				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
 			}
-		}
-
-		if ent, ok := ent.(*entity.Player); ok {
-			s.updatePlayer(dt, ent)
 		}
 	}
 

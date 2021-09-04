@@ -7,8 +7,8 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
 type Resolvable interface {
@@ -23,11 +23,13 @@ type ResolvSystem struct {
 	space          *resolv.Space
 	overlay        *ebiten.Image
 	OverlayEnabled bool
+	debugInput     *entity.DebugInput
 }
 
-func CreateResolvSystem(space *resolv.Space) *ResolvSystem {
+func CreateResolvSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *ResolvSystem {
 	return &ResolvSystem{
-		space: space,
+		space:      space,
+		debugInput: mainGameInfo.InputEnt,
 	}
 }
 
@@ -41,8 +43,9 @@ func (s *ResolvSystem) New(world *ecs.World) {
 }
 
 func (s *ResolvSystem) Update(dt float32) {
-	if inpututil.IsKeyJustReleased(ebiten.KeyO) {
+	if s.debugInput != nil && s.debugInput.MovementComponent.ToggleCollsionOverlay {
 		s.OverlayEnabled = !s.OverlayEnabled
+		s.debugInput.MovementComponent.ToggleCollsionOverlay = false
 	}
 
 	for _, ent := range s.ents {
@@ -55,9 +58,9 @@ func (s *ResolvSystem) Update(dt float32) {
 		colShape.W += 5
 		colShape.H += 5
 
-		if collision := s.space.Collision(colShape); collision != nil && collision.Colliding() {
+		for _, collidingShape := range s.space.Collisions(colShape) {
 			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
-				Tags: collision.ShapeB.GetTags(),
+				Tags: collidingShape.GetTags(),
 			})
 		}
 
@@ -123,6 +126,9 @@ func (s *ResolvSystem) Add(r Resolvable) {
 	)
 
 	rectangle.AddTags(ident.Tags...)
+
+	// THIS DATA SHOULD ONLY BE USED FOR TESTING
+	rectangle.Data = r
 
 	s.space.Add(rectangle)
 

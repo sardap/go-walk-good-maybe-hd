@@ -49,6 +49,9 @@ func (g *Game) addSystems() {
 	var inputable *Inputable
 	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
 
+	g.MainGameInfo.InputEnt = entity.CreateDebugInput()
+	world.AddEntity(g.MainGameInfo.InputEnt)
+
 	var soundable *Soundable
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
@@ -59,7 +62,10 @@ func (g *Game) addSystems() {
 	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
 
 	var resolvable *Resolvable
-	world.AddSystemInterface(CreateResolvSystem(g.space), resolvable, nil)
+	world.AddSystemInterface(CreateResolvSystem(g.MainGameInfo, g.space), resolvable, nil)
+
+	var playerable *Playerable
+	world.AddSystemInterface(CreatePlayerSystem(g.MainGameInfo), playerable, nil)
 }
 
 func (g *Game) startCityLevel() {

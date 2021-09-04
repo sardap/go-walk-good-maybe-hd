@@ -19,6 +19,7 @@ const (
 	systemPriorityVelocitySystem
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
+	systemPriorityPlayerSystem
 	systemPriorityCollisionSystem
 	systemPriorityInputSystem
 )
