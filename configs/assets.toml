@@ -63,6 +63,14 @@ scaleMultiplier=10
 parts=["wall", "window"]
 file="building/building0TileSet.psd"
 
+[[Images]]
+name="building1"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["roofLeft", "roofMiddle", "roofRight", "botMiddle", "middleLeft", "middleRight"]
+file="building/building1TileSet.psd"
+
 [[Sounds]]
 name="byJumpTwo"
 file="byJumpTwo.wav"

@@ -61,6 +61,10 @@ func (g *Game) addSystems() {
 	var velocityable *Velocityable
 	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
 
+	var dumbVelocityable *DumbVelocityable
+	var exVelocityable *ExDumbVelocityable
+	world.AddSystemInterface(CreateDumbVelocitySystem(), dumbVelocityable, exVelocityable)
+
 	var resolvable *Resolvable
 	world.AddSystemInterface(CreateResolvSystem(g.MainGameInfo, g.space), resolvable, nil)
 
@@ -124,6 +128,10 @@ func (g *Game) Update() error {
 	}
 
 	dt := time.Since(g.lastTime)
+	if g.MainGameInfo.InputEnt.FastGameSpeed {
+		dt *= 20
+		g.MainGameInfo.InputEnt.FastGameSpeed = false
+	}
 	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
 

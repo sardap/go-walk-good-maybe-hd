@@ -272,6 +272,50 @@ func TestVelocitySystem(t *testing.T) {
 	assert.True(t, s.Contains(colShape), "it should be added to the space")
 }
 
+func TestDumbVelocitySystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	// Setup
+	dumbVelocitySystem := game.CreateDumbVelocitySystem()
+	var dumbVelocityable *game.DumbVelocityable
+	var exVelocityable *game.ExDumbVelocityable
+	w.AddSystemInterface(dumbVelocitySystem, dumbVelocityable, exVelocityable)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+	}
+	w.AddEntity(ent)
+
+	// 1.5 seconds passed
+	ent.Vel.Y = 3
+	w.Update(1.5)
+	assert.Zero(t, ent.Vel.X, "vel X  should be set to 0")
+	assert.Zero(t, ent.Vel.Y, "vel Y should be set to 0")
+	assert.Equal(t, float64(3*1.5), ent.Postion.Y)
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	assert.NotZero(t, dumbVelocitySystem.Priority())
+}
+
 func TestResolvSystem(t *testing.T) {
 	t.Parallel()
 
@@ -944,7 +988,7 @@ func TestInputSystem(t *testing.T) {
 		{key: ent.Keyboard.KeyMoveUp, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
 		{key: ent.Keyboard.KeyJump, target: &ent.MovementComponent.MoveUp, name: "Move Jump"},
 		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
-		{key: ent.Keyboard.KeyScrollSpeedUp, target: &ent.MovementComponent.ScrollSpeedUp, name: "Scrolling speed up"},
+		{key: ent.Keyboard.KeyFastGameMode, target: &ent.MovementComponent.FastGameSpeed, name: "Scrolling speed up"},
 		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
 		{key: ent.Keyboard.KeyChangeToGamepad, target: &ent.MovementComponent.ChangeToGamepad, name: "Change to gamepad"},
 		{key: ent.Keyboard.KeyChangeToKeyboard, target: &ent.MovementComponent.ChangeToKeyboard, name: "change to keyboard"},

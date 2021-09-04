@@ -45,7 +45,7 @@ type KeyboardInputType struct {
 	KeyJump  ebiten.Key
 	KeyShoot ebiten.Key
 	// Main game Debug input
-	KeyScrollSpeedUp         ebiten.Key
+	KeyFastGameMode          ebiten.Key
 	KeyToggleCollsionOverlay ebiten.Key
 
 	Driver KeyboardDriver
@@ -61,7 +61,7 @@ func DefaultKeyboardInputType() KeyboardInputType {
 		KeyChangeToKeyboard:      ebiten.KeyK,
 		KeyJump:                  ebiten.KeyZ,
 		KeyShoot:                 ebiten.KeyX,
-		KeyScrollSpeedUp:         ebiten.KeyTab,
+		KeyFastGameMode:          ebiten.KeyTab,
 		KeyToggleCollsionOverlay: ebiten.KeyO,
 		Driver:                   EbitenKeyboardDriver{},
 	}
