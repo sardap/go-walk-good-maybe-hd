@@ -68,3 +68,24 @@ func CreateTestBox() *TestBox {
 
 	return result
 }
+
+type DebugInput struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.MovementComponent
+	*components.InputComponent
+}
+
+func CreateDebugInput() *DebugInput {
+	result := &DebugInput{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		MovementComponent:  &components.MovementComponent{},
+		InputComponent: &components.InputComponent{
+			InputMode: components.InputModeKeyboard,
+			Keyboard:  components.DefaultKeyboardInputType(),
+		},
+	}
+
+	return result
+}

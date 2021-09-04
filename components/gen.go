@@ -58,6 +58,14 @@ type ImageFace interface {
 	GetImageComponent() *ImageComponent
 }
 
+func (i *InputComponent) GetInputComponent() *InputComponent {
+	return i
+}
+
+type InputFace interface {
+	GetInputComponent() *InputComponent
+}
+
 func (m *MainGamePlayerComponent) GetMainGamePlayerComponent() *MainGamePlayerComponent {
 	return m
 }

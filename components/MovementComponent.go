@@ -6,4 +6,7 @@ type MovementComponent struct {
 	MoveLeft  bool
 	MoveRight bool
 	Shoot     bool
+	// Debug stuff
+	ScrollSpeedUp         bool
+	ToggleCollsionOverlay bool
 }

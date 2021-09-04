@@ -145,6 +145,12 @@ func TestVelocitySystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
 
 	// Setup
 	velocitySystem := game.CreateVelocitySystem(s)
@@ -152,7 +158,7 @@ func TestVelocitySystem(t *testing.T) {
 	w.AddSystemInterface(velocitySystem, velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity
@@ -271,9 +277,15 @@ func TestResolvSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+		},
+	}
 
 	// Setup
-	resolvSystem := game.CreateResolvSystem(s)
+	resolvSystem := game.CreateResolvSystem(mainGameInfo, s)
 
 	var resolvable *game.Resolvable
 	w.AddSystemInterface(resolvSystem, resolvable, nil)
@@ -709,7 +721,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	fallingEnt := &struct {
 		ecs.BasicEntity
@@ -791,7 +803,7 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
 
 	bullet := &struct {
 		ecs.BasicEntity
@@ -832,6 +844,115 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	}
 	w.Update(1)
 	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
+}
+
+type testDriver struct {
+	btns map[ebiten.GamepadButton]bool
+	axis map[int]float64
+	keys map[ebiten.Key]int
+}
+
+func (t *testDriver) GamepadAxis(id ebiten.GamepadID, axis int) float64 {
+	return t.axis[axis]
+}
+
+func (t *testDriver) IsGamepadButtonJustPressed(id ebiten.GamepadID, btn ebiten.GamepadButton) bool {
+	return t.btns[btn]
+}
+
+func (t *testDriver) KeyPressDuration(k ebiten.Key) int {
+	return t.keys[k]
+}
+
+func TestInputSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	inputSystem := game.CreateInputSystem()
+	var inputable *game.Inputable
+	w.AddSystemInterface(inputSystem, inputable, nil)
+
+	driver := &testDriver{}
+	driver.btns = make(map[ebiten.GamepadButton]bool)
+	driver.axis = make(map[int]float64)
+	driver.keys = make(map[ebiten.Key]int)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.MovementComponent
+		*components.InputComponent
+	}{
+		BasicEntity:       ecs.NewBasic(),
+		MovementComponent: &components.MovementComponent{},
+		InputComponent: &components.InputComponent{
+			InputMode: components.InputModeGamepad,
+			Gamepad:   components.DefaultGamepadInputType(),
+			Keyboard:  components.DefaultKeyboardInputType(),
+		},
+	}
+	ent.Gamepad.Driver = driver
+	ent.Keyboard.Driver = driver
+	w.AddEntity(ent)
+
+	xAxisTestCases := []struct {
+		xAxis  int
+		target *bool
+		name   string
+	}{
+		{xAxis: 1, target: &ent.MovementComponent.MoveRight, name: "Move right"},
+		{xAxis: -1, target: &ent.MovementComponent.MoveLeft, name: "Move left"},
+	}
+	for _, testCase := range xAxisTestCases {
+		driver.axis[ent.Gamepad.MoveAxisX] = float64(testCase.xAxis)
+		assert.False(t, *testCase.target, testCase.name)
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+	}
+
+	gamepadButtonTestCases := []struct {
+		btn    ebiten.GamepadButton
+		target *bool
+		name   string
+	}{
+		{btn: ent.Gamepad.ButtonJump, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
+		{btn: ent.Gamepad.ButtonShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
+	}
+	for _, testCase := range gamepadButtonTestCases {
+		driver.btns[testCase.btn] = true
+		assert.False(t, *testCase.target, testCase.name)
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+	}
+
+	ent.InputComponent.InputMode = components.InputModeKeyboard
+
+	keyboardTestCases := []struct {
+		key    ebiten.Key
+		target *bool
+		name   string
+	}{
+		{key: ent.Keyboard.KeyMoveLeft, target: &ent.MovementComponent.MoveLeft, name: "Move Left"},
+		{key: ent.Keyboard.KeyMoveRight, target: &ent.MovementComponent.MoveRight, name: "Move Right"},
+		{key: ent.Keyboard.KeyMoveDown, target: &ent.MovementComponent.MoveDown, name: "Move Down"},
+		{key: ent.Keyboard.KeyMoveUp, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
+		{key: ent.Keyboard.KeyJump, target: &ent.MovementComponent.MoveUp, name: "Move Jump"},
+		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
+		{key: ent.Keyboard.KeyScrollSpeedUp, target: &ent.MovementComponent.ScrollSpeedUp, name: "Scrolling speed up"},
+		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
+	}
+	for _, testCase := range keyboardTestCases {
+		driver.keys[testCase.key] = 1
+		w.Update(1)
+		assert.True(t, *testCase.target, testCase.name)
+		*testCase.target = false
+	}
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	assert.NotZero(t, inputSystem.Priority())
 }
 
 type testGame struct {

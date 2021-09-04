@@ -12,42 +12,15 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
-const (
-	moveAxisX = 0
-	moveAxisY = 1
-	deadZone  = 0.1
-)
-
-var (
-	keyJump     = ebiten.KeyZ
-	keyShoot    = ebiten.KeyX
-	buttonJump  = ebiten.GamepadButton(0)
-	buttonShoot = ebiten.GamepadButton(1)
-)
-
-type inputMode int
-
-const (
-	inputModeGamepad inputMode = iota
-	inputModeKeyboard
-)
-
-func (i inputMode) String() string {
-	switch i {
-	case inputModeGamepad:
-		return "gamepad"
-	case inputModeKeyboard:
-		return "keyboard"
-	}
-
-	return "unknown"
+type Inputable interface {
+	ecs.BasicFace
+	components.MovementFace
+	components.InputFace
 }
 
 type InputSystem struct {
-	ents          map[uint64]Inputable
-	playerGamepad ebiten.GamepadID
-	inputMode     inputMode
-	infoEnt       *entity.InputInfo
+	ents    map[uint64]Inputable
+	infoEnt *entity.InputInfo
 }
 
 func CreateInputSystem() *InputSystem {
@@ -62,29 +35,29 @@ func (s *InputSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Inputable)
 
 	s.infoEnt = entity.CreateInputInfo()
-	s.infoEnt.Text = inputModeGamepad.String()
+	s.infoEnt.Text = ""
 	s.infoEnt.Postion.X = 300
 	s.infoEnt.Postion.Y = 10
 	world.AddEntity(s.infoEnt)
-
-	s.setInputMode(inputModeKeyboard)
 }
 
-func (s *InputSystem) setInputMode(mode inputMode) {
-	s.inputMode = mode
+func (s *InputSystem) setInputMode(com *components.InputComponent, mode components.InputMode) {
 	s.infoEnt.TextComponent.Text = fmt.Sprintf("Current:%s Change with K or G", mode.String())
+	com.InputMode = mode
 }
 
-func (s *InputSystem) processGamepad() {
-	if inpututil.IsGamepadJustDisconnected(s.playerGamepad) {
+func (s *InputSystem) processGamepad(ent Inputable) {
+	inputCom := ent.GetInputComponent()
+
+	if inputCom.Gamepad.Id < 0 || inpututil.IsGamepadJustDisconnected(inputCom.Gamepad.Id) {
 		if len(inpututil.JustConnectedGamepadIDs()) <= 0 {
-			s.setInputMode(inputModeKeyboard)
+			s.setInputMode(ent.GetInputComponent(), components.InputModeKeyboard)
 			return
 		}
-		s.playerGamepad = inpututil.JustConnectedGamepadIDs()[0]
+		inputCom.Gamepad.Id = inpututil.JustConnectedGamepadIDs()[0]
 	}
 
-	id := s.playerGamepad
+	id := inputCom.Gamepad.Id
 	maxButton := ebiten.GamepadButton(ebiten.GamepadButtonNum(id))
 	for b := ebiten.GamepadButton(id); b < maxButton; b++ {
 		// Log button events.
@@ -96,73 +69,91 @@ func (s *InputSystem) processGamepad() {
 		}
 	}
 
-	vx := ebiten.GamepadAxis(id, moveAxisX)
-	for _, ent := range s.ents {
-		move := ent.GetMovementComponent()
+	driver := inputCom.Gamepad.Driver
 
-		if math.Abs(vx) > deadZone {
-			if vx > 0 {
-				move.MoveRight = true
-			}
-			if vx < 0 {
-				move.MoveLeft = true
-			}
-		}
-
-		if inpututil.IsGamepadButtonJustPressed(id, buttonJump) {
-			move.MoveUp = true
-		}
-		if inpututil.IsGamepadButtonJustPressed(id, buttonShoot) {
-			move.Shoot = true
-		}
-	}
-}
-
-func (s *InputSystem) processKeyboard() {
-	for _, ent := range s.ents {
-		move := ent.GetMovementComponent()
-		if inpututil.KeyPressDuration(ebiten.KeyLeft) > 0 {
-			move.MoveLeft = true
-		}
-
-		if inpututil.KeyPressDuration(ebiten.KeyRight) > 0 {
+	vx := driver.GamepadAxis(id, inputCom.Gamepad.MoveAxisX)
+	move := ent.GetMovementComponent()
+	if math.Abs(vx) > float64(inputCom.Gamepad.MoveAxisX) {
+		if vx > 0 {
 			move.MoveRight = true
 		}
-
-		if inpututil.KeyPressDuration(ebiten.KeyUp) > 0 {
-			move.MoveUp = true
+		if vx < 0 {
+			move.MoveLeft = true
 		}
+	}
 
-		if inpututil.KeyPressDuration(ebiten.KeyDown) > 0 {
-			move.MoveDown = true
-		}
+	if driver.IsGamepadButtonJustPressed(id, inputCom.Gamepad.ButtonJump) {
+		move.MoveUp = true
+	}
+	if driver.IsGamepadButtonJustPressed(id, inputCom.Gamepad.ButtonShoot) {
+		move.Shoot = true
+	}
 
-		if inpututil.KeyPressDuration(keyJump) > 0 {
-			move.MoveUp = true
-		}
+}
 
-		if inpututil.KeyPressDuration(keyShoot) > 0 {
-			move.Shoot = true
-		}
+func (s *InputSystem) processKeyboard(ent Inputable) {
+	keyboard := ent.GetInputComponent().Keyboard
+	driver := keyboard.Driver
+
+	move := ent.GetMovementComponent()
+	if driver.KeyPressDuration(keyboard.KeyMoveLeft) > 0 {
+		move.MoveLeft = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyMoveRight) > 0 {
+		move.MoveRight = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyMoveUp) > 0 || driver.KeyPressDuration(keyboard.KeyJump) > 0 {
+		move.MoveUp = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyMoveDown) > 0 {
+		move.MoveDown = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyShoot) > 0 {
+		move.Shoot = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyScrollSpeedUp) > 0 {
+		move.ScrollSpeedUp = true
+	}
+
+	if driver.KeyPressDuration(keyboard.KeyToggleCollsionOverlay) > 0 {
+		move.ToggleCollsionOverlay = true
 	}
 }
 
 func (s *InputSystem) Update(dt float32) {
 	if inpututil.IsKeyJustPressed(ebiten.KeyG) {
-		s.setInputMode(inputModeGamepad)
+		for _, ent := range s.ents {
+			// Can be null since not everything cares about gamepads
+			if ent.GetInputComponent().Gamepad.Driver == nil {
+				continue
+			}
+
+			s.setInputMode(ent.GetInputComponent(), components.InputModeGamepad)
+		}
 		return
 	}
 	if inpututil.IsKeyJustPressed(ebiten.KeyK) {
-		s.setInputMode(inputModeKeyboard)
+		for _, ent := range s.ents {
+			s.setInputMode(ent.GetInputComponent(), components.InputModeKeyboard)
+		}
 		return
 	}
 
-	switch s.inputMode {
-	case inputModeGamepad:
-		s.processGamepad()
-	case inputModeKeyboard:
-		s.processKeyboard()
+	for _, ent := range s.ents {
+		switch ent.GetInputComponent().InputMode {
+		case components.InputModeGamepad:
+			s.processGamepad(ent)
+		case components.InputModeKeyboard:
+			s.processKeyboard(ent)
+		}
+
 	}
+
 }
 
 func (s *InputSystem) Add(r Inputable) {
@@ -171,11 +162,6 @@ func (s *InputSystem) Add(r Inputable) {
 
 func (s *InputSystem) Remove(e ecs.BasicEntity) {
 	delete(s.ents, e.ID())
-}
-
-type Inputable interface {
-	ecs.BasicFace
-	components.MovementFace
 }
 
 func (s *InputSystem) AddByInterface(o ecs.Identifier) {

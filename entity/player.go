@@ -22,6 +22,7 @@ type Player struct {
 	*components.GravityComponent
 	*components.IdentityComponent
 	*components.SoundComponent
+	*components.InputComponent
 }
 
 func CreatePlayer() *Player {
@@ -64,6 +65,11 @@ func CreatePlayer() *Player {
 		},
 		SoundComponent: &components.SoundComponent{
 			Active: false,
+		},
+		InputComponent: &components.InputComponent{
+			InputMode: components.InputModeKeyboard,
+			Gamepad:   components.DefaultGamepadInputType(),
+			Keyboard:  components.DefaultKeyboardInputType(),
 		},
 	}
 

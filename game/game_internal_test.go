@@ -54,7 +54,7 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 
 	// Buildings need to move
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
@@ -115,7 +115,7 @@ func TestPlayerSystem(t *testing.T) {
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(CreateGameRuleSystem(mainGameInfo, s), gameRuleable, nil)
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
