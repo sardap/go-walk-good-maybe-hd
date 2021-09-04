@@ -2,7 +2,6 @@ package game
 
 import (
 	"github.com/EngoEngine/ecs"
-	"github.com/SolarLune/resolv"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -13,15 +12,15 @@ import (
 type GameRuleSystem struct {
 	ents            map[uint64]interface{}
 	world           *ecs.World
-	space           *resolv.Space
-	mainGameInfo    *MainGameInfo
 	enemyDeathSound *entity.SoundPlayer
+	info            *Info
+	mainGameInfo    *MainGameInfo
 }
 
-func CreateGameRuleSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *GameRuleSystem {
+func CreateGameRuleSystem(info *Info) *GameRuleSystem {
 	return &GameRuleSystem{
-		space:        space,
-		mainGameInfo: mainGameInfo,
+		info:         info,
+		mainGameInfo: info.MainGameInfo,
 	}
 }
 
@@ -123,7 +122,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 	}
 
 	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
-	generateCityBuildings(s.mainGameInfo, s.world)
+	generateCityBuildings(s.info, s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

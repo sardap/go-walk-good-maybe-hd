@@ -652,8 +652,13 @@ func TestWrapInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -706,8 +711,13 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -756,8 +766,13 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -838,8 +853,13 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 

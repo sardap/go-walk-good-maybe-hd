@@ -1,6 +1,7 @@
 package utility_test
 
 import (
+	"math/rand"
 	"testing"
 	"time"
 
@@ -104,8 +105,10 @@ func TestWrapVec2(t *testing.T) {
 func TestRandRange(t *testing.T) {
 	t.Parallel()
 
+	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	for i := 0; i < 100000; i++ {
-		val := utility.RandRange(0, 100)
+		val := utility.RandRange(rand, 0, 100)
 		assert.GreaterOrEqual(t, val, 0)
 		assert.Less(t, val, 100)
 		if t.Failed() {
@@ -117,8 +120,10 @@ func TestRandRange(t *testing.T) {
 func TestRandRangeFloat64(t *testing.T) {
 	t.Parallel()
 
+	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	for i := 0; i < 100000; i++ {
-		val := utility.RandRangeFloat64(0, 100)
+		val := utility.RandRangeFloat64(rand, 0, 100)
 		assert.GreaterOrEqual(t, val, float64(0))
 		assert.Less(t, val, float64(100))
 		if t.Failed() {

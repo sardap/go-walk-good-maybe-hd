@@ -27,11 +27,11 @@ type LevelBlock struct {
 	*components.IdentityComponent
 }
 
-func createBuilding0(ent ecs.BasicEntity) *LevelBlock {
+func createBuilding0(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
 
-	width := utility.RandRange(5, 9)
-	height := utility.RandRange(5, 10)
+	width := utility.RandRange(rand, 5, 9)
+	height := utility.RandRange(rand, 5, 10)
 
 	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding0TileSet.FrameWidth)
 	// Edges
@@ -68,11 +68,11 @@ func createBuilding0(ent ecs.BasicEntity) *LevelBlock {
 	return result
 }
 
-func createBuilding1(ent ecs.BasicEntity) *LevelBlock {
+func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding1TileSet)
 
-	width := utility.RandRange(4, 6)
-	height := utility.RandRange(5, 10)
+	width := utility.RandRange(rand, 4, 6)
+	height := utility.RandRange(rand, 5, 10)
 
 	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding0TileSet.FrameWidth)
 	// Roof
@@ -116,42 +116,43 @@ type LevelBlockable interface {
 	components.TransformFace
 }
 
-func populateLevelBlock(w *ecs.World, lb LevelBlockable) {
+func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	if lb.GetTransformComponent().Postion.X < 50 {
 		return
 	}
 
 	trans := lb.GetTransformComponent()
 	biscuit := entity.CreateBiscuitEnemy()
-	biscuit.Postion.X = utility.RandRangeFloat64(int(trans.Postion.X), int(trans.Postion.X+trans.Size.X))
+	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(trans.Postion.X), int(trans.Postion.X+trans.Size.X))
 	biscuit.Postion.Y = 30
 	biscuit.Layer = enemyLayer
 	w.AddEntity(biscuit)
 }
 
-func createLevelBlock(basic ecs.BasicEntity) *LevelBlock {
+func createLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
 	val := rand.Float64()
 	switch {
 	case val <= 0.5:
-		return createBuilding0(basic)
+		return createBuilding0(rand, basic)
 	case val > 0.5:
-		return createBuilding1(basic)
+		return createBuilding1(rand, basic)
 	}
 
 	panic("random number bug")
 }
 
-func generateCityBuildings(mainGameInfo *MainGameInfo, w *ecs.World) {
+func generateCityBuildings(info *Info, w *ecs.World) {
+	mainGameInfo := info.MainGameInfo
 	x := mainGameInfo.Level.StartX
 	for x < mainGameInfo.Level.Width {
 		ent := ecs.NewBasic()
-		levelBlock := createLevelBlock(ent)
+		levelBlock := createLevelBlock(info.Rand, ent)
 		trans := levelBlock.GetTransformComponent()
 		levelBlock.GetTransformComponent().Postion.Y = mainGameInfo.Level.Height - trans.Size.Y
 		levelBlock.GetTransformComponent().Postion.X = x
-		x += levelBlock.Size.X + float64(utility.RandRange(minSpaceBetweenBuildings, minSpaceBetweenBuildings+20*scaleMultiplier))
+		x += levelBlock.Size.X + float64(utility.RandRange(info.Rand, minSpaceBetweenBuildings, minSpaceBetweenBuildings+20*scaleMultiplier))
 		w.AddEntity(levelBlock)
-		populateLevelBlock(w, levelBlock)
+		populateLevelBlock(info.Rand, w, levelBlock)
 	}
 	mainGameInfo.Level.StartX = x
 }

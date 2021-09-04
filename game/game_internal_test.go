@@ -2,7 +2,9 @@ package game
 
 import (
 	gomath "math"
+	"math/rand"
 	"testing"
+	"time"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
@@ -12,6 +14,57 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type fakeRand struct {
+	seq []int64
+	top int
+}
+
+func (f *fakeRand) Int63() int64 {
+	if f.top >= len(f.seq) {
+		return rand.Int63()
+	}
+	result := f.seq[f.top]
+	f.top++
+	return result
+}
+
+func (*fakeRand) Seed(seed int64) {
+}
+
+func TestCreateAllBuildings(t *testing.T) {
+	t.Parallel()
+
+	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		Level: &Level{},
+	}
+
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Space:        s,
+	}
+
+	testCases := []struct {
+		name string
+		seq  []int64
+	}{
+		// 0.16
+		{name: "building 0", seq: []int64{1549579715481715357}},
+		// 0.66
+		{name: "building 1", seq: []int64{6164223592359435957}},
+	}
+
+	for _, testcase := range testCases {
+		info.Rand = rand.New(&fakeRand{seq: testcase.seq})
+
+		LevelBlock := createLevelBlock(info.Rand, ecs.NewBasic())
+		assert.Equal(t, LevelBlock.TileMap.TileWidth*LevelBlock.TileMap.TileXNum, int(LevelBlock.Size.X))
+		for _, tile := range LevelBlock.TileMap.Map {
+			assert.GreaterOrEqual(t, tile, int16(0))
+		}
+	}
+}
+
 func TestCityLevelGenerate(t *testing.T) {
 	t.Parallel()
 
@@ -20,11 +73,16 @@ func TestCityLevelGenerate(t *testing.T) {
 	mainGameInfo := &MainGameInfo{
 		Level: &Level{},
 	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
-	generateCityBuildings(mainGameInfo, w)
+	generateCityBuildings(info, w)
 
 	ground := s.FilterByTags(entity.TagGround)
 	for i := 0; i < ground.Length()-1; i++ {
@@ -47,8 +105,13 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := CreateGameRuleSystem(info)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -107,13 +170,18 @@ func TestPlayerSystem(t *testing.T) {
 			Width: 500,
 		},
 	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
 	playerSystem := CreatePlayerSystem(mainGameInfo)
 	var playerable *Playerable
 	w.AddSystemInterface(playerSystem, playerable, nil)
 
 	var gameRuleable *GameRuleable
-	w.AddSystemInterface(CreateGameRuleSystem(mainGameInfo, s), gameRuleable, nil)
+	w.AddSystemInterface(CreateGameRuleSystem(info), gameRuleable, nil)
 	var resolveable *Resolvable
 	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
 	var velocityable *Velocityable
