@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	gomath "math"
 	"math/rand"
 	"testing"
@@ -44,20 +45,26 @@ func TestCreateAllBuildings(t *testing.T) {
 		Space:        s,
 	}
 
+	garbage := rand.Int63()
+
+	fmt.Printf("%d:%f\n", garbage, rand.New(&fakeRand{seq: []int64{garbage}}).Float64())
+
 	testCases := []struct {
 		name string
 		seq  []int64
 	}{
-		// 0.16
-		{name: "building 0", seq: []int64{1549579715481715357}},
-		// 0.66
-		{name: "building 1", seq: []int64{6164223592359435957}},
+		// 0.058
+		{name: "building 0", seq: []int64{543898249864404905}},
+		// 0.480
+		{name: "building 1", seq: []int64{4430758520341445551}},
+		// 0.940
+		{name: "building 2", seq: []int64{8678356114173921525}},
 	}
 
 	for _, testcase := range testCases {
 		info.Rand = rand.New(&fakeRand{seq: testcase.seq})
 
-		LevelBlock := createLevelBlock(info.Rand, ecs.NewBasic())
+		LevelBlock := createRandomLevelBlock(info.Rand, ecs.NewBasic())
 		assert.Equal(t, LevelBlock.TileMap.TileWidth*LevelBlock.TileMap.TileXNum, int(LevelBlock.Size.X))
 		for _, tile := range LevelBlock.TileMap.Map {
 			assert.GreaterOrEqual(t, tile, int16(0))

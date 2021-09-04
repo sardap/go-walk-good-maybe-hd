@@ -96,12 +96,6 @@ func (g *Game) startCityLevel() {
 	player.TileImageComponent.Layer = playerImageLayer
 	g.world.AddEntity(player)
 
-	testBox := entity.CreateTestBox()
-	testBox.ImageComponent.Layer = uiImageLayer
-	testBox.TransformComponent.Postion.X = 500
-	testBox.TransformComponent.Postion.Y = 500
-	g.world.AddEntity(testBox)
-
 	g.Info.MainGameInfo.Level = &Level{
 		Width:  windowWidth,
 		Height: windowHeight,

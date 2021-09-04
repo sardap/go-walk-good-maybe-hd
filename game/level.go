@@ -27,6 +27,30 @@ type LevelBlock struct {
 	*components.IdentityComponent
 }
 
+func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, height int) *LevelBlock {
+	return &LevelBlock{
+		BasicEntity: ent,
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: float64(width * tileMap.TileWidth),
+				Y: float64(height * tileMap.TileWidth),
+			},
+		},
+		VelocityComponent: &components.VelocityComponent{},
+		TileImageComponent: &components.TileImageComponent{
+			TileMap: tileMap,
+			Layer:   buildingForground,
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		ScrollableComponent: &components.ScrollableComponent{},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{entity.TagGround},
+		},
+	}
+}
+
 func createBuilding0(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
 
@@ -43,29 +67,7 @@ func createBuilding0(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 		tileMap.SetCol(x, 1, assets.IndexBuilding0Window)
 	}
 
-	result := &LevelBlock{
-		BasicEntity: ent,
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{
-				X: float64(width * assets.ImageBuilding0TileSet.FrameWidth),
-				Y: float64(height * assets.ImageBuilding0TileSet.FrameWidth),
-			},
-		},
-		VelocityComponent: &components.VelocityComponent{},
-		TileImageComponent: &components.TileImageComponent{
-			TileMap: tileMap,
-			Layer:   buildingForground,
-		},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		ScrollableComponent: &components.ScrollableComponent{},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagGround},
-		},
-	}
-
-	return result
+	return createLevelBlock(ent, tileMap, width, height)
 }
 
 func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
@@ -74,7 +76,7 @@ func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	width := utility.RandRange(rand, 4, 6)
 	height := utility.RandRange(rand, 5, 10)
 
-	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding0TileSet.FrameWidth)
+	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding1TileSet.FrameWidth)
 	// Roof
 	tileMap.SetTile(0, 0, assets.IndexBuilding1RoofLeft)
 	tileMap.SetRow(1, 0, assets.IndexBuilding1RoofMiddle)
@@ -86,29 +88,54 @@ func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	}
 	tileMap.SetCol(width-1, 1, assets.IndexBuilding1MiddleRight)
 
-	result := &LevelBlock{
-		BasicEntity: ent,
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{
-				X: float64(width * assets.ImageBuilding0TileSet.FrameWidth),
-				Y: float64(height * assets.ImageBuilding0TileSet.FrameWidth),
-			},
-		},
-		VelocityComponent: &components.VelocityComponent{},
-		TileImageComponent: &components.TileImageComponent{
-			TileMap: tileMap,
-			Layer:   buildingForground,
-		},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		ScrollableComponent: &components.ScrollableComponent{},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagGround},
-		},
+	return createLevelBlock(ent, tileMap, width, height)
+}
+
+func createBuilding2(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
+	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding2TileSet)
+
+	width := utility.RandRange(rand, 4, 6)
+	if width%2 == 0 {
+		width++
 	}
 
-	return result
+	height := utility.RandRange(rand, 5, 10)
+	for height%3 != 0 {
+		height++
+	}
+	height++
+
+	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding2TileSet.FrameWidth)
+	// Left section
+	tileMap.SetTile(0, 0, assets.IndexBuilding2LeftRoof)
+	tileMap.SetCol(0, 1, assets.IndexBuilding2LeftMiddle)
+
+	// Middle section
+	for x := 1; x < width-1; x++ {
+		if x%2 == 0 {
+			tileMap.SetTile(x, 0, assets.IndexBuilding2RoofClean)
+		} else {
+			tileMap.SetTile(x, 0, assets.IndexBuilding2RoofHanging)
+		}
+
+		for y := 1; y < height; y += 3 {
+			if x%2 == 0 {
+				tileMap.SetTile(x, y, assets.IndexBuilding2Window)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding2Window)
+			} else {
+				tileMap.SetTile(x, y, assets.IndexBuilding2MiddleWhite)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding2MiddleWhiteClean)
+			}
+
+			tileMap.SetTile(x, y+2, assets.IndexBuilding2MiddleBlue)
+		}
+	}
+
+	// Right section
+	tileMap.SetTile(width-1, 0, assets.IndexBuilding2RightRoof)
+	tileMap.SetCol(width-1, 1, assets.IndexBuilding2RightMiddle)
+
+	return createLevelBlock(ent, tileMap, width, height)
 }
 
 type LevelBlockable interface {
@@ -129,13 +156,15 @@ func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	w.AddEntity(biscuit)
 }
 
-func createLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
+func createRandomLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
 	val := rand.Float64()
 	switch {
-	case val <= 0.5:
+	case val <= 0.33:
 		return createBuilding0(rand, basic)
-	case val > 0.5:
+	case val <= 0.66:
 		return createBuilding1(rand, basic)
+	case val <= 1:
+		return createBuilding2(rand, basic)
 	}
 
 	panic("random number bug")
@@ -146,7 +175,7 @@ func generateCityBuildings(info *Info, w *ecs.World) {
 	x := mainGameInfo.Level.StartX
 	for x < mainGameInfo.Level.Width {
 		ent := ecs.NewBasic()
-		levelBlock := createLevelBlock(info.Rand, ent)
+		levelBlock := createRandomLevelBlock(info.Rand, ent)
 		trans := levelBlock.GetTransformComponent()
 		levelBlock.GetTransformComponent().Postion.Y = mainGameInfo.Level.Height - trans.Size.Y
 		levelBlock.GetTransformComponent().Postion.X = x
