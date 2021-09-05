@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	gomath "math"
 	"math/rand"
 	"testing"
@@ -55,34 +54,32 @@ func TestCreateAllBuildings(t *testing.T) {
 		Space:        s,
 	}
 
-	seed, num := findSeed(0.666, 0.833)
-	fmt.Printf("%d:%f\n", seed, num)
-
+	// Building 5 is non standard shape
 	testCases := []struct {
 		name string
 		seq  []int64
 	}{
-		// 0.058
-		{name: "building 0", seq: []int64{543898249864404905}},
-		// 0.276
-		{name: "building 1", seq: []int64{2552056708243655789}},
-		// 0.480
-		{name: "building 2", seq: []int64{4430758520341445551}},
-		// 0.608
-		{name: "building 3", seq: []int64{5610831761584960326}},
-		// 0.805
-		{name: "building 4", seq: []int64{7429511120695834964}},
-		// 0.940
-		{name: "building 5", seq: []int64{8678356114173921525}},
+		{name: "building 0"},
+		{name: "building 1"},
+		{name: "building 2"},
+		{name: "building 3"},
+		{name: "building 4"},
+		{name: "building 5"},
 	}
 
-	for _, testcase := range testCases {
-		info.Rand = rand.New(&fakeRand{seq: testcase.seq})
+	for i, testcase := range testCases {
+		step := 1.0 / float64(len(testCases))
+		max := step * float64(i+1)
+		seed, _ := findSeed(max-step, max)
+
+		info.Rand = rand.New(&fakeRand{seq: []int64{seed}})
 
 		LevelBlock := createRandomLevelBlock(info.Rand, ecs.NewBasic())
-		assert.Equal(t, LevelBlock.TileMap.TileWidth*LevelBlock.TileMap.TileXNum, int(LevelBlock.Size.X))
+		expected := LevelBlock.TileMap.TileWidth * LevelBlock.TileMap.TileXNum
+		assert.Equalf(t, expected, int(LevelBlock.Size.X), "invalid tileWidth for %s", testcase.name)
+
 		for _, tile := range LevelBlock.TileMap.Map {
-			assert.GreaterOrEqual(t, tile, int16(0))
+			assert.GreaterOrEqualf(t, tile, int16(0), "invalid greater or equal %s", testcase.name)
 		}
 	}
 }

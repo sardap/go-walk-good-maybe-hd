@@ -176,9 +176,9 @@ func createBuilding3(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 func createBuilding4(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding4TileSet)
 
-	width := utility.RandRange(rand, 4, 6)
+	width := utility.RandRange(rand, 5, 6)
 
-	height := utility.RandRange(rand, 4, 6)
+	height := utility.RandRange(rand, 6, 8)
 	for height%2 != 0 {
 		height++
 	}
@@ -272,24 +272,18 @@ func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	w.AddEntity(biscuit)
 }
 
+type genFunc func(*rand.Rand, ecs.BasicEntity) *LevelBlock
+
 func createRandomLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
 
-	const count = 6.0
+	funcs := []genFunc{createBuilding0, createBuilding1, createBuilding2, createBuilding3, createBuilding4, createBuilding5}
 
 	val := rand.Float64()
-	switch {
-	case val <= (1/count)*1:
-		return createBuilding0(rand, basic)
-	case val <= (1/count)*2:
-		return createBuilding1(rand, basic)
-	case val <= (1/count)*3:
-		return createBuilding2(rand, basic)
-	case val <= (1/count)*4:
-		return createBuilding3(rand, basic)
-	case val <= (1/count)*5:
-		return createBuilding4(rand, basic)
-	case val <= 1:
-		return createBuilding5(rand, basic)
+	// Probably don't need to iterrate over the whole thing
+	for i, genFunc := range funcs {
+		if val < (1.0/float64(len(funcs)))*float64(i+1.0) || i == len(funcs)-1 {
+			return genFunc(rand, basic)
+		}
 	}
 
 	panic("random number bug")
