@@ -32,6 +32,16 @@ func (f *fakeRand) Int63() int64 {
 func (*fakeRand) Seed(seed int64) {
 }
 
+func findSeed(min, max float64) (seed int64, num float64) {
+	for {
+		seed = rand.Int63()
+		num = rand.New(&fakeRand{seq: []int64{seed}}).Float64()
+		if num >= min && num <= max {
+			return
+		}
+	}
+}
+
 func TestCreateAllBuildings(t *testing.T) {
 	t.Parallel()
 
@@ -45,8 +55,8 @@ func TestCreateAllBuildings(t *testing.T) {
 		Space:        s,
 	}
 
-	garbage := rand.Int63()
-	fmt.Printf("%d:%f\n", garbage, rand.New(&fakeRand{seq: []int64{garbage}}).Float64())
+	seed, num := findSeed(0.666, 0.833)
+	fmt.Printf("%d:%f\n", seed, num)
 
 	testCases := []struct {
 		name string
@@ -60,8 +70,10 @@ func TestCreateAllBuildings(t *testing.T) {
 		{name: "building 2", seq: []int64{4430758520341445551}},
 		// 0.608
 		{name: "building 3", seq: []int64{5610831761584960326}},
+		// 0.805
+		{name: "building 4", seq: []int64{7429511120695834964}},
 		// 0.940
-		{name: "building 4", seq: []int64{8678356114173921525}},
+		{name: "building 5", seq: []int64{8678356114173921525}},
 	}
 
 	for _, testcase := range testCases {
