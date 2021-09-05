@@ -138,6 +138,41 @@ func createBuilding2(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	return createLevelBlock(ent, tileMap, width, height)
 }
 
+func createBuilding3(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
+	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding3TileSet)
+
+	width := utility.RandRange(rand, 3, 5)
+
+	height := utility.RandRange(rand, 5, 8)
+	for height%2 != 0 {
+		height++
+	}
+
+	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding3TileSet.FrameWidth)
+	// Left section
+	tileMap.SetTile(0, 0, assets.IndexBuilding3RoofTop)
+	tileMap.SetCol(0, 1, assets.IndexBuilding3RoofLeft)
+	tileMap.SetCol(0, 2, assets.IndexBuilding3LeftMiddle)
+
+	// Middle section
+	for x := 1; x < width-1; x++ {
+		tileMap.SetTile(x, 0, assets.IndexBuilding3RoofTop)
+		tileMap.SetTile(x, 1, assets.IndexBuilding3RoofMiddle)
+
+		for y := 2; y < height; y += 2 {
+			tileMap.SetTile(x, y, assets.IndexBuilding3WindowMiddle)
+			tileMap.SetTile(x, y+1, assets.IndexBuilding3WhiteMiddle)
+		}
+	}
+
+	// Right section
+	tileMap.SetTile(width-1, 0, assets.IndexBuilding3RoofTop)
+	tileMap.SetTile(width-1, 1, assets.IndexBuilding3RoofRight)
+	tileMap.SetCol(width-1, 2, assets.IndexBuilding3RightMiddle)
+
+	return createLevelBlock(ent, tileMap, width, height)
+}
+
 type LevelBlockable interface {
 	ecs.BasicFace
 	components.TransformFace
@@ -159,12 +194,14 @@ func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 func createRandomLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
 	val := rand.Float64()
 	switch {
-	case val <= 0.33:
+	case val <= 0.25:
 		return createBuilding0(rand, basic)
-	case val <= 0.66:
+	case val <= 0.50:
 		return createBuilding1(rand, basic)
-	case val <= 1:
+	case val <= 0.75:
 		return createBuilding2(rand, basic)
+	case val <= 1:
+		return createBuilding3(rand, basic)
 	}
 
 	panic("random number bug")
