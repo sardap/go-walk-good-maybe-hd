@@ -173,6 +173,58 @@ func createBuilding3(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	return createLevelBlock(ent, tileMap, width, height)
 }
 
+func createBuilding4(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
+	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding4TileSet)
+
+	width := utility.RandRange(rand, 4, 6)
+
+	height := utility.RandRange(rand, 4, 6)
+	for height%2 != 0 {
+		height++
+	}
+	height++
+
+	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding4TileSet.FrameWidth)
+	// Left section
+	tileMap.SetTile(0, 0, assets.IndexBuilding4RoofLeft)
+	tileMap.SetCol(0, 1, assets.IndexBuilding4LeftMiddle)
+
+	// Middle section
+	for x := 1; x < width-1; x++ {
+		tileMap.SetTile(x, 0, assets.IndexBuilding4RoofMiddle)
+
+		for y := 1; y < height; y += 2 {
+			val := rand.Float64()
+			switch {
+			case val <= 0.166:
+				tileMap.SetTile(x, y, assets.IndexBuilding4SignYellowTop)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4SignYellowBot)
+			case val <= 0.332:
+				tileMap.SetTile(x, y, assets.IndexBuilding4SignOrangeTop)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4SignOrangeBot)
+			case val <= 0.498:
+				tileMap.SetTile(x, y, assets.IndexBuilding4SignGreenTop)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4SignGreenBot)
+			case val <= 0.664:
+				tileMap.SetTile(x, y, assets.IndexBuilding4SignRed)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4MiddlePlain)
+			case val <= 0.830:
+				tileMap.SetTile(x, y, assets.IndexBuilding4SignBlue)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4MiddlePlain)
+			case val <= 0.996:
+				tileMap.SetTile(x, y, assets.IndexBuilding4MiddlePlain)
+				tileMap.SetTile(x, y+1, assets.IndexBuilding4MiddlePlain)
+			}
+		}
+	}
+
+	// Right section
+	tileMap.SetTile(width-1, 0, assets.IndexBuilding4RoofRight)
+	tileMap.SetCol(width-1, 1, assets.IndexBuilding4RightMiddle)
+
+	return createLevelBlock(ent, tileMap, width, height)
+}
+
 type LevelBlockable interface {
 	ecs.BasicFace
 	components.TransformFace
@@ -194,14 +246,16 @@ func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 func createRandomLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock {
 	val := rand.Float64()
 	switch {
-	case val <= 0.25:
+	case val <= 0.2:
 		return createBuilding0(rand, basic)
-	case val <= 0.50:
+	case val <= 0.4:
 		return createBuilding1(rand, basic)
-	case val <= 0.75:
+	case val <= 0.6:
 		return createBuilding2(rand, basic)
-	case val <= 1:
+	case val <= 0.8:
 		return createBuilding3(rand, basic)
+	case val <= 1:
+		return createBuilding4(rand, basic)
 	}
 
 	panic("random number bug")

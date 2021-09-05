@@ -54,12 +54,14 @@ func TestCreateAllBuildings(t *testing.T) {
 	}{
 		// 0.058
 		{name: "building 0", seq: []int64{543898249864404905}},
+		// 0.276
+		{name: "building 1", seq: []int64{2552056708243655789}},
 		// 0.480
-		{name: "building 1", seq: []int64{4430758520341445551}},
+		{name: "building 2", seq: []int64{4430758520341445551}},
 		// 0.608
-		{name: "building 2", seq: []int64{5610831761584960326}},
+		{name: "building 3", seq: []int64{5610831761584960326}},
 		// 0.940
-		{name: "building 3", seq: []int64{8678356114173921525}},
+		{name: "building 4", seq: []int64{8678356114173921525}},
 	}
 
 	for _, testcase := range testCases {

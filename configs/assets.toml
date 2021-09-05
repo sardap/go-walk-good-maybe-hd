@@ -87,6 +87,14 @@ scaleMultiplier=10
 parts=["leftMiddle", "roofTop", "roofLeft", "roofMiddle", "roofRight", "rightMiddle", "whiteMiddle", "windowMiddle"]
 file="building/building3TileSet.psd"
 
+[[Images]]
+name="building4"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["leftMiddle", "rightMiddle", "middlePlain", "middleWindow", "signYellowTop", "signYellowBot", "signOrangeTop", "signOrangeBot", "signGreenTop", "signGreenBot", "signBlue", "signRed", "roofLeft", "roofMiddle", "roofRight"]
+file="building/building4TileSet.psd"
+
 [[Sounds]]
 name="byJumpTwo"
 file="byJumpTwo.wav"
