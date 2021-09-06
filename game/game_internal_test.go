@@ -8,6 +8,7 @@ import (
 
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -267,4 +268,65 @@ func TestPlayerSystem(t *testing.T) {
 	assert.Less(t, bullet.Speed.X, float64(0), "bullet should be moving left")
 
 	w.RemoveEntity(player.BasicEntity)
+}
+
+func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		Gravity: 10,
+		Level: &Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
+
+	gameRuleSystem := CreateGameRuleSystem(info)
+	var gameRuleable *GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	var animeable *Animeable
+	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.AnimeComponent
+		*components.DestoryOnAnimeComponent
+		*components.TileImageComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		AnimeComponent: &components.AnimeComponent{
+			FrameDuration:  1 * time.Second,
+			FrameRemaining: 1 * time.Second,
+		},
+		DestoryOnAnimeComponent: &components.DestoryOnAnimeComponent{
+			CyclesTilDeath: 1,
+		},
+		TileImageComponent: &components.TileImageComponent{
+			Active:  true,
+			TileMap: components.CreateTileMap(1, 1, ebiten.NewImage(1, 1), 1),
+		},
+	}
+	w.AddEntity(ent)
+	_, ok := gameRuleSystem.ents[ent.ID()]
+	assert.True(t, ok, "entity should be removed once anime completed")
+
+	for ent.Cycles <= 0 {
+		w.Update(1)
+	}
+	w.Update(1)
+
+	_, ok = gameRuleSystem.ents[ent.ID()]
+	assert.False(t, ok, "entity should be removed once anime completed")
 }

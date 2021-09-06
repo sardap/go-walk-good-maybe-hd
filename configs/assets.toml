@@ -39,6 +39,14 @@ frameWidth=8
 scaleMultiplier=10
 file="Enemies/biscuitEnemyIdle.psd"
 
+
+[[Images]]
+name="biscuitEnemyDeath"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+file="Enemies/biscuitEnemyDeath.psd"
+
 # 
 # ---Buildings---
 #
@@ -64,8 +72,8 @@ file="city/cityFog.psd"
 [[Images]]
 name="building0"
 type="tileSet"
-frameWidth=8
-scaleMultiplier=10
+frameWidth=16
+scaleMultiplier=5
 parts=["wall", "window"]
 file="building/building0TileSet.psd"
 

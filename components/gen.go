@@ -34,6 +34,14 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
+func (d *DestoryOnAnimeComponent) GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent {
+	return d
+}
+
+type DestoryOnAnimeFace interface {
+	GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent
+}
+
 func (g *GravityComponent) GetGravityComponent() *GravityComponent {
 	return g
 }

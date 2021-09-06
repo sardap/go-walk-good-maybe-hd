@@ -64,8 +64,15 @@ type Bulletable interface {
 
 type EnemyBiscuitable interface {
 	ecs.BasicFace
+	components.TransformFace
 	components.BiscuitEnemyFace
 	components.CollisionFace
+}
+
+type DestoryOnAnimeable interface {
+	ecs.BasicFace
+	components.AnimeFace
+	components.DestoryOnAnimeFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
@@ -117,6 +124,17 @@ func (s *GameRuleSystem) Update(dt float32) {
 					s.enemyDeathSound.SoundComponent.Active = true
 				}
 				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
+				biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
+				biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
+				biscuitEnemyDeath.Layer = enemyLayer
+				defer s.world.AddEntity(biscuitEnemyDeath)
+			}
+		}
+
+		if ent, ok := ent.(DestoryOnAnimeable); ok {
+			anime := ent.GetAnimeComponent()
+			if anime.Cycles >= ent.GetDestoryOnAnimeComponent().CyclesTilDeath {
+				defer s.world.RemoveEntity(*ent.GetBasicEntity())
 			}
 		}
 	}
