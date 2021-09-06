@@ -330,3 +330,54 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 	_, ok = gameRuleSystem.ents[ent.ID()]
 	assert.False(t, ok, "entity should be removed once anime completed")
 }
+
+func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		Gravity: 10,
+		Level: &Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
+
+	gameRuleSystem := CreateGameRuleSystem(info)
+	var gameRuleable *GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	var animeable *Animeable
+	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
+	var resolvable *Resolvable
+	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.BiscuitEnemyComponent
+		*components.CollisionComponent
+		*components.IdentityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{entity.TagEnemy},
+		},
+	}
+	w.AddEntity(ent)
+
+	w.Update(0.1)
+}

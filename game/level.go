@@ -76,7 +76,7 @@ func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding1TileSet)
 
 	width := utility.RandRange(rand, 4, 6)
-	height := utility.RandRange(rand, 5, 10)
+	height := utility.RandRange(rand, 3, 5)
 
 	tileMap := components.CreateTileMap(width, height, tileSet, assets.ImageBuilding1TileSet.FrameWidth)
 	// Roof

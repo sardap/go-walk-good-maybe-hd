@@ -1028,6 +1028,67 @@ func TestInputSystem(t *testing.T) {
 	assert.NotZero(t, inputSystem.Priority())
 }
 
+func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Gravity: 10,
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(info)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	var animeable *game.Animeable
+	w.AddSystemInterface(game.CreateAnimeSystem(), animeable, nil)
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.BiscuitEnemyComponent
+		*components.CollisionComponent
+		*components.IdentityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{entity.TagEnemy},
+		},
+	}
+	w.AddEntity(ent)
+
+	assert.True(t, s.Contains(ent.CollisionShape), "should exist in space")
+	w.Update(0.1)
+
+	ent.Collisions = append(ent.Collisions, &components.CollisionEvent{
+		ID:   10,
+		Tags: []string{entity.TagBullet},
+	})
+	w.Update(0.1)
+	assert.False(t, s.Contains(ent.CollisionShape), "should be removed from space")
+
+	// No tests for death anime does this matter?
+}
+
 type testGame struct {
 	m    *testing.M
 	code int
