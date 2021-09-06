@@ -727,10 +727,12 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 		*components.VelocityComponent
 		*components.ScrollableComponent
 	}{
-		BasicEntity:         ecs.NewBasic(),
-		TransformComponent:  &components.TransformComponent{},
-		VelocityComponent:   &components.VelocityComponent{},
-		ScrollableComponent: &components.ScrollableComponent{},
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		VelocityComponent:  &components.VelocityComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
 	}
 	w.AddEntity(scrollEnt)
 

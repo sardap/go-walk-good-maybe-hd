@@ -56,6 +56,12 @@ scaleMultiplier=10
 file="city/backgroundCity.psd"
 
 [[Images]]
+name="cityFog"
+type="single"
+scaleMultiplier=10
+file="city/cityFog.psd"
+
+[[Images]]
 name="building0"
 type="tileSet"
 frameWidth=8

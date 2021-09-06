@@ -51,7 +51,9 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 			Active:  true,
 			TileMap: tileMap,
 		},
-		ScrollableComponent: &components.ScrollableComponent{},
-		VelocityComponent:   &components.VelocityComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
+		VelocityComponent: &components.VelocityComponent{},
 	}
 }

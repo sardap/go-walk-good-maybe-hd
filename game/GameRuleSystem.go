@@ -83,7 +83,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if scrollable, ok := ent.(Scrollable); ok {
 			velCom := scrollable.GetVelocityComponent()
-			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed)
+			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
 		}
 
 		if building, ok := ent.(*LevelBlock); ok {

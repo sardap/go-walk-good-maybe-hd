@@ -17,6 +17,7 @@ import (
 
 const (
 	bottomImageLayer components.ImageLayer = iota
+	cityFogLayer
 	playerImageLayer
 	enemyLayer
 	bulletImageLayer
@@ -91,6 +92,15 @@ func (g *Game) startCityLevel() {
 	cityBackground.ImageComponent.Layer = bottomImageLayer
 	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
+
+	cityFog := entity.CreateCityFogBackground()
+	cityFog.ImageComponent.Layer = cityFogLayer
+	g.world.AddEntity(cityFog)
+
+	cityFog = entity.CreateCityFogBackground()
+	cityFog.ImageComponent.Layer = cityFogLayer
+	cityFog.Postion.X = cityFog.TransformComponent.Size.X
+	g.world.AddEntity(cityFog)
 
 	player := entity.CreatePlayer()
 	player.TileImageComponent.Layer = playerImageLayer

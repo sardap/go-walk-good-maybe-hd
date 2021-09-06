@@ -147,11 +147,13 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 				X: 10,
 			},
 		},
-		VelocityComponent:   &components.VelocityComponent{},
-		TileImageComponent:  &components.TileImageComponent{},
-		CollisionComponent:  &components.CollisionComponent{},
-		ScrollableComponent: &components.ScrollableComponent{},
-		IdentityComponent:   &components.IdentityComponent{},
+		VelocityComponent:  &components.VelocityComponent{},
+		TileImageComponent: &components.TileImageComponent{},
+		CollisionComponent: &components.CollisionComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
+		IdentityComponent: &components.IdentityComponent{},
 	}
 
 	w.AddEntity(block)

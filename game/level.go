@@ -44,7 +44,9 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
-		ScrollableComponent: &components.ScrollableComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{entity.TagGround},
 		},
