@@ -56,11 +56,11 @@ func WrapVec2(val, min, max math.Vector2) math.Vector2 {
 	}
 }
 
-func RandRange(min, max int) int {
+func RandRange(rand *rand.Rand, min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-func RandRangeFloat64(min, max int) float64 {
+func RandRangeFloat64(rand *rand.Rand, min, max int) float64 {
 	return float64(rand.Intn(max-min)+min) + rand.Float64()
 }
 

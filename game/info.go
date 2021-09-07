@@ -1,6 +1,9 @@
 package game
 
 import (
+	"math/rand"
+
+	"github.com/SolarLune/resolv"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
 )
@@ -18,4 +21,10 @@ type MainGameInfo struct {
 	State          gameState
 	Level          *Level
 	InputEnt       *entity.DebugInput
+}
+
+type Info struct {
+	Rand         *rand.Rand
+	Space        *resolv.Space
+	MainGameInfo *MainGameInfo
 }

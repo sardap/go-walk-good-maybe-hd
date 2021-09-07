@@ -9,6 +9,6 @@ type MovementComponent struct {
 	ChangeToGamepad  bool
 	ChangeToKeyboard bool
 	// Debug stuff
-	ScrollSpeedUp         bool
+	FastGameSpeed         bool
 	ToggleCollsionOverlay bool
 }

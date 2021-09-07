@@ -56,6 +56,47 @@ func CreateCityBackground() *CityBackground {
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 0.25,
+		},
+		WrapComponent: &components.WrapComponent{
+			Max: math.Vector2{X: float64(w), Y: 0},
+			Min: math.Vector2{X: -float64(w), Y: 0},
+		},
+	}
+}
+
+type CityFogBackground struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.IdentityComponent
+	*components.ImageComponent
+	*components.VelocityComponent
+	*components.ScrollableComponent
+	*components.WrapComponent
+}
+
+func CreateCityFogBackground() *CityFogBackground {
+	img, _ := assets.LoadEbitenImage(assets.ImageCityFog)
+
+	w, h := img.Size()
+
+	return &CityFogBackground{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: float64(w), Y: float64(h)},
+		},
+		IdentityComponent: &components.IdentityComponent{},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+			Image:  img,
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{},
+		},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 0.125,
+		},
 		WrapComponent: &components.WrapComponent{
 			Max: math.Vector2{X: float64(w), Y: 0},
 			Min: math.Vector2{X: -float64(w), Y: 0},
