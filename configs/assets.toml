@@ -47,6 +47,21 @@ frameWidth=8
 scaleMultiplier=10
 file="Enemies/biscuitEnemyDeath.psd"
 
+[[Images]]
+name="biscutUFOIdle"
+type="tileSet"
+frameWidth=16
+scaleMultiplier=10
+file="Enemies/biscutUFOIdle.psd"
+
+[[Images]]
+name="biscutUfoDeath"
+type="tileSet"
+frameWidth=16
+scaleMultiplier=10
+file="Enemies/biscutUfoDeath.psd"
+
+
 # 
 # ---Buildings---
 #
@@ -125,6 +140,10 @@ file="byJumpTwo.wav"
 [[Sounds]]
 name="biscuitDeath"
 file="pdBiscuitDeath.wav"
+
+[[Sounds]]
+name="ufoBiscuitEnemyDeath"
+file="ufoBiscuitEnemyDeath.wav"
 
 [[Sounds]]
 name="byLaserFour"

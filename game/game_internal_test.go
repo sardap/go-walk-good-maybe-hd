@@ -381,3 +381,45 @@ func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
 
 	w.Update(0.1)
 }
+
+func TestUfoBiscuitGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &MainGameInfo{
+		Gravity: 10,
+		Level: &Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+	info := &Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
+
+	gameRuleSystem := CreateGameRuleSystem(info)
+	var gameRuleable *GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	var animeable *Animeable
+	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
+	var resolvable *Resolvable
+	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+
+	ufo := entity.CreateUfoBiscuitEnemy()
+	w.AddEntity(ufo)
+
+	w.Update(0.1)
+	_, ok := gameRuleSystem.ents[ufo.ID()]
+	assert.True(t, ok, "ufo should exist still")
+
+	ufo.Collisions = append(ufo.Collisions, &components.CollisionEvent{
+		Tags: []string{entity.TagBullet},
+	})
+	w.Update(0.1)
+	_, ok = gameRuleSystem.ents[ufo.ID()]
+	assert.False(t, ok, "ufo should no longer exist")
+}

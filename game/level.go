@@ -261,17 +261,37 @@ type LevelBlockable interface {
 	components.TransformFace
 }
 
+func createBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	biscuit := entity.CreateBiscuitEnemy()
+	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-biscuit.Size.X))
+	biscuit.Postion.Y = lbTrans.Postion.Y - (biscuit.Size.Y * 1.5)
+	biscuit.Layer = enemyLayer
+	w.AddEntity(biscuit)
+}
+
+func createUfoBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	ufo := entity.CreateUfoBiscuitEnemy()
+	ufo.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-ufo.Size.X))
+	ufo.Postion.Y = lbTrans.Postion.Y - (ufo.Size.Y * 2.5)
+	ufo.Layer = enemyLayer
+	w.AddEntity(ufo)
+}
+
 func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	// Don't spawn on player spawn
 	if lb.GetTransformComponent().Postion.X < 50 {
 		return
 	}
 
-	trans := lb.GetTransformComponent()
-	biscuit := entity.CreateBiscuitEnemy()
-	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(trans.Postion.X), int(trans.Postion.X+trans.Size.X))
-	biscuit.Postion.Y = 30
-	biscuit.Layer = enemyLayer
-	w.AddEntity(biscuit)
+	val := rand.Float64()
+	switch {
+	case val <= 0.5:
+		createBiscuitEnemy(rand, w, lb)
+	case val <= 1:
+		createUfoBiscuitEnemy(rand, w, lb)
+	}
 }
 
 type genFunc func(*rand.Rand, ecs.BasicEntity) *LevelBlock

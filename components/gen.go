@@ -138,6 +138,14 @@ type TransformFace interface {
 	GetTransformComponent() *TransformComponent
 }
 
+func (u *UfoBiscuitEnemyComponent) GetUfoBiscuitEnemyComponent() *UfoBiscuitEnemyComponent {
+	return u
+}
+
+type UfoBiscuitEnemyFace interface {
+	GetUfoBiscuitEnemyComponent() *UfoBiscuitEnemyComponent
+}
+
 func (v *VelocityComponent) GetVelocityComponent() *VelocityComponent {
 	return v
 }

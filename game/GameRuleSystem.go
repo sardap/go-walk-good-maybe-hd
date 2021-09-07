@@ -69,6 +69,13 @@ type EnemyBiscuitable interface {
 	components.CollisionFace
 }
 
+type UfoBiscuitEnemyable interface {
+	ecs.BasicFace
+	components.TransformFace
+	components.UfoBiscuitEnemyFace
+	components.CollisionFace
+}
+
 type DestoryOnAnimeable interface {
 	ecs.BasicFace
 	components.AnimeFace
@@ -120,6 +127,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 			colCom := biscuit.GetCollisionComponent()
 			if colCom.Collisions.CollidingWith(entity.TagBullet) {
 				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
+					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
 					s.enemyDeathSound.Restart = true
 					s.enemyDeathSound.SoundComponent.Active = true
 				}
@@ -128,6 +136,22 @@ func (s *GameRuleSystem) Update(dt float32) {
 				biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
 				biscuitEnemyDeath.Layer = enemyLayer
 				defer s.world.AddEntity(biscuitEnemyDeath)
+			}
+		}
+
+		if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
+			colCom := ufo.GetCollisionComponent()
+			if colCom.Collisions.CollidingWith(entity.TagBullet) {
+				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
+					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
+					s.enemyDeathSound.Restart = true
+					s.enemyDeathSound.SoundComponent.Active = true
+				}
+				defer s.world.RemoveEntity(*ufo.GetBasicEntity())
+				ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
+				ufoDeath.Postion = ufo.GetTransformComponent().Postion
+				ufoDeath.Layer = enemyLayer
+				defer s.world.AddEntity(ufoDeath)
 			}
 		}
 
