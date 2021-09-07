@@ -39,6 +39,29 @@ frameWidth=8
 scaleMultiplier=10
 file="Enemies/biscuitEnemyIdle.psd"
 
+
+[[Images]]
+name="biscuitEnemyDeath"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+file="Enemies/biscuitEnemyDeath.psd"
+
+[[Images]]
+name="biscutUFOIdle"
+type="tileSet"
+frameWidth=16
+scaleMultiplier=10
+file="Enemies/biscutUFOIdle.psd"
+
+[[Images]]
+name="biscutUfoDeath"
+type="tileSet"
+frameWidth=16
+scaleMultiplier=10
+file="Enemies/biscutUfoDeath.psd"
+
+
 # 
 # ---Buildings---
 #
@@ -56,12 +79,59 @@ scaleMultiplier=10
 file="city/backgroundCity.psd"
 
 [[Images]]
+name="cityFog"
+type="single"
+scaleMultiplier=10
+file="city/cityFog.psd"
+
+[[Images]]
 name="building0"
+type="tileSet"
+frameWidth=16
+scaleMultiplier=5
+parts=["wall", "window"]
+file="building/building0TileSet.psd"
+
+[[Images]]
+name="building1"
 type="tileSet"
 frameWidth=8
 scaleMultiplier=10
-parts=["wall", "window"]
-file="building/building0TileSet.psd"
+parts=["roofLeft", "roofMiddle", "roofRight", "botMiddle", "middleLeft", "middleRight"]
+file="building/building1TileSet.psd"
+
+[[Images]]
+name="building2"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["window", "roofHanging", "roofClean", "middleWhite", "middleWhiteClean", "leftMiddle", "rightMiddle", "leftRoof", "rightRoof", "middleBlue"]
+file="building/building2TileSet.psd"
+
+[[Images]]
+name="building3"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["leftMiddle", "roofTop", "roofLeft", "roofMiddle", "roofRight", "rightMiddle", "whiteMiddle", "windowMiddle"]
+file="building/building3TileSet.psd"
+
+[[Images]]
+name="building4"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["leftMiddle", "rightMiddle", "middlePlain", "middleWindow", "signYellowTop", "signYellowBot", "signOrangeTop", "signOrangeBot", "signGreenTop", "signGreenBot", "signBlue", "signRed", "roofLeft", "roofMiddle", "roofRight"]
+file="building/building4TileSet.psd"
+
+[[Images]]
+name="building5"
+type="tileSet"
+frameWidth=8
+scaleMultiplier=10
+parts=["roofLeft", "roofRight", "roofMiddle", "middleLeft", "middleRight", "middleWindow"]
+file="building/building5TileSet.psd"
+
 
 [[Sounds]]
 name="byJumpTwo"
@@ -70,6 +140,10 @@ file="byJumpTwo.wav"
 [[Sounds]]
 name="biscuitDeath"
 file="pdBiscuitDeath.wav"
+
+[[Sounds]]
+name="ufoBiscuitEnemyDeath"
+file="ufoBiscuitEnemyDeath.wav"
 
 [[Sounds]]
 name="byLaserFour"

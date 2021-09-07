@@ -39,7 +39,9 @@ func CreateBullet() *Bullet {
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
-		ScrollableComponent: &components.ScrollableComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagBullet},
 		},

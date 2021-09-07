@@ -272,6 +272,50 @@ func TestVelocitySystem(t *testing.T) {
 	assert.True(t, s.Contains(colShape), "it should be added to the space")
 }
 
+func TestDumbVelocitySystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	// Setup
+	dumbVelocitySystem := game.CreateDumbVelocitySystem()
+	var dumbVelocityable *game.DumbVelocityable
+	var exVelocityable *game.ExDumbVelocityable
+	w.AddSystemInterface(dumbVelocitySystem, dumbVelocityable, exVelocityable)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.VelocityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{
+				X: 10,
+				Y: 10,
+			},
+		},
+	}
+	w.AddEntity(ent)
+
+	// 1.5 seconds passed
+	ent.Vel.Y = 3
+	w.Update(1.5)
+	assert.Zero(t, ent.Vel.X, "vel X  should be set to 0")
+	assert.Zero(t, ent.Vel.Y, "vel Y should be set to 0")
+	assert.Equal(t, float64(3*1.5), ent.Postion.Y)
+
+	w.RemoveEntity(ent.BasicEntity)
+
+	assert.NotZero(t, dumbVelocitySystem.Priority())
+}
+
 func TestResolvSystem(t *testing.T) {
 	t.Parallel()
 
@@ -608,8 +652,13 @@ func TestWrapInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -662,8 +711,13 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -673,10 +727,12 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 		*components.VelocityComponent
 		*components.ScrollableComponent
 	}{
-		BasicEntity:         ecs.NewBasic(),
-		TransformComponent:  &components.TransformComponent{},
-		VelocityComponent:   &components.VelocityComponent{},
-		ScrollableComponent: &components.ScrollableComponent{},
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		VelocityComponent:  &components.VelocityComponent{},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
 	}
 	w.AddEntity(scrollEnt)
 
@@ -712,8 +768,13 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 			StartX: 50000,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -794,8 +855,13 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(mainGameInfo, s)
+	gameRuleSystem := game.CreateGameRuleSystem(info)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -944,7 +1010,7 @@ func TestInputSystem(t *testing.T) {
 		{key: ent.Keyboard.KeyMoveUp, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
 		{key: ent.Keyboard.KeyJump, target: &ent.MovementComponent.MoveUp, name: "Move Jump"},
 		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
-		{key: ent.Keyboard.KeyScrollSpeedUp, target: &ent.MovementComponent.ScrollSpeedUp, name: "Scrolling speed up"},
+		{key: ent.Keyboard.KeyFastGameMode, target: &ent.MovementComponent.FastGameSpeed, name: "Scrolling speed up"},
 		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
 		{key: ent.Keyboard.KeyChangeToGamepad, target: &ent.MovementComponent.ChangeToGamepad, name: "Change to gamepad"},
 		{key: ent.Keyboard.KeyChangeToKeyboard, target: &ent.MovementComponent.ChangeToKeyboard, name: "change to keyboard"},
@@ -960,6 +1026,67 @@ func TestInputSystem(t *testing.T) {
 	w.RemoveEntity(ent.BasicEntity)
 
 	assert.NotZero(t, inputSystem.Priority())
+}
+
+func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	mainGameInfo := &game.MainGameInfo{
+		Gravity: 10,
+		Level: &game.Level{
+			// Disable building spawn
+			StartX: 50000,
+			Width:  500,
+		},
+	}
+	info := &game.Info{
+		MainGameInfo: mainGameInfo,
+		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:        s,
+	}
+
+	gameRuleSystem := game.CreateGameRuleSystem(info)
+	var gameRuleable *game.GameRuleable
+	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
+	var animeable *game.Animeable
+	w.AddSystemInterface(game.CreateAnimeSystem(), animeable, nil)
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.BiscuitEnemyComponent
+		*components.CollisionComponent
+		*components.IdentityComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: 1, Y: 1},
+		},
+		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{entity.TagEnemy},
+		},
+	}
+	w.AddEntity(ent)
+
+	assert.True(t, s.Contains(ent.CollisionShape), "should exist in space")
+	w.Update(0.1)
+
+	ent.Collisions = append(ent.Collisions, &components.CollisionEvent{
+		ID:   10,
+		Tags: []string{entity.TagBullet},
+	})
+	w.Update(0.1)
+	assert.False(t, s.Contains(ent.CollisionShape), "should be removed from space")
+
+	// No tests for death anime does this matter?
 }
 
 type testGame struct {
