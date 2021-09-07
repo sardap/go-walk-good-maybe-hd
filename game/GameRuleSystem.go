@@ -2,6 +2,7 @@ package game
 
 import (
 	"github.com/EngoEngine/ecs"
+	"github.com/SolarLune/resolv"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -12,15 +13,15 @@ import (
 type GameRuleSystem struct {
 	ents            map[uint64]interface{}
 	world           *ecs.World
-	enemyDeathSound *entity.SoundPlayer
-	info            *Info
+	space           *resolv.Space
 	mainGameInfo    *MainGameInfo
+	enemyDeathSound *entity.SoundPlayer
 }
 
-func CreateGameRuleSystem(info *Info) *GameRuleSystem {
+func CreateGameRuleSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *GameRuleSystem {
 	return &GameRuleSystem{
-		info:         info,
-		mainGameInfo: info.MainGameInfo,
+		space:        space,
+		mainGameInfo: mainGameInfo,
 	}
 }
 
@@ -64,22 +65,8 @@ type Bulletable interface {
 
 type EnemyBiscuitable interface {
 	ecs.BasicFace
-	components.TransformFace
 	components.BiscuitEnemyFace
 	components.CollisionFace
-}
-
-type UfoBiscuitEnemyable interface {
-	ecs.BasicFace
-	components.TransformFace
-	components.UfoBiscuitEnemyFace
-	components.CollisionFace
-}
-
-type DestoryOnAnimeable interface {
-	ecs.BasicFace
-	components.AnimeFace
-	components.DestoryOnAnimeFace
 }
 
 func (s *GameRuleSystem) Update(dt float32) {
@@ -97,7 +84,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if scrollable, ok := ent.(Scrollable); ok {
 			velCom := scrollable.GetVelocityComponent()
-			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
+			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed)
 		}
 
 		if building, ok := ent.(*LevelBlock); ok {
@@ -127,44 +114,16 @@ func (s *GameRuleSystem) Update(dt float32) {
 			colCom := biscuit.GetCollisionComponent()
 			if colCom.Collisions.CollidingWith(entity.TagBullet) {
 				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
 					s.enemyDeathSound.Restart = true
 					s.enemyDeathSound.SoundComponent.Active = true
 				}
 				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
-				biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
-				biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
-				biscuitEnemyDeath.Layer = enemyLayer
-				defer s.world.AddEntity(biscuitEnemyDeath)
-			}
-		}
-
-		if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
-			colCom := ufo.GetCollisionComponent()
-			if colCom.Collisions.CollidingWith(entity.TagBullet) {
-				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
-					s.enemyDeathSound.Restart = true
-					s.enemyDeathSound.SoundComponent.Active = true
-				}
-				defer s.world.RemoveEntity(*ufo.GetBasicEntity())
-				ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
-				ufoDeath.Postion = ufo.GetTransformComponent().Postion
-				ufoDeath.Layer = enemyLayer
-				defer s.world.AddEntity(ufoDeath)
-			}
-		}
-
-		if ent, ok := ent.(DestoryOnAnimeable); ok {
-			anime := ent.GetAnimeComponent()
-			if anime.Cycles >= ent.GetDestoryOnAnimeComponent().CyclesTilDeath {
-				defer s.world.RemoveEntity(*ent.GetBasicEntity())
 			}
 		}
 	}
 
 	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
-	generateCityBuildings(s.info, s.world)
+	generateCityBuildings(s.mainGameInfo, s.world)
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

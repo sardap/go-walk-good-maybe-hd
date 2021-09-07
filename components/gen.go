@@ -34,14 +34,6 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
-func (d *DestoryOnAnimeComponent) GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent {
-	return d
-}
-
-type DestoryOnAnimeFace interface {
-	GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent
-}
-
 func (g *GravityComponent) GetGravityComponent() *GravityComponent {
 	return g
 }
@@ -136,14 +128,6 @@ func (t *TransformComponent) GetTransformComponent() *TransformComponent {
 
 type TransformFace interface {
 	GetTransformComponent() *TransformComponent
-}
-
-func (u *UfoBiscuitEnemyComponent) GetUfoBiscuitEnemyComponent() *UfoBiscuitEnemyComponent {
-	return u
-}
-
-type UfoBiscuitEnemyFace interface {
-	GetUfoBiscuitEnemyComponent() *UfoBiscuitEnemyComponent
 }
 
 func (v *VelocityComponent) GetVelocityComponent() *VelocityComponent {

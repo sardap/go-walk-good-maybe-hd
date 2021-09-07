@@ -5,5 +5,4 @@ const (
 	TagPlayer = "player"
 	TagBullet = "bullet"
 	TagEnemy  = "enemy"
-	TagUfo    = "ufo"
 )

@@ -58,10 +58,8 @@ func CreatePlayer() *Player {
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
-		ScrollableComponent: &components.ScrollableComponent{
-			Modifier: 1,
-		},
-		GravityComponent: &components.GravityComponent{},
+		ScrollableComponent: &components.ScrollableComponent{},
+		GravityComponent:    &components.GravityComponent{},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagPlayer},
 		},

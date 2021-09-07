@@ -113,8 +113,8 @@ func (s *InputSystem) processKeyboard(ent Inputable) {
 		move.Shoot = true
 	}
 
-	if driver.KeyPressDuration(keyboard.KeyFastGameMode) > 0 {
-		move.FastGameSpeed = true
+	if driver.KeyPressDuration(keyboard.KeyScrollSpeedUp) > 0 {
+		move.ScrollSpeedUp = true
 	}
 
 	if driver.KeyPressDuration(keyboard.KeyToggleCollsionOverlay) > 0 {

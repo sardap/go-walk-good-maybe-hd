@@ -3,11 +3,13 @@ module github.com/sardap/walk-good-maybe-hd
 go 1.16
 
 require (
-	github.com/EngoEngine/ecs v1.0.5
+	github.com/EngoEngine/ecs v1.0.5 // indirect
 	github.com/SolarLune/resolv v0.0.0-20201206065135-f22ef61a44a3
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1 // indirect
 	github.com/hajimehoshi/ebiten v1.12.12
 	github.com/hajimehoshi/ebiten/v2 v2.1.6
-	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/exp v0.0.0-20210901193431-a062eea981d2 // indirect
 	golang.org/x/image v0.0.0-20210628002857-a66eb6448b8d

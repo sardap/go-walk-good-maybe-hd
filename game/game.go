@@ -3,7 +3,6 @@ package game
 import (
 	"fmt"
 	"image/color"
-	"math/rand"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -17,7 +16,6 @@ import (
 
 const (
 	bottomImageLayer components.ImageLayer = iota
-	cityFogLayer
 	playerImageLayer
 	enemyLayer
 	bulletImageLayer
@@ -27,15 +25,14 @@ const (
 )
 
 type Game struct {
-	world    *ecs.World
-	lastTime time.Time
-	Info     *Info
+	world        *ecs.World
+	space        *resolv.Space
+	lastTime     time.Time
+	MainGameInfo *MainGameInfo
 }
 
 func (g *Game) addSystems() {
 	world := g.world
-
-	mainGameInfo := g.Info.MainGameInfo
 
 	var animeable *Animeable
 	world.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
@@ -52,31 +49,27 @@ func (g *Game) addSystems() {
 	var inputable *Inputable
 	world.AddSystemInterface(CreateInputSystem(), inputable, nil)
 
-	mainGameInfo.InputEnt = entity.CreateDebugInput()
-	world.AddEntity(mainGameInfo.InputEnt)
+	g.MainGameInfo.InputEnt = entity.CreateDebugInput()
+	world.AddEntity(g.MainGameInfo.InputEnt)
 
 	var soundable *Soundable
 	world.AddSystemInterface(CreateSoundSystem(), soundable, nil)
 
 	var gameRuleable *GameRuleable
-	world.AddSystemInterface(CreateGameRuleSystem(g.Info), gameRuleable, nil)
+	world.AddSystemInterface(CreateGameRuleSystem(g.MainGameInfo, g.space), gameRuleable, nil)
 
 	var velocityable *Velocityable
-	world.AddSystemInterface(CreateVelocitySystem(g.Info.Space), velocityable, nil)
-
-	var dumbVelocityable *DumbVelocityable
-	var exVelocityable *ExDumbVelocityable
-	world.AddSystemInterface(CreateDumbVelocitySystem(), dumbVelocityable, exVelocityable)
+	world.AddSystemInterface(CreateVelocitySystem(g.space), velocityable, nil)
 
 	var resolvable *Resolvable
-	world.AddSystemInterface(CreateResolvSystem(mainGameInfo, g.Info.Space), resolvable, nil)
+	world.AddSystemInterface(CreateResolvSystem(g.MainGameInfo, g.space), resolvable, nil)
 
 	var playerable *Playerable
-	world.AddSystemInterface(CreatePlayerSystem(mainGameInfo), playerable, nil)
+	world.AddSystemInterface(CreatePlayerSystem(g.MainGameInfo), playerable, nil)
 }
 
 func (g *Game) startCityLevel() {
-	g.Info.MainGameInfo = &MainGameInfo{
+	g.MainGameInfo = &MainGameInfo{
 		Gravity: startingGravity,
 	}
 
@@ -93,41 +86,34 @@ func (g *Game) startCityLevel() {
 	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
 
-	cityFog := entity.CreateCityFogBackground()
-	cityFog.ImageComponent.Layer = cityFogLayer
-	g.world.AddEntity(cityFog)
-
-	cityFog = entity.CreateCityFogBackground()
-	cityFog.ImageComponent.Layer = cityFogLayer
-	cityFog.Postion.X = cityFog.TransformComponent.Size.X
-	g.world.AddEntity(cityFog)
-
 	player := entity.CreatePlayer()
 	player.TileImageComponent.Layer = playerImageLayer
 	g.world.AddEntity(player)
 
-	g.Info.MainGameInfo.Level = &Level{
+	testBox := entity.CreateTestBox()
+	testBox.ImageComponent.Layer = uiImageLayer
+	testBox.TransformComponent.Postion.X = 500
+	testBox.TransformComponent.Postion.Y = 500
+	g.world.AddEntity(testBox)
+
+	g.MainGameInfo.Level = &Level{
 		Width:  windowWidth,
 		Height: windowHeight,
 	}
 
-	generateCityBuildings(g.Info, g.world)
+	generateCityBuildings(g.MainGameInfo, g.world)
 }
 
 func (g *Game) Reset() {
 	g.world = &ecs.World{}
 	g.lastTime = time.Unix(0, 0)
-	g.Info.Space = resolv.NewSpace()
+	g.space = resolv.NewSpace()
 
 	g.startCityLevel()
 }
 
 func CreateGame() *Game {
-	result := &Game{
-		Info: &Info{
-			Rand: rand.New(rand.NewSource(time.Now().Unix())),
-		},
-	}
+	result := &Game{}
 	result.Reset()
 	return result
 }
@@ -138,10 +124,6 @@ func (g *Game) Update() error {
 	}
 
 	dt := time.Since(g.lastTime)
-	if g.Info.MainGameInfo.InputEnt.FastGameSpeed {
-		dt *= 20
-		g.Info.MainGameInfo.InputEnt.FastGameSpeed = false
-	}
 	g.world.Update(float32(dt) / float32(time.Second))
 	g.lastTime = time.Now()
 

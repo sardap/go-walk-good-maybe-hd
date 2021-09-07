@@ -17,7 +17,6 @@ const (
 	systemPriorityAnimeSystem
 	systemPriorityResolvSystem
 	systemPriorityVelocitySystem
-	systemPriorityDumbVelocitySystem
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
 	systemPriorityPlayerSystem
