@@ -423,3 +423,19 @@ func TestUfoBiscuitGameRuleSystem(t *testing.T) {
 	_, ok = gameRuleSystem.ents[ufo.ID()]
 	assert.False(t, ok, "ufo should no longer exist")
 }
+
+func TestCompleteGame(t *testing.T) {
+	t.Parallel()
+
+	game := CreateGame()
+
+	// No idea what to test here
+	assert.NotPanics(t, func() {
+		w, h := game.Layout(10, 10)
+		screen := ebiten.NewImage(w, h)
+		for i := 0; i < 10; i++ {
+			game.Update()
+			game.Draw(screen)
+		}
+	})
+}
