@@ -107,6 +107,7 @@ func (g *Game) startCityLevel() {
 
 	player := entity.CreatePlayer()
 	player.TileImageComponent.Layer = playerImageLayer
+	player.HP = 300
 	g.world.AddEntity(player)
 
 	g.Info.MainGameInfo.Level = &Level{

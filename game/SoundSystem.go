@@ -107,7 +107,9 @@ func (s *SoundSystem) Add(r Soundable) {
 
 func (s *SoundSystem) Remove(e ecs.BasicEntity) {
 	if ent, ok := s.ents[e.ID()]; ok {
-		ent.GetSoundComponent().Player.Close()
+		if ent.GetSoundComponent().Player != nil {
+			ent.GetSoundComponent().Player.Close()
+		}
 	}
 
 	delete(s.ents, e.ID())

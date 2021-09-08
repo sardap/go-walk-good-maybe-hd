@@ -1045,24 +1045,32 @@ func TestLifeSystem(t *testing.T) {
 		BasicEntity:   ecs.NewBasic(),
 		LifeComponent: &components.LifeComponent{},
 	}
-	w.AddEntity(ent)
 
 	testCases := []struct {
-		StartingHP float64
-		Damage     float64
-		ExpectedHp float64
+		StartingHP        float64
+		InvincibilityTime time.Duration
+		Damage            []float64
+		ExpectedHp        []float64
 	}{
-		{},
+		{StartingHP: 100, Damage: []float64{99, 1}, ExpectedHp: []float64{1, 0}},
+		{StartingHP: 100, InvincibilityTime: 100 * time.Millisecond, Damage: []float64{99, 1, 1}, ExpectedHp: []float64{1, 1, 0}},
 	}
 
 	for _, testCase := range testCases {
 		ent.HP = testCase.StartingHP
-		ent.DamageEvents = append(ent.DamageEvents, &components.DamageEvent{
-			Damage: testCase.Damage,
-		})
-		w.Update(0.1)
+		ent.InvincibilityTime = testCase.InvincibilityTime
+		w.AddEntity(ent)
 
-		assert.Equal(t, testCase.ExpectedHp, ent.HP)
+		for i, damage := range testCase.Damage {
+			ent.DamageEvents = append(ent.DamageEvents, &components.DamageEvent{
+				Damage: damage,
+			})
+			w.Update(float32(100*time.Millisecond) / float32(time.Second))
+
+			assert.Equalf(t, testCase.ExpectedHp[i], ent.HP, "loop %d %v", i+1, testCase)
+		}
+
+		w.RemoveEntity(ent.BasicEntity)
 	}
 }
 

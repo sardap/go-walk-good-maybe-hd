@@ -5,6 +5,7 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
+	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
 type Lifeable interface {
@@ -95,6 +96,16 @@ func (s *LifeSystem) Update(dt float32) {
 
 	for _, ent := range s.ents {
 		lifeCom := ent.GetLifeComponent()
+
+		defer func(lifeCom *components.LifeComponent) {
+			lifeCom.DamageEvents = nil
+		}(lifeCom)
+
+		if lifeCom.InvincibilityTimeRemaning > 0 {
+			lifeCom.InvincibilityTimeRemaning -= utility.DeltaToDuration(dt)
+			continue
+		}
+
 		for _, event := range lifeCom.DamageEvents {
 			lifeCom.HP -= event.Damage
 		}
@@ -102,8 +113,9 @@ func (s *LifeSystem) Update(dt float32) {
 		if lifeCom.HP <= 0 {
 			defer s.world.RemoveEntity(*ent.GetBasicEntity())
 			defer s.onRemove(ent)
+		} else {
+			lifeCom.InvincibilityTimeRemaning = lifeCom.InvincibilityTime
 		}
-		lifeCom.DamageEvents = nil
 	}
 
 	for _, player := range s.activePlayerPool {

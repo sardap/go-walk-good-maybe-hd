@@ -1,5 +1,7 @@
 package components
 
+import "time"
+
 type DamageEvent struct {
 	Damage float64
 }
@@ -7,6 +9,8 @@ type DamageEvent struct {
 type DamageEvents []*DamageEvent
 
 type LifeComponent struct {
-	HP           float64
-	DamageEvents DamageEvents
+	HP                        float64
+	InvincibilityTime         time.Duration
+	InvincibilityTimeRemaning time.Duration
+	DamageEvents              DamageEvents
 }
