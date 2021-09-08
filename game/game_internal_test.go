@@ -331,7 +331,7 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 	assert.False(t, ok, "entity should be removed once anime completed")
 }
 
-func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+func TestEnemyBiscuit(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
@@ -355,34 +355,28 @@ func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
 	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
-	var resolvable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := CreateLifeSystem()
+	var lifeable *Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
-	ent := &struct {
-		ecs.BasicEntity
-		*components.TransformComponent
-		*components.BiscuitEnemyComponent
-		*components.CollisionComponent
-		*components.IdentityComponent
-	}{
-		BasicEntity: ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: 1, Y: 1},
-		},
-		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagEnemy},
-		},
-	}
-	w.AddEntity(ent)
+	enemy := entity.CreateBiscuitEnemy()
+	w.AddEntity(enemy)
 
 	w.Update(0.1)
+	_, ok := gameRuleSystem.ents[enemy.ID()]
+	assert.True(t, ok, "ufo should exist still")
+
+	enemy.DamageEvents = append(enemy.DamageEvents, &components.DamageEvent{
+		Damage: enemy.HP + 1,
+	})
+	w.Update(0.1)
+	_, ok = gameRuleSystem.ents[enemy.ID()]
+	assert.False(t, ok, "ufo should no longer exist")
+
+	assert.Greater(t, len(lifeSystem.activePlayerPool), 0, "death sound should be triggered")
 }
 
-func TestUfoBiscuitGameRuleSystem(t *testing.T) {
+func TestUfoBiscuit(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
@@ -406,8 +400,9 @@ func TestUfoBiscuitGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
 	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
-	var resolvable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := CreateLifeSystem()
+	var lifeable *Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
 	ufo := entity.CreateUfoBiscuitEnemy()
 	w.AddEntity(ufo)
@@ -416,12 +411,14 @@ func TestUfoBiscuitGameRuleSystem(t *testing.T) {
 	_, ok := gameRuleSystem.ents[ufo.ID()]
 	assert.True(t, ok, "ufo should exist still")
 
-	ufo.Collisions = append(ufo.Collisions, &components.CollisionEvent{
-		Tags: []string{entity.TagBullet},
+	ufo.DamageEvents = append(ufo.DamageEvents, &components.DamageEvent{
+		Damage: ufo.HP + 1,
 	})
 	w.Update(0.1)
 	_, ok = gameRuleSystem.ents[ufo.ID()]
 	assert.False(t, ok, "ufo should no longer exist")
+
+	assert.Greater(t, len(lifeSystem.activePlayerPool), 0, "death sound should be triggered")
 }
 
 func TestCompleteGame(t *testing.T) {

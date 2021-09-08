@@ -10,12 +10,14 @@ import (
 type Bullet struct {
 	ecs.BasicEntity
 	*components.TransformComponent
-	*components.ImageComponent
-	*components.VelocityComponent
+	*components.BulletComponent
 	*components.CollisionComponent
+	*components.DamageComponent
+	*components.LifeComponent
 	*components.ScrollableComponent
 	*components.IdentityComponent
-	*components.BulletComponent
+	*components.ImageComponent
+	*components.VelocityComponent
 }
 
 func CreateBullet() *Bullet {
@@ -29,15 +31,15 @@ func CreateBullet() *Bullet {
 				Y: float64(img.Bounds().Dy()),
 			},
 		},
-		ImageComponent: &components.ImageComponent{
-			Active: true,
-			Image:  img,
-		},
-		VelocityComponent: &components.VelocityComponent{
-			Vel: math.Vector2{},
-		},
+		BulletComponent: &components.BulletComponent{},
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
+		},
+		DamageComponent: &components.DamageComponent{
+			BaseDamage: 100,
+		},
+		LifeComponent: &components.LifeComponent{
+			HP: 1,
 		},
 		ScrollableComponent: &components.ScrollableComponent{
 			Modifier: 1,
@@ -45,7 +47,13 @@ func CreateBullet() *Bullet {
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagBullet},
 		},
-		BulletComponent: &components.BulletComponent{},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+			Image:  img,
+		},
+		VelocityComponent: &components.VelocityComponent{
+			Vel: math.Vector2{},
+		},
 	}
 
 	return result

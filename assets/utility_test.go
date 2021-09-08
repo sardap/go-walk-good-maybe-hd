@@ -63,7 +63,7 @@ func TestLoadEbitenImage(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		LoadEbitenImage(asset)
 	}
-	assert.Less(t, time.Since(startTime), delta/15)
+	assert.Less(t, time.Since(startTime), delta/5)
 	assert.NoError(t, err)
 
 	// Compressed

@@ -62,6 +62,18 @@ func (s *ResolvSystem) Update(dt float32) {
 			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
 				Tags: collidingShape.GetTags(),
 			})
+
+			// apply damage
+			if damage, ok := ent.(components.DamageFace); ok {
+				damageCom := damage.GetDamageComponent()
+				// That's right I broke the rules
+				if other, ok := collidingShape.GetData().(components.LifeFace); ok {
+					otherLifeCom := other.GetLifeComponent()
+					otherLifeCom.DamageEvents = append(otherLifeCom.DamageEvents, &components.DamageEvent{
+						Damage: damageCom.BaseDamage,
+					})
+				}
+			}
 		}
 
 		colShape.X += 2.5

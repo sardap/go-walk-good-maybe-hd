@@ -118,40 +118,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
 			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width ||
-				colCom.Collisions.CollidingWith(entity.TagGround, entity.TagEnemy) {
+				colCom.Collisions.CollidingWith(entity.TagGround) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
-			}
-		}
-
-		if biscuit, ok := ent.(EnemyBiscuitable); ok {
-			colCom := biscuit.GetCollisionComponent()
-			if colCom.Collisions.CollidingWith(entity.TagBullet) {
-				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
-					s.enemyDeathSound.Restart = true
-					s.enemyDeathSound.SoundComponent.Active = true
-				}
-				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
-				biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
-				biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
-				biscuitEnemyDeath.Layer = enemyLayer
-				defer s.world.AddEntity(biscuitEnemyDeath)
-			}
-		}
-
-		if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
-			colCom := ufo.GetCollisionComponent()
-			if colCom.Collisions.CollidingWith(entity.TagBullet) {
-				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
-					s.enemyDeathSound.Restart = true
-					s.enemyDeathSound.SoundComponent.Active = true
-				}
-				defer s.world.RemoveEntity(*ufo.GetBasicEntity())
-				ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
-				ufoDeath.Postion = ufo.GetTransformComponent().Postion
-				ufoDeath.Layer = enemyLayer
-				defer s.world.AddEntity(ufoDeath)
 			}
 		}
 

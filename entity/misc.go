@@ -55,3 +55,13 @@ func CreateDebugInput() *DebugInput {
 
 	return result
 }
+
+type SingleScrollableAnime struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.AnimeComponent
+	*components.DestoryOnAnimeComponent
+	*components.TileImageComponent
+	*components.ScrollableComponent
+	*components.VelocityComponent
+}

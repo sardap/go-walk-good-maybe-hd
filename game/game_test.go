@@ -1028,65 +1028,42 @@ func TestInputSystem(t *testing.T) {
 	assert.NotZero(t, inputSystem.Priority())
 }
 
-func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+func TestLifeSystem(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
-	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Gravity: 10,
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-			Width:  500,
-		},
-	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
-	var gameRuleable *game.GameRuleable
-	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
-	var animeable *game.Animeable
-	w.AddSystemInterface(game.CreateAnimeSystem(), animeable, nil)
-	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := game.CreateLifeSystem()
+	var lifeable *game.Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
 	ent := &struct {
 		ecs.BasicEntity
 		*components.TransformComponent
-		*components.BiscuitEnemyComponent
-		*components.CollisionComponent
-		*components.IdentityComponent
+		*components.LifeComponent
 	}{
-		BasicEntity: ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: 1, Y: 1},
-		},
-		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagEnemy},
-		},
+		BasicEntity:   ecs.NewBasic(),
+		LifeComponent: &components.LifeComponent{},
 	}
 	w.AddEntity(ent)
 
-	assert.True(t, s.Contains(ent.CollisionShape), "should exist in space")
-	w.Update(0.1)
+	testCases := []struct {
+		StartingHP float64
+		Damage     float64
+		ExpectedHp float64
+	}{
+		{},
+	}
 
-	ent.Collisions = append(ent.Collisions, &components.CollisionEvent{
-		ID:   10,
-		Tags: []string{entity.TagBullet},
-	})
-	w.Update(0.1)
-	assert.False(t, s.Contains(ent.CollisionShape), "should be removed from space")
+	for _, testCase := range testCases {
+		ent.HP = testCase.StartingHP
+		ent.DamageEvents = append(ent.DamageEvents, &components.DamageEvent{
+			Damage: testCase.Damage,
+		})
+		w.Update(0.1)
 
-	// No tests for death anime does this matter?
+		assert.Equal(t, testCase.ExpectedHp, ent.HP)
+	}
 }
 
 type testGame struct {

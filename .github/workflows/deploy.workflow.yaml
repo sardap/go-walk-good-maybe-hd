@@ -22,6 +22,6 @@ jobs:
         with:
           prerelease: true
           files: |
-            bin/walk-good-maybe-hd-amd64-linux.zip
-            bin/walk-good-maybe-hd-amd64-windows.zip
+            bin/walk-good-maybe-hd-linux-amd64.zip
+            bin/walk-good-maybe-hd-windows-amd64.zip
             bin/walk-good-maybe-hd-wasm.zip

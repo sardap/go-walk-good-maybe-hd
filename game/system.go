@@ -13,7 +13,7 @@ const (
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
 	systemPrioritySoundSystem
-	systemPriorityLifecycleSystem
+	systemPriorityDamageSystem
 	systemPriorityAnimeSystem
 	systemPriorityResolvSystem
 	systemPriorityVelocitySystem

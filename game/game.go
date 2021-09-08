@@ -73,6 +73,9 @@ func (g *Game) addSystems() {
 
 	var playerable *Playerable
 	world.AddSystemInterface(CreatePlayerSystem(mainGameInfo), playerable, nil)
+
+	var lifeable *Lifeable
+	world.AddSystemInterface(CreateLifeSystem(), lifeable, nil)
 }
 
 func (g *Game) startCityLevel() {

@@ -34,6 +34,14 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
+func (d *DamageComponent) GetDamageComponent() *DamageComponent {
+	return d
+}
+
+type DamageFace interface {
+	GetDamageComponent() *DamageComponent
+}
+
 func (d *DestoryOnAnimeComponent) GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent {
 	return d
 }
@@ -72,6 +80,14 @@ func (i *InputComponent) GetInputComponent() *InputComponent {
 
 type InputFace interface {
 	GetInputComponent() *InputComponent
+}
+
+func (l *LifeComponent) GetLifeComponent() *LifeComponent {
+	return l
+}
+
+type LifeFace interface {
+	GetLifeComponent() *LifeComponent
 }
 
 func (m *MainGamePlayerComponent) GetMainGamePlayerComponent() *MainGamePlayerComponent {

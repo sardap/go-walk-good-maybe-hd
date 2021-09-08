@@ -36,13 +36,13 @@ export GOARCH=amd64
 export GOOS=linux
 
 echo "building linux version"
-go build -ldflags "-w" -o bin/walk-good-maybe-hd-amd64-linux .
+go build -ldflags "-w" -o bin/walk-good-maybe-hd-linux-amd64 .
 
 export GOARCH=amd64
 export GOOS=windows
 
 echo "building windows version"
-go build -ldflags "-w" -o bin/walk-good-maybe-hd-amd64-windows.exe .
+go build -ldflags "-w" -o bin/walk-good-maybe-hd-windows-amd64.exe .
 
 export GOOS=js
 export GOARCH=wasm
@@ -52,8 +52,8 @@ go build -o bin/walk-good-maybe-hd.wasm .
 
 cd bin
 
-zip walk-good-maybe-hd-amd64-linux walk-good-maybe-hd-amd64-linux
-zip walk-good-maybe-hd-amd64-windows.zip walk-good-maybe-hd-amd64-windows.exe
+zip walk-good-maybe-hd-linux-amd64 walk-good-maybe-hd-linux-amd64
+zip walk-good-maybe-hd-windows-amd64.zip walk-good-maybe-hd-windows-amd64.exe
 zip walk-good-maybe-hd-wasm.zip walk-good-maybe-hd.wasm
 
 ls
