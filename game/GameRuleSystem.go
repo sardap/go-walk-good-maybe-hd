@@ -123,6 +123,25 @@ func (s *GameRuleSystem) Update(dt float32) {
 			}
 		}
 
+		if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
+			ufoCom := ufo.GetUfoBiscuitEnemyComponent()
+			transCom := ufo.GetTransformComponent()
+			ufoCom.ShootTimeRemaning -= utility.DeltaToDuration(dt)
+
+			if ufoCom.ShootTimeRemaning < 0 {
+				bullet := entity.CreateEnemyBullet()
+				bullet.Postion.X = transCom.Postion.X + transCom.Size.X/2 - bullet.TransformComponent.Size.X/2
+				bullet.Postion.Y = transCom.Postion.Y + transCom.Size.Y + 5
+				bullet.Speed.Y = 300
+				bullet.Layer = ImageLayerbullet
+				bullet.Options.InvertY = true
+				bullet.Options.InvertX = false
+				defer s.world.AddEntity(bullet)
+
+				ufoCom.ShootTimeRemaning = ufoCom.ShootTime
+			}
+		}
+
 		if ent, ok := ent.(DestoryOnAnimeable); ok {
 			anime := ent.GetAnimeComponent()
 			if anime.Cycles >= ent.GetDestoryOnAnimeComponent().CyclesTilDeath {

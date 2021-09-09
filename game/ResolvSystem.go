@@ -115,7 +115,7 @@ func (s *ResolvSystem) Render(cmds *RenderCmds) {
 	*cmds = append(*cmds, &RenderImageCmd{
 		Image:   s.overlay,
 		Options: op,
-		Layer:   debugImageLayer,
+		Layer:   ImageLayerDebug,
 	})
 }
 

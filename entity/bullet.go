@@ -1,7 +1,10 @@
 package entity
 
 import (
+	"image/color"
+
 	"github.com/EngoEngine/ecs"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -20,9 +23,7 @@ type Bullet struct {
 	*components.VelocityComponent
 }
 
-func CreateBullet() *Bullet {
-	img, _ := assets.LoadEbitenImage(assets.ImageBulletSmallGreen)
-
+func CreateBullet(img *ebiten.Image) *Bullet {
 	result := &Bullet{
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
@@ -57,4 +58,23 @@ func CreateBullet() *Bullet {
 	}
 
 	return result
+}
+
+func CreatePlayerBullet() *Bullet {
+	img, _ := assets.LoadEbitenImage(assets.ImageBulletSmallGreen)
+
+	return CreateBullet(img)
+}
+
+func CreateEnemyBullet() *Bullet {
+	img, _ := assets.LoadEbitenImageColorSwap(
+		assets.ImageBulletSmallGreen,
+		map[color.RGBA]color.RGBA{
+			{R: 75, G: 205, B: 75, A: 255}: {R: 205, G: 75, B: 75, A: 255},
+			{R: 72, G: 150, B: 72, A: 255}: {R: 150, G: 72, B: 72, A: 255},
+			{R: 85, G: 185, B: 85, A: 255}: {R: 185, G: 85, B: 85, A: 255},
+		},
+	)
+
+	return CreateBullet(img)
 }

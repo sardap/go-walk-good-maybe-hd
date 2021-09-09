@@ -58,27 +58,25 @@ func (s *LifeSystem) freePlayer(toFree *entity.SoundPlayer) {
 
 func (s *LifeSystem) onRemove(ent Lifeable) {
 
-	if biscuit, ok := ent.(EnemyBiscuitable); ok {
+	if _, ok := ent.(components.BiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
 		enemyDeath.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
 		enemyDeath.Active = true
 		enemyDeath.Restart = true
 
 		biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
-		biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
-		biscuitEnemyDeath.Layer = enemyLayer
+		biscuitEnemyDeath.Postion = ent.GetTransformComponent().Postion
+		biscuitEnemyDeath.Layer = ImagelayerEnemyLayer
 		s.world.AddEntity(biscuitEnemyDeath)
-	}
-
-	if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
+	} else if _, ok := ent.(components.UfoBiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
 		enemyDeath.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
 		enemyDeath.Active = true
 		enemyDeath.Restart = true
 
 		ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
-		ufoDeath.Postion = ufo.GetTransformComponent().Postion
-		ufoDeath.Layer = enemyLayer
+		ufoDeath.Postion = ent.GetTransformComponent().Postion
+		ufoDeath.Layer = ImagelayerEnemyLayer
 		s.world.AddEntity(ufoDeath)
 	}
 

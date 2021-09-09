@@ -145,10 +145,10 @@ func (s *PlayerSystem) Update(dt float32) {
 		player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
 		if move.Shoot && player.ShootCooldownRemaning < 0 {
 			player.ShootCooldownRemaning = player.ShootCooldown
-			bullet := entity.CreateBullet()
+			bullet := entity.CreatePlayerBullet()
 			bullet.Postion.X = player.Postion.X
 			bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
-			bullet.Layer = bulletImageLayer
+			bullet.Layer = ImageLayerbullet
 			bullet.Speed.X = 750
 
 			xOffset := player.Size.X + 0.5

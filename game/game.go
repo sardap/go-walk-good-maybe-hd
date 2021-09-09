@@ -16,14 +16,14 @@ import (
 )
 
 const (
-	bottomImageLayer components.ImageLayer = iota
-	cityFogLayer
-	playerImageLayer
-	enemyLayer
-	bulletImageLayer
-	buildingForground
-	uiImageLayer
-	debugImageLayer
+	ImageLayerBottom components.ImageLayer = iota
+	ImageLayercityFogLayer
+	ImageLayerplayer
+	ImagelayerEnemyLayer
+	ImageLayerbullet
+	ImageLayerbuildingForground
+	ImageLayerUi
+	ImageLayerDebug
 )
 
 type Game struct {
@@ -88,25 +88,25 @@ func (g *Game) startCityLevel() {
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
-	cityBackground.ImageComponent.Layer = bottomImageLayer
+	cityBackground.ImageComponent.Layer = ImageLayerBottom
 	g.world.AddEntity(cityBackground)
 
 	cityBackground = entity.CreateCityBackground()
-	cityBackground.ImageComponent.Layer = bottomImageLayer
+	cityBackground.ImageComponent.Layer = ImageLayerBottom
 	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
 
 	cityFog := entity.CreateCityFogBackground()
-	cityFog.ImageComponent.Layer = cityFogLayer
+	cityFog.ImageComponent.Layer = ImageLayercityFogLayer
 	g.world.AddEntity(cityFog)
 
 	cityFog = entity.CreateCityFogBackground()
-	cityFog.ImageComponent.Layer = cityFogLayer
+	cityFog.ImageComponent.Layer = ImageLayercityFogLayer
 	cityFog.Postion.X = cityFog.TransformComponent.Size.X
 	g.world.AddEntity(cityFog)
 
 	player := entity.CreatePlayer()
-	player.TileImageComponent.Layer = playerImageLayer
+	player.TileImageComponent.Layer = ImageLayerplayer
 	player.HP = 300
 	g.world.AddEntity(player)
 

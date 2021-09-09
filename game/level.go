@@ -39,7 +39,7 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 		VelocityComponent: &components.VelocityComponent{},
 		TileImageComponent: &components.TileImageComponent{
 			TileMap: tileMap,
-			Layer:   buildingForground,
+			Layer:   ImageLayerbuildingForground,
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
@@ -266,7 +266,7 @@ func createBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	biscuit := entity.CreateBiscuitEnemy()
 	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-biscuit.Size.X))
 	biscuit.Postion.Y = lbTrans.Postion.Y - (biscuit.Size.Y * 1.5)
-	biscuit.Layer = enemyLayer
+	biscuit.Layer = ImagelayerEnemyLayer
 	w.AddEntity(biscuit)
 }
 
@@ -275,7 +275,7 @@ func createUfoBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	ufo := entity.CreateUfoBiscuitEnemy()
 	ufo.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-ufo.Size.X))
 	ufo.Postion.Y = lbTrans.Postion.Y - (ufo.Size.Y * 2.5)
-	ufo.Layer = enemyLayer
+	ufo.Layer = ImagelayerEnemyLayer
 	w.AddEntity(ufo)
 }
 
