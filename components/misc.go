@@ -9,9 +9,10 @@ import (
 )
 
 type DrawOptions struct {
-	InvertX bool
-	InvertY bool
-	Scale   math.Vector2
+	InvertX     bool
+	InvertY     bool
+	Scale       math.Vector2
+	InvertColor bool
 }
 
 type ImageLayer int

@@ -43,8 +43,6 @@ func (s *VelocitySystem) Update(dt float32) {
 
 		vel = vel.Mul(float64(dt))
 
-		colCom.Collisions = nil
-
 		ground := s.space.FilterByTags(entity.TagGround)
 
 		collision := ground.Resolve(colCom.CollisionShape, vel.X, 0)

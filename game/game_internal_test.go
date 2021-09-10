@@ -422,7 +422,6 @@ func TestUfoBiscuit(t *testing.T) {
 }
 
 func TestCompleteGame(t *testing.T) {
-	t.Parallel()
 
 	game := CreateGame()
 

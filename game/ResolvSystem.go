@@ -43,6 +43,8 @@ func (s *ResolvSystem) New(world *ecs.World) {
 }
 
 func (s *ResolvSystem) Update(dt float32) {
+	const buffer = 1
+
 	if s.debugInput != nil && s.debugInput.MovementComponent.ToggleCollsionOverlay {
 		s.OverlayEnabled = !s.OverlayEnabled
 		s.debugInput.MovementComponent.ToggleCollsionOverlay = false
@@ -50,13 +52,26 @@ func (s *ResolvSystem) Update(dt float32) {
 
 	for _, ent := range s.ents {
 		colCom := ent.GetCollisionComponent()
+		trans := ent.GetTransformComponent()
+		colShape := colCom.CollisionShape
+
+		colShape.X = trans.Postion.X
+		colShape.Y = trans.Postion.Y
+		colShape.W = trans.Size.X
+		colShape.H = trans.Size.Y
+	}
+
+	for _, ent := range s.ents {
+		colCom := ent.GetCollisionComponent()
 
 		colShape := colCom.CollisionShape
 
-		colShape.X -= 2.5
-		colShape.Y -= 2.5
-		colShape.W += 5
-		colShape.H += 5
+		colCom.Collisions = nil
+
+		colShape.X -= buffer
+		colShape.Y -= buffer
+		colShape.W += buffer * 2
+		colShape.H += buffer * 2
 
 		for _, collidingShape := range s.space.Collisions(colShape) {
 			colCom.Collisions = append(colCom.Collisions, &components.CollisionEvent{
@@ -76,10 +91,10 @@ func (s *ResolvSystem) Update(dt float32) {
 			}
 		}
 
-		colShape.X += 2.5
-		colShape.Y += 2.5
-		colShape.W -= 5
-		colShape.H -= 5
+		colShape.X += buffer
+		colShape.Y += buffer
+		colShape.W -= buffer * 2
+		colShape.H -= buffer * 2
 	}
 }
 
@@ -115,7 +130,7 @@ func (s *ResolvSystem) Render(cmds *RenderCmds) {
 	*cmds = append(*cmds, &RenderImageCmd{
 		Image:   s.overlay,
 		Options: op,
-		Layer:   debugImageLayer,
+		Layer:   ImageLayerDebug,
 	})
 }
 

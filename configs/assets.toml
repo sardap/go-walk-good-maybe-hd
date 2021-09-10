@@ -138,6 +138,10 @@ name="byJumpTwo"
 file="byJumpTwo.wav"
 
 [[Sounds]]
+name="whaleDamage"
+file="whaleDamage.wav"
+
+[[Sounds]]
 name="biscuitDeath"
 file="pdBiscuitDeath.wav"
 

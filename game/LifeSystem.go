@@ -1,6 +1,9 @@
 package game
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -58,31 +61,46 @@ func (s *LifeSystem) freePlayer(toFree *entity.SoundPlayer) {
 
 func (s *LifeSystem) onRemove(ent Lifeable) {
 
-	if biscuit, ok := ent.(EnemyBiscuitable); ok {
+	if _, ok := ent.(components.BiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
 		enemyDeath.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
 		enemyDeath.Active = true
 		enemyDeath.Restart = true
 
 		biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
-		biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
-		biscuitEnemyDeath.Layer = enemyLayer
+		biscuitEnemyDeath.Postion = ent.GetTransformComponent().Postion
+		biscuitEnemyDeath.Layer = ImagelayerEnemyLayer
 		s.world.AddEntity(biscuitEnemyDeath)
-	}
-
-	if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
+	} else if _, ok := ent.(components.UfoBiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
 		enemyDeath.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
 		enemyDeath.Active = true
 		enemyDeath.Restart = true
 
 		ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
-		ufoDeath.Postion = ufo.GetTransformComponent().Postion
-		ufoDeath.Layer = enemyLayer
+		ufoDeath.Postion = ent.GetTransformComponent().Postion
+		ufoDeath.Layer = ImagelayerEnemyLayer
 		s.world.AddEntity(ufoDeath)
 	}
 
 	s.world.RemoveEntity(*ent.GetBasicEntity())
+}
+
+func (s *LifeSystem) onDamage(ent Lifeable) {
+	if player, ok := ent.(*entity.Player); ok {
+		fmt.Printf("Player damaged")
+
+		enemyDeath := s.getPlayer()
+		enemyDeath.Sound = components.LoadSound(assets.SoundWhaleDamage)
+		enemyDeath.Active = true
+		enemyDeath.Restart = true
+		player.TileMap.Options.InvertColor = true
+		// Do I really want to go down this path
+		go func() {
+			time.Sleep(player.InvincibilityTime)
+			player.TileMap.Options.InvertColor = false
+		}()
+	}
 }
 
 func (s *LifeSystem) Update(dt float32) {
@@ -108,6 +126,10 @@ func (s *LifeSystem) Update(dt float32) {
 
 		for _, event := range lifeCom.DamageEvents {
 			lifeCom.HP -= event.Damage
+		}
+
+		if len(lifeCom.DamageEvents) > 0 {
+			s.onDamage(ent)
 		}
 
 		if lifeCom.HP <= 0 {

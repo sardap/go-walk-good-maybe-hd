@@ -356,12 +356,100 @@ func TestResolvSystem(t *testing.T) {
 		},
 	}
 
-	// asserts
+	object := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 3,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"object"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+	}
+	w.AddEntity(object)
+
+	ground := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 50,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []string{"ground"},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+	}
+	w.AddEntity(ground)
+
 	assert.False(t, s.Contains(ent.CollisionShape), "space should be empty")
 	w.AddEntity(ent)
 	assert.NotNil(t, ent.CollisionShape, "collsion shape should be init")
 	assert.True(t, s.Contains(ent.CollisionShape), "space should contain shape")
 	assert.Equal(t, "test", ent.CollisionShape.GetTags()[0], "tags should be copied to shape")
+
+	testCases := []struct {
+		name               string
+		groundPostion      math.Vector2
+		entPostion         math.Vector2
+		objectPostion      math.Vector2
+		entSpeed           math.Vector2
+		entCollisionsCount []int
+	}{
+		{
+			name:               "basic",
+			groundPostion:      math.Vector2{X: 0, Y: 10},
+			entPostion:         math.Vector2{X: 0, Y: 0},
+			objectPostion:      math.Vector2{X: 14, Y: 0},
+			entSpeed:           math.Vector2{X: 1, Y: 0},
+			entCollisionsCount: []int{1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1},
+		},
+		{
+			name:               "fast moving",
+			groundPostion:      math.Vector2{X: 0, Y: 10},
+			entPostion:         math.Vector2{X: 0, Y: 0},
+			objectPostion:      math.Vector2{X: 18, Y: 0},
+			entSpeed:           math.Vector2{X: 4, Y: 0},
+			entCollisionsCount: []int{1, 1, 2, 2},
+		},
+	}
+
+	for _, testCase := range testCases {
+		ent.Postion = testCase.entPostion
+		ground.Postion = testCase.groundPostion
+		object.Postion = testCase.objectPostion
+
+		assert.Equal(t, len(ent.Collisions), 0)
+		assert.Equal(t, len(ground.Collisions), 0)
+
+		for i, colCount := range testCase.entCollisionsCount {
+			w.Update(0.1)
+			ent.Postion = ent.Postion.Add(testCase.entSpeed)
+
+			assert.Equalf(t, colCount, len(ent.Collisions), "case: %s loop: %d", testCase.name, i)
+		}
+
+		ent.Collisions = nil
+		ground.Collisions = nil
+	}
 
 	w.RemoveEntity(ent.BasicEntity)
 	assert.False(t, s.Contains(ent.CollisionShape), "shape should be removed from space")
