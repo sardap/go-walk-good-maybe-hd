@@ -32,13 +32,13 @@ file="whale/whaleJump.psd"
 # 
 # ---Enemies---
 #
+
 [[Images]]
 name="biscuitEnemyIdle"
 type="tileSet"
 frameWidth=8
 scaleMultiplier=10
 file="Enemies/biscuitEnemyIdle.psd"
-
 
 [[Images]]
 name="biscuitEnemyDeath"
@@ -61,6 +61,15 @@ frameWidth=16
 scaleMultiplier=10
 file="Enemies/biscutUfoDeath.psd"
 
+# 
+# ---tokens---
+#
+
+[[Images]]
+name="tokenJumpUp"
+type="single"
+scaleMultiplier=2
+file="token/jumpUp.psd"
 
 # 
 # ---Buildings---
@@ -152,6 +161,11 @@ file="ufoBiscuitEnemyDeath.wav"
 [[Sounds]]
 name="byLaserFour"
 file="byLaserFour.wav"
+
+[[Sounds]]
+name="byCollect5"
+file="byCollect5.wav"
+
 
 [[Music]]
 name="city"

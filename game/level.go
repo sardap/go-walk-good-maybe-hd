@@ -17,6 +17,42 @@ type Level struct {
 	Height float64
 }
 
+type spawnProbability struct {
+	genFunc     func(*rand.Rand, *ecs.World, LevelBlockable)
+	probability float64
+}
+
+func createBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	biscuit := entity.CreateBiscuitEnemy()
+	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-biscuit.Size.X))
+	biscuit.Postion.Y = lbTrans.Postion.Y - (biscuit.Size.Y * 1.5)
+	biscuit.Layer = ImagelayerEnemyLayer
+	w.AddEntity(biscuit)
+}
+
+func createUfoBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	ufo := entity.CreateUfoBiscuitEnemy()
+	ufo.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-ufo.Size.X))
+	ufo.Postion.Y = lbTrans.Postion.Y - (ufo.Size.Y * 2.5)
+	ufo.Layer = ImagelayerEnemyLayer
+	w.AddEntity(ufo)
+}
+
+func createJumpToken(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	token := entity.CreateJumpUpToken()
+	token.Postion.X = utility.RandRangeFloat64(
+		rand,
+		int(lbTrans.Postion.X),
+		int(lbTrans.Postion.X+lbTrans.Size.X-token.TransformComponent.Size.X),
+	)
+	token.Postion.Y = lbTrans.Postion.Y - token.TransformComponent.Size.Y
+	token.Layer = ImagelayerEnemyLayer
+	w.AddEntity(token)
+}
+
 type LevelBlock struct {
 	ecs.BasicEntity
 	*components.TransformComponent
@@ -25,6 +61,11 @@ type LevelBlock struct {
 	*components.CollisionComponent
 	*components.ScrollableComponent
 	*components.IdentityComponent
+	probabilities []spawnProbability
+}
+
+func (l *LevelBlock) GetSpawnProbabilities() []spawnProbability {
+	return l.probabilities
 }
 
 func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, height int) *LevelBlock {
@@ -49,6 +90,11 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 		},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{entity.TagGround},
+		},
+		probabilities: []spawnProbability{
+			{genFunc: createBiscuitEnemy, probability: 0.5},
+			{genFunc: createUfoBiscuitEnemy, probability: 0.5},
+			{genFunc: createJumpToken, probability: 0.5},
 		},
 	}
 }
@@ -259,24 +305,7 @@ func createBuilding5(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 type LevelBlockable interface {
 	ecs.BasicFace
 	components.TransformFace
-}
-
-func createBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
-	lbTrans := lb.GetTransformComponent()
-	biscuit := entity.CreateBiscuitEnemy()
-	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-biscuit.Size.X))
-	biscuit.Postion.Y = lbTrans.Postion.Y - (biscuit.Size.Y * 1.5)
-	biscuit.Layer = ImagelayerEnemyLayer
-	w.AddEntity(biscuit)
-}
-
-func createUfoBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
-	lbTrans := lb.GetTransformComponent()
-	ufo := entity.CreateUfoBiscuitEnemy()
-	ufo.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-ufo.Size.X))
-	ufo.Postion.Y = lbTrans.Postion.Y - (ufo.Size.Y * 2.5)
-	ufo.Layer = ImagelayerEnemyLayer
-	w.AddEntity(ufo)
+	GetSpawnProbabilities() []spawnProbability
 }
 
 func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
@@ -285,12 +314,11 @@ func populateLevelBlock(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 		return
 	}
 
-	val := rand.Float64()
-	switch {
-	case val <= 0.5:
-		createBiscuitEnemy(rand, w, lb)
-	case val <= 1:
-		createUfoBiscuitEnemy(rand, w, lb)
+	for _, prob := range lb.GetSpawnProbabilities() {
+		if prob.probability < rand.Float64() {
+			prob.genFunc(rand, w, lb)
+			return
+		}
 	}
 }
 

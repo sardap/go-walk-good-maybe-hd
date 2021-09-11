@@ -11,6 +11,7 @@ type Sound struct {
 	Source     []byte
 	SampleRate int
 	SoundType  assets.SoundType
+	Volume     float64
 }
 
 type SoundComponent struct {

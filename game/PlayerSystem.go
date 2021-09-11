@@ -10,6 +10,11 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
+const (
+	startingPlayerJumpPower = 1250
+	maxPlayerJump           = 2500
+)
+
 type Playerable interface {
 	ecs.BasicFace
 	components.MainGamePlayerFace
@@ -52,7 +57,7 @@ func (s *PlayerSystem) changeToJumping(player *entity.Player) {
 
 	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 	components.ChangeAnimeImage(player, img, 50*time.Millisecond)
-	player.JumpTime = 0
+	player.JumpPowerRemaning = player.JumpPower
 }
 
 func (s *PlayerSystem) changeToFlying(player *entity.Player) {
@@ -79,7 +84,7 @@ func (s *PlayerSystem) Update(dt float32) {
 		case gameStateStarting:
 			if player.TransformComponent.Postion.X > 50 {
 				s.mainGameInfo.State = gameStateScrolling
-				// s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
+				s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
 			}
 		case gameStateScrolling:
 		}
@@ -90,6 +95,15 @@ func (s *PlayerSystem) Update(dt float32) {
 		vel := player.GetVelocityComponent().Vel
 
 		horzSpeed := playerCom.Speed
+
+		// Token stuff
+		if player.Collisions.CollidingWith(entity.TagJumpToken) {
+			player.Sound = components.LoadSound(assets.SoundByCollect5)
+			player.SoundComponent.Active = true
+			player.SoundComponent.Restart = true
+
+			player.JumpPower = utility.ClampFloat64(player.JumpPower+startingPlayerJumpPower*0.05, 0, maxPlayerJump)
+		}
 
 		switch playerCom.State {
 		case components.MainGamePlayerStateGroundIdling:
@@ -116,10 +130,10 @@ func (s *PlayerSystem) Update(dt float32) {
 		case components.MainGamePlayerStateJumping:
 			horzSpeed /= 2
 
-			vel.Y -= player.JumpPower
-			player.JumpTime += utility.DeltaToDuration(dt)
+			vel.Y -= player.JumpPowerRemaning
+			player.JumpPowerRemaning -= float64(dt) * player.JumpPower / 2
 
-			if player.JumpTime > time.Duration(1000)*time.Millisecond {
+			if player.JumpPowerRemaning < 0 {
 				s.changeToFlying(player)
 			}
 

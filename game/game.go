@@ -20,6 +20,7 @@ const (
 	ImageLayercityFogLayer
 	ImageLayerplayer
 	ImagelayerEnemyLayer
+	ImagelayerToken
 	ImageLayerbullet
 	ImageLayerbuildingForground
 	ImageLayerUi
@@ -108,6 +109,7 @@ func (g *Game) startCityLevel() {
 	player := entity.CreatePlayer()
 	player.TileImageComponent.Layer = ImageLayerplayer
 	player.HP = 1000
+	player.JumpPower = startingPlayerJumpPower
 	g.world.AddEntity(player)
 
 	g.Info.MainGameInfo.Level = &Level{

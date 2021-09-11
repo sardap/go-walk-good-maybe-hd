@@ -92,6 +92,10 @@ func (s *SoundSystem) Update(dt float32) {
 
 			soundCom.Player, _ = audio.NewPlayer(s.audioCtx, stream)
 
+			if soundCom.Sound.Volume > 0 {
+				soundCom.Player.SetVolume(soundCom.Sound.Volume)
+			}
+
 			soundCom.Player.Play()
 		}
 

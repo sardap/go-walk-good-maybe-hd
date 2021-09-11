@@ -14,6 +14,7 @@ type Player struct {
 	*components.TransformComponent
 	*components.AnimeComponent
 	*components.CollisionComponent
+	*components.DamageComponent
 	*components.GravityComponent
 	*components.IdentityComponent
 	*components.InputComponent
@@ -45,6 +46,9 @@ func CreatePlayer() *Player {
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
+		DamageComponent: &components.DamageComponent{
+			BaseDamage: 1,
+		},
 		GravityComponent: &components.GravityComponent{},
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []string{TagPlayer},
@@ -60,7 +64,7 @@ func CreatePlayer() *Player {
 		},
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
 			Speed:         700,
-			JumpPower:     900,
+			JumpPower:     1,
 			State:         components.MainGamePlayerStateFlying,
 			ShootCooldown: 250 * time.Millisecond,
 		},

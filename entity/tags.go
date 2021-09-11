@@ -1,9 +1,10 @@
 package entity
 
 const (
-	TagGround = "ground"
-	TagPlayer = "player"
-	TagBullet = "bullet"
-	TagEnemy  = "enemy"
-	TagUfo    = "ufo"
+	TagGround    = "ground"
+	TagPlayer    = "player"
+	TagBullet    = "bullet"
+	TagEnemy     = "enemy"
+	TagUfo       = "ufo"
+	TagJumpToken = "jumpToken"
 )
