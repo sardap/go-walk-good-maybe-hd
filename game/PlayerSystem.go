@@ -105,6 +105,20 @@ func (s *PlayerSystem) Update(dt float32) {
 			player.JumpPower = utility.ClampFloat64(player.JumpPower+startingPlayerJumpPower*0.05, 0, maxPlayerJump)
 		}
 
+		if player.Collisions.CollidingWith(entity.TagSpeedToken) {
+			player.Sound = components.LoadSound(assets.SoundJdwBlowOne)
+			player.SoundComponent.Active = true
+			player.SoundComponent.Restart = true
+
+			player.AirHorzSpeedModifier = utility.ClampFloat64(player.AirHorzSpeedModifier+0.1, 0.5, 1)
+			extraSpeed := xStartScrollSpeed * 4
+			s.mainGameInfo.ScrollingSpeed.X += extraSpeed
+			go func(extraSpeed float64) {
+				time.Sleep(2 * time.Second)
+				s.mainGameInfo.ScrollingSpeed.X -= extraSpeed
+			}(extraSpeed)
+		}
+
 		switch playerCom.State {
 		case components.MainGamePlayerStateGroundIdling:
 			if move.MoveUp {
@@ -128,7 +142,7 @@ func (s *PlayerSystem) Update(dt float32) {
 			}
 
 		case components.MainGamePlayerStateJumping:
-			horzSpeed /= 2
+			horzSpeed *= player.AirHorzSpeedModifier
 
 			vel.Y -= player.JumpPowerRemaning
 			player.JumpPowerRemaning -= float64(dt) * player.JumpPower / 2
@@ -138,7 +152,7 @@ func (s *PlayerSystem) Update(dt float32) {
 			}
 
 		case components.MainGamePlayerStateFlying:
-			horzSpeed /= 2
+			horzSpeed *= player.AirHorzSpeedModifier
 
 			if player.Collisions.CollidingWith(entity.TagGround) {
 				s.changeToIdle(player)

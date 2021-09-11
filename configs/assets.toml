@@ -71,6 +71,12 @@ type="single"
 scaleMultiplier=2
 file="token/jumpUp.psd"
 
+[[Images]]
+name="tokenSpeedUp"
+type="single"
+scaleMultiplier=2
+file="token/speedUp.psd"
+
 # 
 # ---Buildings---
 #
@@ -166,6 +172,9 @@ file="byLaserFour.wav"
 name="byCollect5"
 file="byCollect5.wav"
 
+[[Sounds]]
+name="JdwBlowOne"
+file="JdwBlowOne.wav"
 
 [[Music]]
 name="city"

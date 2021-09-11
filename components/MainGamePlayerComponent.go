@@ -16,6 +16,7 @@ const (
 type MainGamePlayerComponent struct {
 	State                 MainGamePlayerState
 	Speed                 float64
+	AirHorzSpeedModifier   float64
 	JumpPower             float64
 	JumpPowerRemaning     float64
 	JumpTime              time.Duration

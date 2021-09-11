@@ -2,12 +2,13 @@ package entity
 
 import (
 	"github.com/EngoEngine/ecs"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
-type JumpUpToken struct {
+type Token struct {
 	ecs.BasicEntity
 	*components.TransformComponent
 	*components.CollisionComponent
@@ -18,10 +19,8 @@ type JumpUpToken struct {
 	*components.VelocityComponent
 }
 
-func CreateJumpUpToken() *JumpUpToken {
-	img, _ := assets.LoadEbitenImage(assets.ImageTokenJumpUp)
-
-	result := &JumpUpToken{
+func createToken(img *ebiten.Image, tag string) *Token {
+	return &Token{
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{
@@ -33,7 +32,7 @@ func CreateJumpUpToken() *JumpUpToken {
 			Active: true,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagJumpToken},
+			Tags: []string{tag},
 		},
 		LifeComponent: &components.LifeComponent{
 			HP: 1,
@@ -47,6 +46,14 @@ func CreateJumpUpToken() *JumpUpToken {
 		},
 		VelocityComponent: &components.VelocityComponent{},
 	}
+}
 
-	return result
+func CreateJumpUpToken() *Token {
+	img, _ := assets.LoadEbitenImage(assets.ImageTokenJumpUp)
+	return createToken(img, TagJumpToken)
+}
+
+func CreateSpeedUpToken() *Token {
+	img, _ := assets.LoadEbitenImage(assets.ImageTokenSpeedUp)
+	return createToken(img, TagSpeedToken)
 }

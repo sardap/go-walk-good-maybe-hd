@@ -88,6 +88,11 @@ func (s *GameRuleSystem) Update(dt float32) {
 		s.world.AddEntity(s.enemyDeathSound)
 	}
 
+	switch s.mainGameInfo.State {
+	case gameStateScrolling:
+		s.mainGameInfo.ScrollingSpeed.X += 10 * float64(dt)
+	}
+
 	for _, ent := range s.ents {
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()

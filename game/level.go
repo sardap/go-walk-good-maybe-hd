@@ -53,6 +53,19 @@ func createJumpToken(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	w.AddEntity(token)
 }
 
+func createSpeedToken(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
+	lbTrans := lb.GetTransformComponent()
+	token := entity.CreateSpeedUpToken()
+	token.Postion.X = utility.RandRangeFloat64(
+		rand,
+		int(lbTrans.Postion.X),
+		int(lbTrans.Postion.X+lbTrans.Size.X-token.TransformComponent.Size.X),
+	)
+	token.Postion.Y = lbTrans.Postion.Y - token.TransformComponent.Size.Y
+	token.Layer = ImagelayerEnemyLayer
+	w.AddEntity(token)
+}
+
 type LevelBlock struct {
 	ecs.BasicEntity
 	*components.TransformComponent
@@ -92,6 +105,7 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 			Tags: []string{entity.TagGround},
 		},
 		probabilities: []spawnProbability{
+			{genFunc: createSpeedToken, probability: 0.1},
 			{genFunc: createBiscuitEnemy, probability: 0.5},
 			{genFunc: createUfoBiscuitEnemy, probability: 0.5},
 			{genFunc: createJumpToken, probability: 0.5},
