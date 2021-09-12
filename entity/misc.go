@@ -1,8 +1,11 @@
 package entity
 
 import (
+	gomath "math"
+
 	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type SoundPlayer struct {
@@ -64,4 +67,31 @@ type SingleScrollableAnime struct {
 	*components.TileImageComponent
 	*components.ScrollableComponent
 	*components.VelocityComponent
+}
+
+type KillBox struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.CollisionComponent
+	*components.DamageComponent
+	*components.IdentityComponent
+}
+
+func CreateKillBox() *KillBox {
+	return &KillBox{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 500,
+				Y: 10000,
+			},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		DamageComponent: &components.DamageComponent{
+			BaseDamage: gomath.MaxFloat64,
+		},
+		IdentityComponent: &components.IdentityComponent{},
+	}
 }

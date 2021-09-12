@@ -61,6 +61,12 @@ func (s *LifeSystem) freePlayer(toFree *entity.SoundPlayer) {
 
 func (s *LifeSystem) onRemove(ent Lifeable) {
 
+	trans := ent.GetTransformComponent()
+
+	if trans.Postion.X < 0 || trans.Postion.X > windowWidth {
+		return
+	}
+
 	if _, ok := ent.(components.BiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
 		enemyDeath.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
@@ -133,8 +139,8 @@ func (s *LifeSystem) Update(dt float32) {
 		}
 
 		if lifeCom.HP <= 0 {
-			defer s.world.RemoveEntity(*ent.GetBasicEntity())
 			defer s.onRemove(ent)
+			defer s.world.RemoveEntity(*ent.GetBasicEntity())
 		} else {
 			lifeCom.InvincibilityTimeRemaning = lifeCom.InvincibilityTime
 		}

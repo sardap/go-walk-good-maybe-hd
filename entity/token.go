@@ -19,7 +19,7 @@ type Token struct {
 	*components.VelocityComponent
 }
 
-func createToken(img *ebiten.Image, tag string) *Token {
+func createToken(img *ebiten.Image, tag int) *Token {
 	return &Token{
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
@@ -32,7 +32,7 @@ func createToken(img *ebiten.Image, tag string) *Token {
 			Active: true,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{tag},
+			Tags: []int{tag},
 		},
 		LifeComponent: &components.LifeComponent{
 			HP: 1,

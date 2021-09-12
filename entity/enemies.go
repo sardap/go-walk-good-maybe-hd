@@ -53,7 +53,7 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 			HP: 100,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagEnemy},
+			Tags: []int{TagEnemy},
 		},
 		GravityComponent: &components.GravityComponent{},
 		TileImageComponent: &components.TileImageComponent{
@@ -141,7 +141,7 @@ func CreateUfoBiscuitEnemy() *UfoBiscuitEnemy {
 			HP: 100,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagEnemy, TagUfo},
+			Tags: []int{TagEnemy, TagUfo},
 		},
 		TileImageComponent: &components.TileImageComponent{
 			Active:  true,

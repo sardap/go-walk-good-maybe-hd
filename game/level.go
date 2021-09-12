@@ -102,13 +102,13 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 			Modifier: 1,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagGround},
+			Tags: []int{entity.TagGround},
 		},
 		probabilities: []spawnProbability{
-			{genFunc: createSpeedToken, probability: 0.1},
 			{genFunc: createBiscuitEnemy, probability: 0.5},
 			{genFunc: createUfoBiscuitEnemy, probability: 0.5},
 			{genFunc: createJumpToken, probability: 0.5},
+			{genFunc: createSpeedToken, probability: 0.5},
 		},
 	}
 }

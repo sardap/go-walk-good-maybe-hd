@@ -75,3 +75,15 @@ func ContainsString(ary []string, tags ...string) bool {
 
 	return false
 }
+
+func ContainsInt(ary []int, tags ...int) bool {
+	for _, otherTag := range ary {
+		for _, sTag := range tags {
+			if otherTag == sTag {
+				return true
+			}
+		}
+	}
+
+	return false
+}

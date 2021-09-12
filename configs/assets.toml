@@ -62,6 +62,16 @@ scaleMultiplier=10
 file="Enemies/biscutUfoDeath.psd"
 
 # 
+# ---effects---
+#
+
+[[Images]]
+name="speedLine"
+type="single"
+scaleMultiplier=2
+file="effect/speedLine.psd"
+
+# 
 # ---tokens---
 #
 

@@ -7,14 +7,14 @@ import (
 
 type CollisionEvent struct {
 	ID   uint64
-	Tags []string
+	Tags []int
 }
 
 type CollisionEvents []*CollisionEvent
 
-func (c CollisionEvents) CollidingWith(tags ...string) bool {
+func (c CollisionEvents) CollidingWith(tags ...int) bool {
 	for _, event := range c {
-		if utility.ContainsString(event.Tags, tags...) {
+		if utility.ContainsInt(event.Tags, tags...) {
 			return true
 		}
 	}

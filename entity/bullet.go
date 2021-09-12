@@ -46,7 +46,7 @@ func CreateBullet(img *ebiten.Image) *Bullet {
 			Modifier: 1,
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagBullet},
+			Tags: []int{TagBullet},
 		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,

@@ -90,7 +90,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 	switch s.mainGameInfo.State {
 	case gameStateScrolling:
-		s.mainGameInfo.ScrollingSpeed.X += 10 * float64(dt)
+		s.mainGameInfo.ScrollingSpeed.X -= 1 * float64(dt)
 	}
 
 	for _, ent := range s.ents {
@@ -120,10 +120,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 		if bullet, ok := ent.(Bulletable); ok {
 			velCom := bullet.GetVelocityComponent()
 			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
-			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
-			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width ||
-				colCom.Collisions.CollidingWith(entity.TagGround) {
+			if colCom.Collisions.CollidingWith(entity.TagGround) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
 			}
 		}

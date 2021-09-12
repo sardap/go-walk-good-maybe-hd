@@ -112,10 +112,10 @@ func (s *PlayerSystem) Update(dt float32) {
 
 			player.AirHorzSpeedModifier = utility.ClampFloat64(player.AirHorzSpeedModifier+0.1, 0.5, 1)
 			extraSpeed := xStartScrollSpeed * 4
-			s.mainGameInfo.ScrollingSpeed.X += extraSpeed
+			s.mainGameInfo.ScrollingSpeed.X -= extraSpeed
 			go func(extraSpeed float64) {
 				time.Sleep(2 * time.Second)
-				s.mainGameInfo.ScrollingSpeed.X -= extraSpeed
+				s.mainGameInfo.ScrollingSpeed.X += extraSpeed
 			}(extraSpeed)
 		}
 

@@ -51,7 +51,7 @@ func CreatePlayer() *Player {
 		},
 		GravityComponent: &components.GravityComponent{},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagPlayer},
+			Tags: []int{TagPlayer},
 		},
 		InputComponent: &components.InputComponent{
 			InputMode: components.InputModeKeyboard,
@@ -63,10 +63,10 @@ func CreatePlayer() *Player {
 			InvincibilityTime: 1 * time.Second,
 		},
 		MainGamePlayerComponent: &components.MainGamePlayerComponent{
-			Speed:               700,
-			JumpPower:           1,
-			State:               components.MainGamePlayerStateFlying,
-			ShootCooldown:       250 * time.Millisecond,
+			Speed:                700,
+			JumpPower:            1,
+			State:                components.MainGamePlayerStateFlying,
+			ShootCooldown:        250 * time.Millisecond,
 			AirHorzSpeedModifier: 0.5,
 		},
 		MovementComponent: &components.MovementComponent{},

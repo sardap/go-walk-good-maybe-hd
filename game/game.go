@@ -112,6 +112,14 @@ func (g *Game) startCityLevel() {
 	player.JumpPower = startingPlayerJumpPower
 	g.world.AddEntity(player)
 
+	leftKillBox := entity.CreateKillBox()
+	leftKillBox.Postion.X = -500 - leftKillBox.Size.X
+	g.world.AddEntity(leftKillBox)
+
+	rightKillBox := entity.CreateKillBox()
+	rightKillBox.Postion.X = windowWidth + 1000 + rightKillBox.Size.X
+	g.world.AddEntity(rightKillBox)
+
 	g.Info.MainGameInfo.Level = &Level{
 		Width:  windowWidth,
 		Height: windowHeight,
