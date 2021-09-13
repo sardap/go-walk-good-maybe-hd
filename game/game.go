@@ -17,6 +17,7 @@ import (
 
 const (
 	ImageLayerBottom components.ImageLayer = iota
+	ImageLayerCityLayer
 	ImageLayercityFogLayer
 	ImageLayerplayer
 	ImagelayerEnemyLayer
@@ -89,13 +90,17 @@ func (g *Game) startCityLevel() {
 	g.world.AddEntity(entity.CreateCityMusic())
 
 	cityBackground := entity.CreateCityBackground()
-	cityBackground.ImageComponent.Layer = ImageLayerBottom
+	cityBackground.ImageComponent.Layer = ImageLayerCityLayer
 	g.world.AddEntity(cityBackground)
 
 	cityBackground = entity.CreateCityBackground()
-	cityBackground.ImageComponent.Layer = ImageLayerBottom
+	cityBackground.ImageComponent.Layer = ImageLayerCityLayer
 	cityBackground.Postion.X = cityBackground.TransformComponent.Size.X
 	g.world.AddEntity(cityBackground)
+
+	citySky := entity.CreateCitySkyBackground()
+	citySky.Layer = ImageLayerBottom
+	g.world.AddEntity(citySky)
 
 	cityFog := entity.CreateCityFogBackground()
 	cityFog.ImageComponent.Layer = ImageLayercityFogLayer

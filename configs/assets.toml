@@ -88,14 +88,8 @@ scaleMultiplier=2
 file="token/speedUp.psd"
 
 # 
-# ---Buildings---
+# ---Backgrounds---
 #
-
-[[Images]]
-name="bulletSmallGreen"
-type="single"
-scaleMultiplier=10
-file="bullet/bulletSmallGreen.psd"
 
 [[Images]]
 name="backgroundCity"
@@ -108,6 +102,22 @@ name="cityFog"
 type="single"
 scaleMultiplier=10
 file="city/cityFog.psd"
+
+[[Images]]
+name="skyCity"
+type="single"
+scaleMultiplier=10
+file="city/skyCity.psd"
+
+# 
+# ---Buildings---
+#
+
+[[Images]]
+name="bulletSmallGreen"
+type="single"
+scaleMultiplier=10
+file="bullet/bulletSmallGreen.psd"
 
 [[Images]]
 name="building0"
