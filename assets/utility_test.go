@@ -35,7 +35,6 @@ func compress(data []byte) []byte {
 }
 
 func TestLoadEbitenImage(t *testing.T) {
-	t.Parallel()
 
 	var asset struct {
 		Compressed      bool
@@ -93,7 +92,6 @@ func colorToRGBA(r, g, b, a uint32) color.RGBA {
 }
 
 func TestLoadEbitenImageColorSwap(t *testing.T) {
-	t.Parallel()
 
 	asset := struct {
 		Compressed      bool

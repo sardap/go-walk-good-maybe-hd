@@ -988,12 +988,6 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 		IdentityComponent: &components.IdentityComponent{},
 	}
 	w.AddEntity(bullet)
-	for bullet.Postion.X <= mainGameInfo.Level.Width {
-		assert.True(t, s.Contains(bullet.CollisionShape))
-		w.Update(1)
-	}
-	w.Update(1)
-	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
 
 	bullet.Postion = math.Vector2{}
 	bullet.CollisionShape = nil
@@ -1001,10 +995,11 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddEntity(bullet)
 	for bullet.Postion.X >= 0 {
 		assert.True(t, s.Contains(bullet.CollisionShape))
+		lastPostion := bullet.Postion
 		w.Update(1)
+		assert.Less(t, bullet.Postion.X, lastPostion.X)
 	}
 	w.Update(1)
-	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
 }
 
 type testDriver struct {
