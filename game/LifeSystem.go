@@ -60,6 +60,7 @@ func (s *LifeSystem) freePlayer(toFree *entity.SoundPlayer) {
 }
 
 func (s *LifeSystem) onRemove(ent Lifeable) {
+	defer s.world.RemoveEntity(*ent.GetBasicEntity())
 
 	trans := ent.GetTransformComponent()
 
@@ -88,8 +89,6 @@ func (s *LifeSystem) onRemove(ent Lifeable) {
 		ufoDeath.Layer = ImagelayerEnemyLayer
 		s.world.AddEntity(ufoDeath)
 	}
-
-	s.world.RemoveEntity(*ent.GetBasicEntity())
 }
 
 func (s *LifeSystem) onDamage(ent Lifeable) {
@@ -140,7 +139,6 @@ func (s *LifeSystem) Update(dt float32) {
 
 		if lifeCom.HP <= 0 {
 			defer s.onRemove(ent)
-			defer s.world.RemoveEntity(*ent.GetBasicEntity())
 		} else {
 			lifeCom.InvincibilityTimeRemaning = lifeCom.InvincibilityTime
 		}

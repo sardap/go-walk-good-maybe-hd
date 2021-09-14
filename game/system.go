@@ -12,6 +12,7 @@ const (
 	systemPriorityImageRenderSystem systemPriority = iota
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
+	systemPriorityMainGameUiSystem
 	systemPrioritySoundSystem
 	systemPriorityDamageSystem
 	systemPriorityAnimeSystem

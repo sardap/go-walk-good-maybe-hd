@@ -88,6 +88,34 @@ scaleMultiplier=2
 file="token/speedUp.psd"
 
 # 
+# ---UI---
+#
+
+[[Images]]
+name="uiLifeAmount"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3"]
+file="ui/lifeAmount.psd"
+
+[[Images]]
+name="uiJumpAmount"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3", "Amount4"]
+file="ui/jumpAmount.psd"
+
+[[Images]]
+name="uiSpeedAmount"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3", "Amount4", "Amount5"]
+file="ui/speedAmount.psd"
+
+# 
 # ---Backgrounds---
 #
 

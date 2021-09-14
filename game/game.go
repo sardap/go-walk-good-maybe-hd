@@ -78,6 +78,8 @@ func (g *Game) addSystems() {
 
 	var lifeable *Lifeable
 	world.AddSystemInterface(CreateLifeSystem(), lifeable, nil)
+
+	world.AddSystemInterface(CreateMainGameUiSystem(), gameRuleable, nil)
 }
 
 func (g *Game) startCityLevel() {
@@ -113,8 +115,10 @@ func (g *Game) startCityLevel() {
 
 	player := entity.CreatePlayer()
 	player.TileImageComponent.Layer = ImageLayerplayer
-	player.HP = 1000
+	player.MaxHp = 300
+	player.HP = player.MaxHp
 	player.JumpPower = startingPlayerJumpPower
+	player.AirHorzSpeedModifier = startingPlayerAirHorzMod
 	g.world.AddEntity(player)
 
 	leftKillBox := entity.CreateKillBox()

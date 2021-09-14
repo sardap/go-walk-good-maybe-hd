@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	startingPlayerJumpPower = 1250
-	maxPlayerJump           = 2500
+	startingPlayerJumpPower  = 1250
+	maxPlayerJump            = 2000
+	startingPlayerAirHorzMod = 0.5
+	maxPlayerAirHorzMod      = 1
 )
 
 type Playerable interface {
@@ -102,7 +104,7 @@ func (s *PlayerSystem) Update(dt float32) {
 			player.SoundComponent.Active = true
 			player.SoundComponent.Restart = true
 
-			player.JumpPower = utility.ClampFloat64(player.JumpPower+startingPlayerJumpPower*0.05, 0, maxPlayerJump)
+			player.JumpPower = utility.ClampFloat64(player.JumpPower+startingPlayerJumpPower*0.1, 0, maxPlayerJump)
 		}
 
 		if player.Collisions.CollidingWith(entity.TagSpeedToken) {
