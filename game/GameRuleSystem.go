@@ -62,13 +62,6 @@ type Bulletable interface {
 	components.VelocityFace
 }
 
-type EnemyBiscuitable interface {
-	ecs.BasicFace
-	components.TransformFace
-	components.BiscuitEnemyFace
-	components.CollisionFace
-}
-
 type UfoBiscuitEnemyable interface {
 	ecs.BasicFace
 	components.TransformFace

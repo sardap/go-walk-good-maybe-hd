@@ -22,6 +22,7 @@ const (
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
 	systemPriorityPlayerSystem
+	systemPriorityEnemyBiscuitSystem
 	systemPriorityCollisionSystem
 	systemPriorityInputSystem
 )

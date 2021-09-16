@@ -18,6 +18,7 @@ type BiscuitEnemy struct {
 	*components.DamageComponent
 	*components.LifeComponent
 	*components.IdentityComponent
+	*components.MovementComponent
 	*components.GravityComponent
 	*components.TileImageComponent
 	*components.ScrollableComponent
@@ -42,7 +43,12 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 			FrameDuration:  200 * time.Millisecond,
 			FrameRemaining: 200 * time.Millisecond,
 		},
-		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
+		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{
+			Speed: math.Vector2{
+				X: 150,
+				Y: 0,
+			},
+		},
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
 		},
@@ -55,7 +61,8 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 		IdentityComponent: &components.IdentityComponent{
 			Tags: []int{TagEnemy},
 		},
-		GravityComponent: &components.GravityComponent{},
+		MovementComponent: &components.MovementComponent{},
+		GravityComponent:  &components.GravityComponent{},
 		TileImageComponent: &components.TileImageComponent{
 			Active:  true,
 			TileMap: tileMap,

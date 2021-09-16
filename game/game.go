@@ -80,6 +80,10 @@ func (g *Game) addSystems() {
 	world.AddSystemInterface(CreateLifeSystem(), lifeable, nil)
 
 	world.AddSystemInterface(CreateMainGameUiSystem(), gameRuleable, nil)
+
+	var enemyBiscuitable *EnemyBiscuitable
+	world.AddSystemInterface(CreateEnemyBiscuitSystem(g.Info.Space), enemyBiscuitable, nil)
+
 }
 
 func (g *Game) startCityLevel() {
@@ -128,6 +132,11 @@ func (g *Game) startCityLevel() {
 	rightKillBox := entity.CreateKillBox()
 	rightKillBox.Postion.X = windowWidth + 1000 + rightKillBox.Size.X
 	g.world.AddEntity(rightKillBox)
+
+	bottomKillBox := entity.CreateKillBox()
+	bottomKillBox.Size.X = windowWidth
+	bottomKillBox.Postion.Y = windowHeight + 100
+	g.world.AddEntity(bottomKillBox)
 
 	g.Info.MainGameInfo.Level = &Level{
 		Width:  windowWidth,
