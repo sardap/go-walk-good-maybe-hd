@@ -413,17 +413,33 @@ func TestUfoBiscuit(t *testing.T) {
 	assert.Greater(t, len(lifeSystem.activePlayerPool), 0, "death sound should be triggered")
 }
 
-func TestCompleteGame(t *testing.T) {
+func TestCompleteMainGameScene(t *testing.T) {
 
-	game := CreateGame()
+	info := &Info{}
+	mgs := &MainGameScene{}
 
-	// No idea what to test here
 	assert.NotPanics(t, func() {
-		w, h := game.Layout(10, 10)
-		screen := ebiten.NewImage(w, h)
-		for i := 0; i < 10; i++ {
-			game.Update()
-			game.Draw(screen)
-		}
+		mgs.Start(info)
 	})
+
+	assert.NotNil(t, mgs.Rand)
+	assert.NotNil(t, mgs.World)
+	assert.NotNil(t, mgs.Space)
+	assert.NotNil(t, mgs.Level)
+
+	assert.NotPanics(t, func() {
+		mgs.Update(100*time.Millisecond, info)
+	})
+	assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
+
+	mgs.InputEnt.MovementComponent.FastGameSpeed = true
+	mgs.Update(100*time.Millisecond, info)
+	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
+
+	mgs.End(info)
+
+	assert.Nil(t, mgs.Rand)
+	assert.Nil(t, mgs.World)
+	assert.Nil(t, mgs.Space)
+	assert.Nil(t, mgs.Level)
 }

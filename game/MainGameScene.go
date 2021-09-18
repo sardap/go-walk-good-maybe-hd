@@ -21,6 +21,7 @@ type MainGameScene struct {
 	State          gameState
 	Level          *Level
 	InputEnt       *entity.DebugInput
+	TimeElapsed    time.Duration
 }
 
 func (m *MainGameScene) addSystems() {
@@ -134,11 +135,13 @@ func (m *MainGameScene) Start(info *Info) {
 }
 
 func (m *MainGameScene) End(info *Info) {
-	m.World = &ecs.World{}
-	m.Space = resolv.NewSpace()
+	m.World = nil
+	m.Space = nil
 	m.ScrollingSpeed = math.Vector2{}
+	m.Rand = nil
 	m.Gravity = 0
 	m.State = gameStateStarting
+	m.TimeElapsed = 0
 	m.Level = nil
 	m.InputEnt = nil
 }
@@ -150,6 +153,7 @@ func (m *MainGameScene) Update(dt time.Duration, info *Info) {
 	}
 
 	m.World.Update(float32(dt) / float32(time.Second))
+	m.TimeElapsed += dt
 }
 
 func (m *MainGameScene) Draw(screen *ebiten.Image) {
