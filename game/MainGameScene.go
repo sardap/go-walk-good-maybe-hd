@@ -7,6 +7,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/sardap/walk-good-maybe-hd/utility"
@@ -20,11 +21,11 @@ type MainGameScene struct {
 	Gravity        float64
 	State          gameState
 	Level          *Level
-	InputEnt       *entity.DebugInput
+	InputEnt       *entity.InputEnt
 	TimeElapsed    time.Duration
 }
 
-func (m *MainGameScene) addSystems() {
+func (m *MainGameScene) addSystems(audioCtx *audio.Context) {
 	var animeable *Animeable
 	m.World.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
 
@@ -44,7 +45,7 @@ func (m *MainGameScene) addSystems() {
 	m.World.AddEntity(m.InputEnt)
 
 	var soundable *Soundable
-	m.World.AddSystemInterface(CreateSoundSystem(), soundable, nil)
+	m.World.AddSystemInterface(CreateSoundSystem(audioCtx), soundable, nil)
 
 	var gameRuleable *GameRuleable
 	m.World.AddSystemInterface(CreateGameRuleSystem(m), gameRuleable, nil)
@@ -118,7 +119,7 @@ func (m *MainGameScene) addEnts() {
 	m.World.AddEntity(bottomKillBox)
 }
 
-func (m *MainGameScene) Start(info *Info) {
+func (m *MainGameScene) Start(game *Game) {
 	m.World = &ecs.World{}
 	m.Space = resolv.NewSpace()
 	m.ScrollingSpeed = math.Vector2{}
@@ -130,11 +131,11 @@ func (m *MainGameScene) Start(info *Info) {
 		Height: windowHeight,
 	}
 
-	m.addSystems()
+	m.addSystems(game.audioCtx)
 	m.addEnts()
 }
 
-func (m *MainGameScene) End(info *Info) {
+func (m *MainGameScene) End(*Game) {
 	m.World = nil
 	m.Space = nil
 	m.ScrollingSpeed = math.Vector2{}
@@ -146,7 +147,7 @@ func (m *MainGameScene) End(info *Info) {
 	m.InputEnt = nil
 }
 
-func (m *MainGameScene) Update(dt time.Duration, info *Info) {
+func (m *MainGameScene) Update(dt time.Duration, _ *Game) {
 	if m.InputEnt.FastGameSpeed {
 		dt *= 20
 		m.InputEnt.FastGameSpeed = false

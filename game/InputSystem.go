@@ -120,6 +120,10 @@ func (s *InputSystem) processKeyboard(ent Inputable) {
 	if driver.KeyPressDuration(keyboard.KeyToggleCollsionOverlay) > 0 {
 		move.ToggleCollsionOverlay = true
 	}
+
+	if driver.KeyPressDuration(keyboard.KeySelect) > 0 {
+		move.Select = true
+	}
 }
 
 func (s *InputSystem) Update(dt float32) {

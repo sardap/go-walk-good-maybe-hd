@@ -11,4 +11,6 @@ type MovementComponent struct {
 	// Debug stuff
 	FastGameSpeed         bool
 	ToggleCollsionOverlay bool
+	// Menu Stuff
+	Select bool
 }

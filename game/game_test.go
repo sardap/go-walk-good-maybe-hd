@@ -12,6 +12,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
@@ -36,6 +37,9 @@ const (
 
 func init() {
 	rand.Seed(time.Now().UnixNano())
+	if audio.CurrentContext() == nil {
+		audio.NewContext(48000)
+	}
 }
 
 func TestAnimeSystem(t *testing.T) {
@@ -94,11 +98,9 @@ func TestAnimeSystem(t *testing.T) {
 }
 
 func TestSoundSystem(t *testing.T) {
-	t.Parallel()
-
 	w := &ecs.World{}
 
-	soundSystem := game.CreateSoundSystem()
+	soundSystem := game.CreateSoundSystem(audio.CurrentContext())
 	var soundable *game.Soundable
 	w.AddSystemInterface(soundSystem, soundable, nil)
 

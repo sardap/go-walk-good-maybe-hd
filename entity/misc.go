@@ -39,21 +39,36 @@ func CreateInputInfo() *InputInfo {
 	}
 }
 
-type DebugInput struct {
+type InputEnt struct {
 	ecs.BasicEntity
 	*components.TransformComponent
 	*components.MovementComponent
 	*components.InputComponent
 }
 
-func CreateDebugInput() *DebugInput {
-	result := &DebugInput{
+func CreateDebugInput() *InputEnt {
+	result := &InputEnt{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
 		MovementComponent:  &components.MovementComponent{},
 		InputComponent: &components.InputComponent{
 			InputMode: components.InputModeKeyboard,
 			Keyboard:  components.DefaultKeyboardInputType(),
+		},
+	}
+
+	return result
+}
+
+func CreateMenuInput() *InputEnt {
+	result := &InputEnt{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		MovementComponent:  &components.MovementComponent{},
+		InputComponent: &components.InputComponent{
+			InputMode: components.InputModeKeyboard,
+			Keyboard:  components.DefaultKeyboardInputType(),
+			Gamepad:   components.DefaultGamepadInputType(),
 		},
 	}
 

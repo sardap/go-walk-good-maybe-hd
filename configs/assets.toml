@@ -228,3 +228,25 @@ file="JdwBlowOne.wav"
 name="city"
 file="pd_city_0.mp3"
 
+
+# ---------------------------------- #
+
+# 
+# ---title screen---
+#
+
+[[Images]]
+name="titleSceneText"
+type="single"
+scaleMultiplier=1
+file="titleScene/titleText.psd"
+
+[[Images]]
+name="titleSceneBeach"
+type="single"
+scaleMultiplier=10
+file="titleScene/titleSceneBeach.psd"
+
+[[Music]]
+name="city"
+file="pd_title_screen.mp3"
