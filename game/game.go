@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
@@ -24,13 +25,14 @@ const (
 )
 
 type Scene interface {
-	Start(*Info)
-	End(*Info)
-	Update(dt time.Duration, info *Info)
+	Start(*Game)
+	End(*Game)
+	Update(dt time.Duration, game *Game)
 	Draw(screen *ebiten.Image)
 }
 
 type Game struct {
+	audioCtx *audio.Context
 	lastTime time.Time
 	Info     *Info
 	current  Scene
@@ -38,16 +40,18 @@ type Game struct {
 
 func (g *Game) ChangeScene(newScene Scene) {
 	if g.current != nil {
-		g.current.End(g.Info)
+		g.current.End(g)
 	}
 	g.current = newScene
-	g.current.Start(g.Info)
+	g.current.Start(g)
 	g.lastTime = time.Unix(0, 0)
 }
 
 func CreateGame() *Game {
-	result := &Game{}
-	result.ChangeScene(&MainGameScene{})
+	result := &Game{
+		audioCtx: audio.NewContext(48000),
+	}
+	result.ChangeScene(&TitleScene{})
 
 	return result
 }
@@ -58,11 +62,11 @@ func (g *Game) Update() error {
 	}
 
 	dt := time.Since(g.lastTime)
-	g.current.Update(dt, g.Info)
+	g.current.Update(dt, g)
 	g.lastTime = time.Now()
 
 	if inpututil.IsKeyJustReleased(ebiten.KeyR) {
-		g.ChangeScene(g.current)
+		g.ChangeScene(&TitleScene{})
 	}
 
 	return nil

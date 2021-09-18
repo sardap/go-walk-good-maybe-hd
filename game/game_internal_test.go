@@ -9,6 +9,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -415,11 +416,13 @@ func TestUfoBiscuit(t *testing.T) {
 
 func TestCompleteMainGameScene(t *testing.T) {
 
-	info := &Info{}
+	g := &Game{
+		audioCtx: audio.CurrentContext(),
+	}
 	mgs := &MainGameScene{}
 
 	assert.NotPanics(t, func() {
-		mgs.Start(info)
+		mgs.Start(g)
 	})
 
 	assert.NotNil(t, mgs.Rand)
@@ -428,15 +431,15 @@ func TestCompleteMainGameScene(t *testing.T) {
 	assert.NotNil(t, mgs.Level)
 
 	assert.NotPanics(t, func() {
-		mgs.Update(100*time.Millisecond, info)
+		mgs.Update(100*time.Millisecond, g)
 	})
 	assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
 
 	mgs.InputEnt.MovementComponent.FastGameSpeed = true
-	mgs.Update(100*time.Millisecond, info)
+	mgs.Update(100*time.Millisecond, g)
 	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
 
-	mgs.End(info)
+	mgs.End(g)
 
 	assert.Nil(t, mgs.Rand)
 	assert.Nil(t, mgs.World)

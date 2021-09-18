@@ -23,10 +23,10 @@ type ResolvSystem struct {
 	space          *resolv.Space
 	overlay        *ebiten.Image
 	OverlayEnabled bool
-	debugInput     *entity.DebugInput
+	debugInput     *entity.InputEnt
 }
 
-func CreateResolvSystem(space *resolv.Space, debugInput *entity.DebugInput) *ResolvSystem {
+func CreateResolvSystem(space *resolv.Space, debugInput *entity.InputEnt) *ResolvSystem {
 	return &ResolvSystem{
 		space:      space,
 		debugInput: debugInput,

@@ -47,6 +47,8 @@ type KeyboardInputType struct {
 	// Main game Debug input
 	KeyFastGameMode          ebiten.Key
 	KeyToggleCollsionOverlay ebiten.Key
+	// Menu Stuff
+	KeySelect ebiten.Key
 
 	Driver KeyboardDriver
 }
@@ -64,6 +66,7 @@ func DefaultKeyboardInputType() KeyboardInputType {
 		KeyFastGameMode:          ebiten.KeyTab,
 		KeyToggleCollsionOverlay: ebiten.KeyO,
 		Driver:                   EbitenKeyboardDriver{},
+		KeySelect:                ebiten.KeyZ,
 	}
 }
 
@@ -95,6 +98,8 @@ type GamepadInputType struct {
 	DeadZone    float64
 	ButtonJump  ebiten.GamepadButton
 	ButtonShoot ebiten.GamepadButton
+	// Menu Stuff
+	KeySelect ebiten.GamepadButton
 
 	Driver GamepadDriver
 }
@@ -108,6 +113,7 @@ func DefaultGamepadInputType() GamepadInputType {
 		ButtonJump:  0,
 		ButtonShoot: 1,
 		Driver:      EbitenGamepadDriver{},
+		KeySelect:   0,
 	}
 }
 
