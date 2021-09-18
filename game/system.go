@@ -12,8 +12,9 @@ const (
 	systemPriorityImageRenderSystem systemPriority = iota
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
+	systemPriorityMainGameUiSystem
 	systemPrioritySoundSystem
-	systemPriorityLifecycleSystem
+	systemPriorityDamageSystem
 	systemPriorityAnimeSystem
 	systemPriorityResolvSystem
 	systemPriorityVelocitySystem
@@ -21,6 +22,7 @@ const (
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
 	systemPriorityPlayerSystem
+	systemPriorityEnemyBiscuitSystem
 	systemPriorityCollisionSystem
 	systemPriorityInputSystem
 )

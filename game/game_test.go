@@ -28,6 +28,12 @@ const (
 	imgRaw = "\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x000\x00\x00\x00\x10\b\x06\x00\x00\x00P\xae\xfc\xb1\x00\x00\x01\u007fIDATx\x9cb\xf9\xff\xff?\xc3P\x06, \xc2\xc4\xc1\xed\xff\x99\x03\xbb\x18\x91%@b\xb84aS;P\xfa\x19\x8d\xed]\xff\v\x8b\x880\xbc}\xf3\x06.\t\xd2,.\xcc\xcf\xf0\x87\x91\x15,\xc6\xce\xce\xce\xf0\xf3\xe7O8\x8d\xaev \xf5\xc3=\x80,\t\xd3\xcc\xf2\xff7\x033\a\x0f\x8afd\x003h \xf53!\xfb\x10\xa4\x01d\x18\f\xbc|\xfb\x11\xae\t\xd9\xe7\xbb\xd6T\xa2\x18\x84K?\b\xfc\xfd\xf1\x05%\x04\xa9\xad\x1f%\x06\u07bf\u007f\xcf\xc0\xc7\xc9\n\xf7=\xc8\x03\xc8\x06\x82<\x80\xceG\x0eAj\xeb\xaf-.c\x10\x97\xe2E\x04\xe8\xb3\xcf\f\xf5}\xfd(\xfa\xc1\x99\x18\xa4\x18\x14Ђ\x82\x82\xf0\x90\x00E\x1d\x03\xc3G\x86ƢB\xb0&\x10\x9dSÙ\r\xe0\xd3O\f\xc0\xa5\x1fd/\xb6\xa4\x83\f\xe01\x00\xd2\x04\xf29r(\x81\x1c\r\x02\xa0P\x00\xf9\x1e\x04\xd0C\x00\x16\x82\xb4\xd0O\b\xc0\xf3\x00,\xbaA\x02\xa0\x9c\r3\x18\xd9r\xe4\xa8\x04\xc9\xc3\xd4\xe2\xd3\x0fr,L\x1f\x88\x869\x9eX\xfd\xf8\x1c\x0eS\xcb\b\xaaȰ\x95\xc3\xc5RR\xff\x0f\xaa\xe90\xac^0\t.\x16\x9a\x90\xc7`\u007f\xeb\nC\xef\xb3g\x04\xcbq\x98~t@u\xfd \x0f`\xc3SUT\xfe\x93\">P\xfa\x99\xf0\xc6\xd5\x10\x00\xa3\x1e\x18h\x80\xd3\x03\xe6\xdbtI\x12\x1f(\xfd\x8cؚӏ?G\xc0\x05eyW0\x12\x12\x1fH\xfd\x80\x00\x00\x00\xff\xff\x8e\x18S\x12\xccё\xca\x00\x00\x00\x00IEND\xaeB`\x82"
 )
 
+const (
+	tagTest = iota
+	tagGround
+	tagObject
+)
+
 func init() {
 	rand.Seed(time.Now().UnixNano())
 }
@@ -145,12 +151,7 @@ func TestVelocitySystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-		},
-	}
+	debugEnt := entity.CreateDebugInput()
 
 	// Setup
 	velocitySystem := game.CreateVelocitySystem(s)
@@ -158,7 +159,7 @@ func TestVelocitySystem(t *testing.T) {
 	w.AddSystemInterface(velocitySystem, velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, debugEnt), resolvable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity
@@ -175,7 +176,7 @@ func TestVelocitySystem(t *testing.T) {
 			},
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{"test"},
+			Tags: []int{tagTest},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active:         true,
@@ -208,7 +209,7 @@ func TestVelocitySystem(t *testing.T) {
 			},
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{"ground"},
+			Tags: []int{tagGround},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active:         true,
@@ -229,15 +230,15 @@ func TestVelocitySystem(t *testing.T) {
 
 	entA.Vel.Y = 10
 	w.Update(1)
-	assert.Equal(t, float64(9.5), entA.Postion.Y, "bounds y to stop collsion")
-	assert.True(t, entA.Collisions.CollidingWith("ground"))
-	assert.True(t, entB.Collisions.CollidingWith("test"))
+	assert.Equal(t, float64(14.5), entA.Postion.Y, "bounds y to stop collsion")
+	assert.True(t, entA.Collisions.CollidingWith(tagGround))
+	assert.True(t, entB.Collisions.CollidingWith(tagTest))
 
 	entA.Vel.X = 10
 	w.Update(1)
 	assert.Equal(t, float64(25), entA.Postion.X, "bounds X to stop collsion")
-	assert.True(t, entA.Collisions.CollidingWith("ground"))
-	assert.True(t, entB.Collisions.CollidingWith("test"))
+	assert.True(t, entA.Collisions.CollidingWith(tagGround))
+	assert.True(t, entB.Collisions.CollidingWith(tagTest))
 
 	colShape := resolv.NewRectangle(0, 0, 10, 10)
 	entC := &struct {
@@ -259,7 +260,7 @@ func TestVelocitySystem(t *testing.T) {
 			},
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{"ground"},
+			Tags: []int{tagGround},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active:         true,
@@ -321,15 +322,10 @@ func TestResolvSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-		},
-	}
+	debugEnt := entity.CreateDebugInput()
 
 	// Setup
-	resolvSystem := game.CreateResolvSystem(mainGameInfo, s)
+	resolvSystem := game.CreateResolvSystem(s, debugEnt)
 
 	var resolvable *game.Resolvable
 	w.AddSystemInterface(resolvSystem, resolvable, nil)
@@ -348,7 +344,7 @@ func TestResolvSystem(t *testing.T) {
 			},
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{"test"},
+			Tags: []int{tagTest},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active:         true,
@@ -356,12 +352,100 @@ func TestResolvSystem(t *testing.T) {
 		},
 	}
 
-	// asserts
+	object := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 3,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []int{tagObject},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+	}
+	w.AddEntity(object)
+
+	ground := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.IdentityComponent
+		*components.CollisionComponent
+	}{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: 50,
+				Y: 10,
+			},
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []int{tagGround},
+		},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+	}
+	w.AddEntity(ground)
+
 	assert.False(t, s.Contains(ent.CollisionShape), "space should be empty")
 	w.AddEntity(ent)
 	assert.NotNil(t, ent.CollisionShape, "collsion shape should be init")
 	assert.True(t, s.Contains(ent.CollisionShape), "space should contain shape")
-	assert.Equal(t, "test", ent.CollisionShape.GetTags()[0], "tags should be copied to shape")
+	assert.Equal(t, tagTest, ent.CollisionShape.GetTags()[0], "tags should be copied to shape")
+
+	testCases := []struct {
+		name               string
+		groundPostion      math.Vector2
+		entPostion         math.Vector2
+		objectPostion      math.Vector2
+		entSpeed           math.Vector2
+		entCollisionsCount []int
+	}{
+		{
+			name:               "basic",
+			groundPostion:      math.Vector2{X: 0, Y: 10},
+			entPostion:         math.Vector2{X: 0, Y: 0},
+			objectPostion:      math.Vector2{X: 14, Y: 0},
+			entSpeed:           math.Vector2{X: 1, Y: 0},
+			entCollisionsCount: []int{1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1},
+		},
+		{
+			name:               "fast moving",
+			groundPostion:      math.Vector2{X: 0, Y: 10},
+			entPostion:         math.Vector2{X: 0, Y: 0},
+			objectPostion:      math.Vector2{X: 18, Y: 0},
+			entSpeed:           math.Vector2{X: 4, Y: 0},
+			entCollisionsCount: []int{1, 1, 2, 2},
+		},
+	}
+
+	for _, testCase := range testCases {
+		ent.Postion = testCase.entPostion
+		ground.Postion = testCase.groundPostion
+		object.Postion = testCase.objectPostion
+
+		assert.Equal(t, len(ent.Collisions), 0)
+		assert.Equal(t, len(ground.Collisions), 0)
+
+		for i, colCount := range testCase.entCollisionsCount {
+			w.Update(0.1)
+			ent.Postion = ent.Postion.Add(testCase.entSpeed)
+
+			assert.Equalf(t, colCount, len(ent.Collisions), "case: %s loop: %d", testCase.name, i)
+		}
+
+		ent.Collisions = nil
+		ground.Collisions = nil
+	}
 
 	w.RemoveEntity(ent.BasicEntity)
 	assert.False(t, s.Contains(ent.CollisionShape), "shape should be removed from space")
@@ -646,19 +730,18 @@ func TestWrapInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
+		Gravity: 10,
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -704,20 +787,19 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
+		Gravity:        10,
 		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -760,21 +842,19 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
+	mainGameScene := &game.MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		Gravity:        10,
+		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -782,7 +862,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, mainGameScene.InputEnt), resolvable, nil)
 
 	fallingEnt := &struct {
 		ecs.BasicEntity
@@ -801,7 +881,9 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 		},
 		GravityComponent:  &components.GravityComponent{},
 		VelocityComponent: &components.VelocityComponent{},
-		IdentityComponent: &components.IdentityComponent{},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []int{tagTest},
+		},
 	}
 	w.AddEntity(fallingEnt)
 
@@ -823,7 +905,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 			},
 		},
 		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{"ground"},
+			Tags: []int{tagGround},
 		},
 		CollisionComponent: &components.CollisionComponent{
 			Active: true,
@@ -837,7 +919,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	}
 
 	w.Update(1)
-	assert.True(t, fallingEnt.Collisions.CollidingWith(entity.TagGround))
+	assert.True(t, fallingEnt.Collisions.CollidingWith(tagGround))
 
 	w.RemoveEntity(fallingEnt.BasicEntity)
 }
@@ -847,7 +929,10 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &game.Level{
 			// Disable building spawn
@@ -855,13 +940,8 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -869,7 +949,7 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, mainGameScene.InputEnt), resolvable, nil)
 
 	bullet := &struct {
 		ecs.BasicEntity
@@ -893,12 +973,6 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 		IdentityComponent: &components.IdentityComponent{},
 	}
 	w.AddEntity(bullet)
-	for bullet.Postion.X <= mainGameInfo.Level.Width {
-		assert.True(t, s.Contains(bullet.CollisionShape))
-		w.Update(1)
-	}
-	w.Update(1)
-	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
 
 	bullet.Postion = math.Vector2{}
 	bullet.CollisionShape = nil
@@ -906,10 +980,11 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddEntity(bullet)
 	for bullet.Postion.X >= 0 {
 		assert.True(t, s.Contains(bullet.CollisionShape))
+		lastPostion := bullet.Postion
 		w.Update(1)
+		assert.Less(t, bullet.Postion.X, lastPostion.X)
 	}
 	w.Update(1)
-	assert.False(t, s.Contains(bullet.CollisionShape), "should be removed off screen")
 }
 
 type testDriver struct {
@@ -1028,65 +1103,51 @@ func TestInputSystem(t *testing.T) {
 	assert.NotZero(t, inputSystem.Priority())
 }
 
-func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+func TestLifeSystem(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
-	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Gravity: 10,
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-			Width:  500,
-		},
-	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
-	var gameRuleable *game.GameRuleable
-	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
-	var animeable *game.Animeable
-	w.AddSystemInterface(game.CreateAnimeSystem(), animeable, nil)
-	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := game.CreateLifeSystem()
+	var lifeable *game.Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
 	ent := &struct {
 		ecs.BasicEntity
 		*components.TransformComponent
-		*components.BiscuitEnemyComponent
-		*components.CollisionComponent
-		*components.IdentityComponent
+		*components.LifeComponent
 	}{
-		BasicEntity: ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: 1, Y: 1},
-		},
-		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagEnemy},
-		},
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		LifeComponent:      &components.LifeComponent{},
 	}
-	w.AddEntity(ent)
 
-	assert.True(t, s.Contains(ent.CollisionShape), "should exist in space")
-	w.Update(0.1)
+	testCases := []struct {
+		StartingHP        float64
+		InvincibilityTime time.Duration
+		Damage            []float64
+		ExpectedHp        []float64
+	}{
+		{StartingHP: 100, Damage: []float64{99, 1}, ExpectedHp: []float64{1, 0}},
+		{StartingHP: 100, InvincibilityTime: 100 * time.Millisecond, Damage: []float64{99, 1, 1}, ExpectedHp: []float64{1, 1, 0}},
+	}
 
-	ent.Collisions = append(ent.Collisions, &components.CollisionEvent{
-		ID:   10,
-		Tags: []string{entity.TagBullet},
-	})
-	w.Update(0.1)
-	assert.False(t, s.Contains(ent.CollisionShape), "should be removed from space")
+	for _, testCase := range testCases {
+		ent.HP = testCase.StartingHP
+		ent.InvincibilityTime = testCase.InvincibilityTime
+		w.AddEntity(ent)
 
-	// No tests for death anime does this matter?
+		for i, damage := range testCase.Damage {
+			ent.DamageEvents = append(ent.DamageEvents, &components.DamageEvent{
+				Damage: damage,
+			})
+			w.Update(float32(100*time.Millisecond) / float32(time.Second))
+
+			assert.Equalf(t, testCase.ExpectedHp[i], ent.HP, "loop %d %v", i+1, testCase)
+		}
+
+		w.RemoveEntity(ent.BasicEntity)
+	}
 }
 
 type testGame struct {

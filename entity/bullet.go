@@ -1,7 +1,10 @@
 package entity
 
 import (
+	"image/color"
+
 	"github.com/EngoEngine/ecs"
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -10,17 +13,17 @@ import (
 type Bullet struct {
 	ecs.BasicEntity
 	*components.TransformComponent
-	*components.ImageComponent
-	*components.VelocityComponent
+	*components.BulletComponent
 	*components.CollisionComponent
+	*components.DamageComponent
+	*components.LifeComponent
 	*components.ScrollableComponent
 	*components.IdentityComponent
-	*components.BulletComponent
+	*components.ImageComponent
+	*components.VelocityComponent
 }
 
-func CreateBullet() *Bullet {
-	img, _ := assets.LoadEbitenImage(assets.ImageBulletSmallGreen)
-
+func CreateBullet(img *ebiten.Image) *Bullet {
 	result := &Bullet{
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
@@ -29,6 +32,22 @@ func CreateBullet() *Bullet {
 				Y: float64(img.Bounds().Dy()),
 			},
 		},
+		BulletComponent: &components.BulletComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		DamageComponent: &components.DamageComponent{
+			BaseDamage: 100,
+		},
+		LifeComponent: &components.LifeComponent{
+			HP: 1,
+		},
+		ScrollableComponent: &components.ScrollableComponent{
+			Modifier: 1,
+		},
+		IdentityComponent: &components.IdentityComponent{
+			Tags: []int{TagBullet},
+		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
 			Image:  img,
@@ -36,17 +55,26 @@ func CreateBullet() *Bullet {
 		VelocityComponent: &components.VelocityComponent{
 			Vel: math.Vector2{},
 		},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		ScrollableComponent: &components.ScrollableComponent{
-			Modifier: 1,
-		},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{TagBullet},
-		},
-		BulletComponent: &components.BulletComponent{},
 	}
 
 	return result
+}
+
+func CreatePlayerBullet() *Bullet {
+	img, _ := assets.LoadEbitenImage(assets.ImageBulletSmallGreen)
+
+	return CreateBullet(img)
+}
+
+func CreateEnemyBullet() *Bullet {
+	img, _ := assets.LoadEbitenImageColorSwap(
+		assets.ImageBulletSmallGreen,
+		map[color.RGBA]color.RGBA{
+			{R: 75, G: 205, B: 75, A: 255}: {R: 205, G: 75, B: 75, A: 255},
+			{R: 72, G: 150, B: 72, A: 255}: {R: 150, G: 72, B: 72, A: 255},
+			{R: 85, G: 185, B: 85, A: 255}: {R: 185, G: 85, B: 85, A: 255},
+		},
+	)
+
+	return CreateBullet(img)
 }

@@ -3,9 +3,15 @@ package assets
 import (
 	"bytes"
 	"compress/gzip"
+	"crypto/md5"
+	"errors"
+	"image"
+	"image/color"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -29,7 +35,6 @@ func compress(data []byte) []byte {
 }
 
 func TestLoadEbitenImage(t *testing.T) {
-	t.Parallel()
 
 	var asset struct {
 		Compressed      bool
@@ -54,7 +59,7 @@ func TestLoadEbitenImage(t *testing.T) {
 
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
-		delete(imageCache, getHash([]byte(asset.Data)))
+		delete(imageCache, md5.Sum([]byte(asset.Data)))
 		LoadEbitenImage(asset)
 	}
 	delta := time.Since(startTime)
@@ -63,7 +68,7 @@ func TestLoadEbitenImage(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		LoadEbitenImage(asset)
 	}
-	assert.Less(t, time.Since(startTime), delta/15)
+	assert.Less(t, time.Since(startTime), delta/5)
 	assert.NoError(t, err)
 
 	// Compressed
@@ -80,6 +85,53 @@ func TestLoadEbitenImage(t *testing.T) {
 	img, err = LoadEbitenImage(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
+}
+
+func colorToRGBA(r, g, b, a uint32) color.RGBA {
+	return color.RGBA{R: byte(r), G: byte(g), B: byte(b), A: byte(a)}
+}
+
+func TestLoadEbitenImageColorSwap(t *testing.T) {
+
+	asset := struct {
+		Compressed      bool
+		Data            string
+		ScaleMultiplier int
+	}{
+		Compressed:      false,
+		Data:            testImg,
+		ScaleMultiplier: 1,
+	}
+
+	originalImg, _, _ := image.Decode(bytes.NewBuffer([]byte(testImg)))
+	colorMap := map[color.RGBA]color.RGBA{}
+	originalColor := colorToRGBA(originalImg.At(0, 0).RGBA())
+	newColor := color.RGBA{R: 255, A: 255}
+	colorMap[originalColor] = newColor
+
+	updates := []struct {
+		X int
+		Y int
+	}{}
+
+	for y := originalImg.Bounds().Min.Y; y < originalImg.Bounds().Max.Y; y++ {
+		for x := originalImg.Bounds().Min.X; x < originalImg.Bounds().Max.X; x++ {
+			if originalImg.At(x, y) == originalColor {
+				updates = append(updates, struct {
+					X int
+					Y int
+				}{x, y})
+			}
+		}
+	}
+
+	img, err := LoadEbitenImageColorSwap(asset, colorMap)
+	assert.NoError(t, err)
+
+	for _, update := range updates {
+		updated := img.At(update.X, update.Y)
+		assert.Equalf(t, updated, newColor, "missmatch at X:%d, Y:%d", update.X, update.Y)
+	}
 }
 
 func TestLoadSound(t *testing.T) {
@@ -99,4 +151,35 @@ func TestLoadSound(t *testing.T) {
 	assert.Equal(t, int(10312312), sr)
 	assert.Equal(t, []byte("looky here"), data)
 	assert.Equal(t, SoundTypeWav, soundType)
+}
+
+type testGame struct {
+	m    *testing.M
+	code int
+}
+
+var (
+	errRegularTermination = errors.New("regular termination")
+)
+
+func (g *testGame) Update() error {
+	g.code = g.m.Run()
+	return errRegularTermination
+}
+
+func (*testGame) Draw(screen *ebiten.Image) {
+}
+
+func (*testGame) Layout(int, int) (int, int) {
+	return 300, 300
+}
+
+func TestMain(m *testing.M) {
+	g := &testGame{
+		m: m,
+	}
+	if err := ebiten.RunGame(g); err != nil && err != errRegularTermination {
+		panic(err)
+	}
+	os.Exit(g.code)
 }

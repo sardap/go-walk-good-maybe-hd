@@ -10,20 +10,27 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
+const (
+	startingPlayerJumpPower  = 1250
+	maxPlayerJump            = 2000
+	startingPlayerAirHorzMod = 0.5
+	maxPlayerAirHorzMod      = 1
+)
+
 type Playerable interface {
 	ecs.BasicFace
 	components.MainGamePlayerFace
 }
 
 type PlayerSystem struct {
-	ents         map[uint64]*entity.Player
-	mainGameInfo *MainGameInfo
-	world        *ecs.World
+	ents          map[uint64]*entity.Player
+	mainGameScene *MainGameScene
+	world         *ecs.World
 }
 
-func CreatePlayerSystem(mainGameInfo *MainGameInfo) *PlayerSystem {
+func CreatePlayerSystem(mainGameScene *MainGameScene) *PlayerSystem {
 	return &PlayerSystem{
-		mainGameInfo: mainGameInfo,
+		mainGameScene: mainGameScene,
 	}
 }
 
@@ -52,7 +59,7 @@ func (s *PlayerSystem) changeToJumping(player *entity.Player) {
 
 	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
 	components.ChangeAnimeImage(player, img, 50*time.Millisecond)
-	player.JumpTime = 0
+	player.JumpPowerRemaning = player.JumpPower
 }
 
 func (s *PlayerSystem) changeToFlying(player *entity.Player) {
@@ -75,11 +82,11 @@ func (s *PlayerSystem) changeToWalk(player *entity.Player) {
 
 func (s *PlayerSystem) Update(dt float32) {
 	for _, player := range s.ents {
-		switch s.mainGameInfo.State {
+		switch s.mainGameScene.State {
 		case gameStateStarting:
 			if player.TransformComponent.Postion.X > 50 {
-				s.mainGameInfo.State = gameStateScrolling
-				s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
+				s.mainGameScene.State = gameStateScrolling
+				s.mainGameScene.ScrollingSpeed.X = xStartScrollSpeed
 			}
 		case gameStateScrolling:
 		}
@@ -90,6 +97,29 @@ func (s *PlayerSystem) Update(dt float32) {
 		vel := player.GetVelocityComponent().Vel
 
 		horzSpeed := playerCom.Speed
+
+		// Token stuff
+		if player.Collisions.CollidingWith(entity.TagJumpToken) {
+			player.Sound = components.LoadSound(assets.SoundByCollect5)
+			player.SoundComponent.Active = true
+			player.SoundComponent.Restart = true
+
+			player.JumpPower = utility.ClampFloat64(player.JumpPower+startingPlayerJumpPower*0.1, 0, maxPlayerJump)
+		}
+
+		if player.Collisions.CollidingWith(entity.TagSpeedToken) {
+			player.Sound = components.LoadSound(assets.SoundJdwBlowOne)
+			player.SoundComponent.Active = true
+			player.SoundComponent.Restart = true
+
+			player.AirHorzSpeedModifier = utility.ClampFloat64(player.AirHorzSpeedModifier+0.1, 0.5, 1)
+			extraSpeed := xStartScrollSpeed * 4
+			s.mainGameScene.ScrollingSpeed.X += extraSpeed
+			go func(extraSpeed float64) {
+				time.Sleep(2 * time.Second)
+				s.mainGameScene.ScrollingSpeed.X -= extraSpeed
+			}(extraSpeed)
+		}
 
 		switch playerCom.State {
 		case components.MainGamePlayerStateGroundIdling:
@@ -114,17 +144,17 @@ func (s *PlayerSystem) Update(dt float32) {
 			}
 
 		case components.MainGamePlayerStateJumping:
-			horzSpeed /= 2
+			horzSpeed *= player.AirHorzSpeedModifier
 
-			vel.Y -= player.JumpPower
-			player.JumpTime += utility.DeltaToDuration(dt)
+			vel.Y -= player.JumpPowerRemaning
+			player.JumpPowerRemaning -= float64(dt) * player.JumpPower / 2
 
-			if player.JumpTime > time.Duration(1000)*time.Millisecond {
+			if player.JumpPowerRemaning < 0 {
 				s.changeToFlying(player)
 			}
 
 		case components.MainGamePlayerStateFlying:
-			horzSpeed /= 2
+			horzSpeed *= player.AirHorzSpeedModifier
 
 			if player.Collisions.CollidingWith(entity.TagGround) {
 				s.changeToIdle(player)
@@ -145,10 +175,10 @@ func (s *PlayerSystem) Update(dt float32) {
 		player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
 		if move.Shoot && player.ShootCooldownRemaning < 0 {
 			player.ShootCooldownRemaning = player.ShootCooldown
-			bullet := entity.CreateBullet()
+			bullet := entity.CreatePlayerBullet()
 			bullet.Postion.X = player.Postion.X
 			bullet.Postion.Y = player.Postion.Y + player.Size.Y/2
-			bullet.Layer = bulletImageLayer
+			bullet.Layer = ImageLayerbullet
 			bullet.Speed.X = 750
 
 			xOffset := player.Size.X + 0.5

@@ -13,14 +13,12 @@ type GameRuleSystem struct {
 	ents            map[uint64]interface{}
 	world           *ecs.World
 	enemyDeathSound *entity.SoundPlayer
-	info            *Info
-	mainGameInfo    *MainGameInfo
+	mainGameScene   *MainGameScene
 }
 
-func CreateGameRuleSystem(info *Info) *GameRuleSystem {
+func CreateGameRuleSystem(mainGameScene *MainGameScene) *GameRuleSystem {
 	return &GameRuleSystem{
-		info:         info,
-		mainGameInfo: info.MainGameInfo,
+		mainGameScene: mainGameScene,
 	}
 }
 
@@ -31,7 +29,7 @@ func (s *GameRuleSystem) Priority() int {
 func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
-	s.mainGameInfo.State = gameStateStarting
+	s.mainGameScene.State = gameStateStarting
 }
 
 type Wrapable interface {
@@ -62,13 +60,6 @@ type Bulletable interface {
 	components.VelocityFace
 }
 
-type EnemyBiscuitable interface {
-	ecs.BasicFace
-	components.TransformFace
-	components.BiscuitEnemyFace
-	components.CollisionFace
-}
-
 type UfoBiscuitEnemyable interface {
 	ecs.BasicFace
 	components.TransformFace
@@ -88,6 +79,11 @@ func (s *GameRuleSystem) Update(dt float32) {
 		s.world.AddEntity(s.enemyDeathSound)
 	}
 
+	switch s.mainGameScene.State {
+	case gameStateScrolling:
+		s.mainGameScene.ScrollingSpeed.X -= 1 * float64(dt)
+	}
+
 	for _, ent := range s.ents {
 		if wrapable, ok := ent.(Wrapable); ok {
 			trans := wrapable.GetTransformComponent()
@@ -97,7 +93,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if scrollable, ok := ent.(Scrollable); ok {
 			velCom := scrollable.GetVelocityComponent()
-			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
+			velCom.Vel = velCom.Vel.Add(s.mainGameScene.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
 		}
 
 		if building, ok := ent.(*LevelBlock); ok {
@@ -109,49 +105,34 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if gravityable, ok := ent.(Gravityable); ok {
 			vel := gravityable.GetVelocityComponent()
-			vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
+			vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameScene.Gravity})
 		}
 
 		if bullet, ok := ent.(Bulletable); ok {
 			velCom := bullet.GetVelocityComponent()
 			velCom.Vel = velCom.Vel.Add(bullet.GetBulletComponent().Speed)
-			postion := bullet.GetTransformComponent().Postion
 			colCom := bullet.GetCollisionComponent()
-			if postion.X < 0 || postion.X > s.mainGameInfo.Level.Width ||
-				colCom.Collisions.CollidingWith(entity.TagGround, entity.TagEnemy) {
+			if colCom.Collisions.CollidingWith(entity.TagGround) {
 				defer s.world.RemoveEntity(*bullet.GetBasicEntity())
 			}
 		}
 
-		if biscuit, ok := ent.(EnemyBiscuitable); ok {
-			colCom := biscuit.GetCollisionComponent()
-			if colCom.Collisions.CollidingWith(entity.TagBullet) {
-				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundPdBiscuitDeath)
-					s.enemyDeathSound.Restart = true
-					s.enemyDeathSound.SoundComponent.Active = true
-				}
-				defer s.world.RemoveEntity(*biscuit.GetBasicEntity())
-				biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
-				biscuitEnemyDeath.Postion = biscuit.GetTransformComponent().Postion
-				biscuitEnemyDeath.Layer = enemyLayer
-				defer s.world.AddEntity(biscuitEnemyDeath)
-			}
-		}
-
 		if ufo, ok := ent.(UfoBiscuitEnemyable); ok {
-			colCom := ufo.GetCollisionComponent()
-			if colCom.Collisions.CollidingWith(entity.TagBullet) {
-				if s.enemyDeathSound.Player == nil || !s.enemyDeathSound.Player.IsPlaying() {
-					s.enemyDeathSound.Sound = components.LoadSound(assets.SoundUfoBiscuitEnemyDeath)
-					s.enemyDeathSound.Restart = true
-					s.enemyDeathSound.SoundComponent.Active = true
-				}
-				defer s.world.RemoveEntity(*ufo.GetBasicEntity())
-				ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
-				ufoDeath.Postion = ufo.GetTransformComponent().Postion
-				ufoDeath.Layer = enemyLayer
-				defer s.world.AddEntity(ufoDeath)
+			ufoCom := ufo.GetUfoBiscuitEnemyComponent()
+			transCom := ufo.GetTransformComponent()
+			ufoCom.ShootTimeRemaning -= utility.DeltaToDuration(dt)
+
+			if ufoCom.ShootTimeRemaning < 0 {
+				bullet := entity.CreateEnemyBullet()
+				bullet.Postion.X = transCom.Postion.X + transCom.Size.X/2 - bullet.TransformComponent.Size.X/2
+				bullet.Postion.Y = transCom.Postion.Y + transCom.Size.Y + 5
+				bullet.Speed.Y = 300
+				bullet.Layer = ImageLayerbullet
+				bullet.Options.InvertY = true
+				bullet.Options.InvertX = false
+				defer s.world.AddEntity(bullet)
+
+				ufoCom.ShootTimeRemaning = ufoCom.ShootTime
 			}
 		}
 
@@ -163,8 +144,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 	}
 
-	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
-	generateCityBuildings(s.info, s.world)
+	s.mainGameScene.Level.StartX += s.mainGameScene.ScrollingSpeed.X * float64(dt)
+	s.mainGameScene.GenerateCityBuildings()
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

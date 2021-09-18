@@ -46,13 +46,9 @@ func TestCreateAllBuildings(t *testing.T) {
 	t.Parallel()
 
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
 		Level: &Level{},
-	}
-
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Space:        s,
+		Space: s,
 	}
 
 	// Building 5 is non standard shape
@@ -73,9 +69,9 @@ func TestCreateAllBuildings(t *testing.T) {
 		max := step * float64(i+1)
 		seed, _ := findSeed(max-step, max)
 
-		info.Rand = rand.New(&fakeRand{seq: []int64{seed}})
+		mainGameScene.Rand = rand.New(&fakeRand{seq: []int64{seed}})
 
-		LevelBlock := createRandomLevelBlock(info.Rand, ecs.NewBasic())
+		LevelBlock := createRandomLevelBlock(mainGameScene.Rand, ecs.NewBasic())
 		expected := LevelBlock.TileMap.TileWidth * LevelBlock.TileMap.TileXNum
 		assert.Equalf(t, expected, int(LevelBlock.Size.X), "invalid tileWidth for %s", testcase.name)
 
@@ -90,19 +86,17 @@ func TestCityLevelGenerate(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
 		Level: &Level{},
-	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
+		Rand:  rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space: s,
+		World: w,
 	}
 
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
-	generateCityBuildings(info, w)
+	mainGameScene.GenerateCityBuildings()
 
 	ground := s.FilterByTags(entity.TagGround)
 	for i := 0; i < ground.Length()-1; i++ {
@@ -118,26 +112,24 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
 		Level: &Level{
 			// Disable building spawn Yes we want this
 			StartX: 50000,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
 	// Buildings need to move
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(s, mainGameScene.InputEnt), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
@@ -186,28 +178,27 @@ func TestPlayerSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
+		Gravity:        10,
+		State:          gameStateStarting,
 		Level: &Level{
 			Width: 500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	playerSystem := CreatePlayerSystem(mainGameInfo)
+	playerSystem := CreatePlayerSystem(mainGameScene)
 	var playerable *Playerable
 	w.AddSystemInterface(playerSystem, playerable, nil)
-
-	var gameRuleable *GameRuleable
-	w.AddSystemInterface(CreateGameRuleSystem(info), gameRuleable, nil)
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(s, mainGameScene.InputEnt), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
+
+	mainGameScene.GenerateCityBuildings()
 
 	player := entity.CreatePlayer()
 	player.Postion.X = 5
@@ -226,8 +217,14 @@ func TestPlayerSystem(t *testing.T) {
 	w.Update(1)
 
 	// Loop until hit ground
+	i := 0
 	for !player.Collisions.CollidingWith(entity.TagGround) {
 		w.Update(0.1)
+		i++
+		if i > 10000 {
+			t.Error("player fell past ground")
+			t.FailNow()
+		}
 	}
 	// Change state
 	w.Update(0.1)
@@ -275,21 +272,20 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
-		Gravity: 10,
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
+		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
+		Gravity:        10,
 		Level: &Level{
 			// Disable building spawn
 			StartX: 50000,
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
@@ -331,12 +327,15 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 	assert.False(t, ok, "entity should be removed once anime completed")
 }
 
-func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
+func TestEnemyBiscuit(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &Level{
 			// Disable building spawn
@@ -344,50 +343,42 @@ func TestEnemyBiscuitGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
 	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
-	var resolvable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := CreateLifeSystem()
+	var lifeable *Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
-	ent := &struct {
-		ecs.BasicEntity
-		*components.TransformComponent
-		*components.BiscuitEnemyComponent
-		*components.CollisionComponent
-		*components.IdentityComponent
-	}{
-		BasicEntity: ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{
-			Size: math.Vector2{X: 1, Y: 1},
-		},
-		BiscuitEnemyComponent: &components.BiscuitEnemyComponent{},
-		CollisionComponent: &components.CollisionComponent{
-			Active: true,
-		},
-		IdentityComponent: &components.IdentityComponent{
-			Tags: []string{entity.TagEnemy},
-		},
-	}
-	w.AddEntity(ent)
+	enemy := entity.CreateBiscuitEnemy()
+	w.AddEntity(enemy)
 
 	w.Update(0.1)
+	_, ok := gameRuleSystem.ents[enemy.ID()]
+	assert.True(t, ok, "ufo should exist still")
+
+	enemy.DamageEvents = append(enemy.DamageEvents, &components.DamageEvent{
+		Damage: enemy.HP + 1,
+	})
+	w.Update(0.1)
+	_, ok = gameRuleSystem.ents[enemy.ID()]
+	assert.False(t, ok, "ufo should no longer exist")
+
+	assert.Greater(t, len(lifeSystem.activePlayerPool), 0, "death sound should be triggered")
 }
 
-func TestUfoBiscuitGameRuleSystem(t *testing.T) {
+func TestUfoBiscuit(t *testing.T) {
 	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &Level{
 			// Disable building spawn
@@ -395,19 +386,15 @@ func TestUfoBiscuitGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
 	w.AddSystemInterface(CreateAnimeSystem(), animeable, nil)
-	var resolvable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	lifeSystem := CreateLifeSystem()
+	var lifeable *Lifeable
+	w.AddSystemInterface(lifeSystem, lifeable, nil)
 
 	ufo := entity.CreateUfoBiscuitEnemy()
 	w.AddEntity(ufo)
@@ -416,26 +403,43 @@ func TestUfoBiscuitGameRuleSystem(t *testing.T) {
 	_, ok := gameRuleSystem.ents[ufo.ID()]
 	assert.True(t, ok, "ufo should exist still")
 
-	ufo.Collisions = append(ufo.Collisions, &components.CollisionEvent{
-		Tags: []string{entity.TagBullet},
+	ufo.DamageEvents = append(ufo.DamageEvents, &components.DamageEvent{
+		Damage: ufo.HP + 1,
 	})
 	w.Update(0.1)
 	_, ok = gameRuleSystem.ents[ufo.ID()]
 	assert.False(t, ok, "ufo should no longer exist")
+
+	assert.Greater(t, len(lifeSystem.activePlayerPool), 0, "death sound should be triggered")
 }
 
-func TestCompleteGame(t *testing.T) {
-	t.Parallel()
+func TestCompleteMainGameScene(t *testing.T) {
 
-	game := CreateGame()
+	info := &Info{}
+	mgs := &MainGameScene{}
 
-	// No idea what to test here
 	assert.NotPanics(t, func() {
-		w, h := game.Layout(10, 10)
-		screen := ebiten.NewImage(w, h)
-		for i := 0; i < 10; i++ {
-			game.Update()
-			game.Draw(screen)
-		}
+		mgs.Start(info)
 	})
+
+	assert.NotNil(t, mgs.Rand)
+	assert.NotNil(t, mgs.World)
+	assert.NotNil(t, mgs.Space)
+	assert.NotNil(t, mgs.Level)
+
+	assert.NotPanics(t, func() {
+		mgs.Update(100*time.Millisecond, info)
+	})
+	assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
+
+	mgs.InputEnt.MovementComponent.FastGameSpeed = true
+	mgs.Update(100*time.Millisecond, info)
+	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
+
+	mgs.End(info)
+
+	assert.Nil(t, mgs.Rand)
+	assert.Nil(t, mgs.World)
+	assert.Nil(t, mgs.Space)
+	assert.Nil(t, mgs.Level)
 }

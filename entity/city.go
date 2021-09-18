@@ -66,6 +66,29 @@ func CreateCityBackground() *CityBackground {
 	}
 }
 
+type CitySkyBackground struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.ImageComponent
+}
+
+func CreateCitySkyBackground() *CitySkyBackground {
+	img, _ := assets.LoadEbitenImage(assets.ImageSkyCity)
+
+	w, h := img.Size()
+
+	return &CitySkyBackground{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{X: float64(w), Y: float64(h)},
+		},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+			Image:  img,
+		},
+	}
+}
+
 type CityFogBackground struct {
 	ecs.BasicEntity
 	*components.TransformComponent
@@ -95,7 +118,7 @@ func CreateCityFogBackground() *CityFogBackground {
 			Vel: math.Vector2{},
 		},
 		ScrollableComponent: &components.ScrollableComponent{
-			Modifier: 0.125,
+			Modifier: 0.175,
 		},
 		WrapComponent: &components.WrapComponent{
 			Max: math.Vector2{X: float64(w), Y: 0},

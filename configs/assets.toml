@@ -32,13 +32,13 @@ file="whale/whaleJump.psd"
 # 
 # ---Enemies---
 #
+
 [[Images]]
 name="biscuitEnemyIdle"
 type="tileSet"
 frameWidth=8
 scaleMultiplier=10
 file="Enemies/biscuitEnemyIdle.psd"
-
 
 [[Images]]
 name="biscuitEnemyDeath"
@@ -61,16 +61,63 @@ frameWidth=16
 scaleMultiplier=10
 file="Enemies/biscutUfoDeath.psd"
 
-
 # 
-# ---Buildings---
+# ---effects---
 #
 
 [[Images]]
-name="bulletSmallGreen"
+name="speedLine"
 type="single"
+scaleMultiplier=2
+file="effect/speedLine.psd"
+
+# 
+# ---tokens---
+#
+
+[[Images]]
+name="tokenJumpUp"
+type="single"
+scaleMultiplier=2
+file="token/jumpUp.psd"
+
+[[Images]]
+name="tokenSpeedUp"
+type="single"
+scaleMultiplier=2
+file="token/speedUp.psd"
+
+# 
+# ---UI---
+#
+
+[[Images]]
+name="uiLifeAmount"
+type="tileSet"
 scaleMultiplier=10
-file="bullet/bulletSmallGreen.psd"
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3"]
+file="ui/lifeAmount.psd"
+
+[[Images]]
+name="uiJumpAmount"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3", "Amount4"]
+file="ui/jumpAmount.psd"
+
+[[Images]]
+name="uiSpeedAmount"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=16
+parts=["Amount1", "Amount2", "Amount3", "Amount4", "Amount5"]
+file="ui/speedAmount.psd"
+
+# 
+# ---Backgrounds---
+#
 
 [[Images]]
 name="backgroundCity"
@@ -83,6 +130,22 @@ name="cityFog"
 type="single"
 scaleMultiplier=10
 file="city/cityFog.psd"
+
+[[Images]]
+name="skyCity"
+type="single"
+scaleMultiplier=10
+file="city/skyCity.psd"
+
+# 
+# ---Buildings---
+#
+
+[[Images]]
+name="bulletSmallGreen"
+type="single"
+scaleMultiplier=10
+file="bullet/bulletSmallGreen.psd"
 
 [[Images]]
 name="building0"
@@ -138,6 +201,10 @@ name="byJumpTwo"
 file="byJumpTwo.wav"
 
 [[Sounds]]
+name="whaleDamage"
+file="whaleDamage.wav"
+
+[[Sounds]]
 name="biscuitDeath"
 file="pdBiscuitDeath.wav"
 
@@ -148,6 +215,14 @@ file="ufoBiscuitEnemyDeath.wav"
 [[Sounds]]
 name="byLaserFour"
 file="byLaserFour.wav"
+
+[[Sounds]]
+name="byCollect5"
+file="byCollect5.wav"
+
+[[Sounds]]
+name="JdwBlowOne"
+file="JdwBlowOne.wav"
 
 [[Music]]
 name="city"

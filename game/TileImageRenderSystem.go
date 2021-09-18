@@ -68,26 +68,34 @@ func (c *RenderTileMapCmd) Draw(screen *ebiten.Image) {
 	tileSize := c.TileMap.TileWidth
 	tileXNum := c.TileMap.TileXNum
 
+	options := c.TileMap.Options
+
 	for i, t := range c.TileMap.Map {
 		op := &ebiten.DrawImageOptions{}
 
-		if c.TileMap.Options.InvertX {
+		if options.InvertX {
 			op.GeoM.Scale(-1, 1)
 			op.GeoM.Translate(float64(tileSize), 0)
 		}
 
-		if c.TileMap.Options.InvertY {
+		if options.InvertY {
 			op.GeoM.Scale(1, -1)
 			op.GeoM.Translate(0, float64(tileSize))
 		}
 
 		op.GeoM.Translate(c.Postion.X, c.Postion.Y)
 		op.GeoM.Translate(float64((i%tileXNum)*tileSize), float64((i/tileXNum)*tileSize))
-		op.GeoM.Scale(c.TileMap.Options.Scale.X, c.TileMap.Options.Scale.Y)
+		op.GeoM.Scale(options.Scale.X, options.Scale.Y)
 
 		sx := int(t) * tileSize
 		rect := image.Rect(sx, 0, sx+tileSize, c.TileMap.TilesImg.Bounds().Dy())
 		subImg := c.TileMap.TilesImg.SubImage(rect).(*ebiten.Image)
+
+		if options.InvertColor {
+			op.ColorM.Scale(-1, -1, -1, 1)
+			op.ColorM.Translate(1, 1, 1, 0)
+		}
+
 		screen.DrawImage(subImg, op)
 	}
 }
