@@ -96,7 +96,7 @@ func (m *MainGameScene) addEnts() {
 	m.World.AddEntity(cityFog)
 
 	player := entity.CreatePlayer()
-	player.TileImageComponent.Layer = ImageLayerplayer
+	player.TileImageComponent.Layer = ImageLayerObjects
 	player.MaxHp = 300
 	player.HP = player.MaxHp
 	player.JumpPower = startingPlayerJumpPower
@@ -115,8 +115,6 @@ func (m *MainGameScene) addEnts() {
 	bottomKillBox.Size.X = windowWidth
 	bottomKillBox.Postion.Y = windowHeight + 100
 	m.World.AddEntity(bottomKillBox)
-
-	m.generateCityBuildings()
 }
 
 func (m *MainGameScene) Start(info *Info) {
@@ -135,7 +133,7 @@ func (m *MainGameScene) Start(info *Info) {
 	m.addEnts()
 }
 
-func (m *MainGameScene) End(nfo *Info) {
+func (m *MainGameScene) End(info *Info) {
 	m.World = &ecs.World{}
 	m.Space = resolv.NewSpace()
 	m.ScrollingSpeed = math.Vector2{}
@@ -147,7 +145,7 @@ func (m *MainGameScene) End(nfo *Info) {
 
 func (m *MainGameScene) Update(dt time.Duration, info *Info) {
 	if m.InputEnt.FastGameSpeed {
-		dt *= 2
+		dt *= 20
 		m.InputEnt.FastGameSpeed = false
 	}
 
@@ -168,7 +166,7 @@ func (m *MainGameScene) Draw(screen *ebiten.Image) {
 	}
 }
 
-func (m *MainGameScene) generateCityBuildings() {
+func (m *MainGameScene) GenerateCityBuildings() {
 	x := m.Level.StartX
 	for x < m.Level.Width {
 		ent := ecs.NewBasic()

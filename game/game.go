@@ -15,8 +15,7 @@ const (
 	ImageLayerBottom components.ImageLayer = iota
 	ImageLayerCityLayer
 	ImageLayercityFogLayer
-	ImageLayerplayer
-	ImagelayerEnemyLayer
+	ImageLayerObjects
 	ImagelayerToken
 	ImageLayerbullet
 	ImageLayerbuildingForground
@@ -43,6 +42,7 @@ func (g *Game) ChangeScene(newScene Scene) {
 	}
 	g.current = newScene
 	g.current.Start(g.Info)
+	g.lastTime = time.Unix(0, 0)
 }
 
 func CreateGame() *Game {

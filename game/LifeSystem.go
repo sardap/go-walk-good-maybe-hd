@@ -76,7 +76,7 @@ func (s *LifeSystem) onRemove(ent Lifeable) {
 
 		biscuitEnemyDeath := entity.CreateBiscuitEnemyDeath()
 		biscuitEnemyDeath.Postion = ent.GetTransformComponent().Postion
-		biscuitEnemyDeath.Layer = ImagelayerEnemyLayer
+		biscuitEnemyDeath.Layer = ImageLayerObjects
 		s.world.AddEntity(biscuitEnemyDeath)
 	} else if _, ok := ent.(components.UfoBiscuitEnemyFace); ok {
 		enemyDeath := s.getPlayer()
@@ -86,7 +86,7 @@ func (s *LifeSystem) onRemove(ent Lifeable) {
 
 		ufoDeath := entity.CreateUfoBiscuitEnemyDeath()
 		ufoDeath.Postion = ent.GetTransformComponent().Postion
-		ufoDeath.Layer = ImagelayerEnemyLayer
+		ufoDeath.Layer = ImageLayerObjects
 		s.world.AddEntity(ufoDeath)
 	}
 }

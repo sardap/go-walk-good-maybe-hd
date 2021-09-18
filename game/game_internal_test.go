@@ -96,7 +96,7 @@ func TestCityLevelGenerate(t *testing.T) {
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
-	mainGameScene.generateCityBuildings()
+	mainGameScene.GenerateCityBuildings()
 
 	ground := s.FilterByTags(entity.TagGround)
 	for i := 0; i < ground.Length()-1; i++ {
@@ -184,22 +184,21 @@ func TestPlayerSystem(t *testing.T) {
 		World:          w,
 		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
 		Gravity:        10,
+		State:          gameStateStarting,
 		Level: &Level{
-			StartX: 0,
-			Width:  500,
+			Width: 500,
 		},
 	}
 
 	playerSystem := CreatePlayerSystem(mainGameScene)
 	var playerable *Playerable
 	w.AddSystemInterface(playerSystem, playerable, nil)
-
-	var gameRuleable *GameRuleable
-	w.AddSystemInterface(CreateGameRuleSystem(mainGameScene), gameRuleable, nil)
 	var resolveable *Resolvable
 	w.AddSystemInterface(CreateResolvSystem(s, mainGameScene.InputEnt), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
+
+	mainGameScene.GenerateCityBuildings()
 
 	player := entity.CreatePlayer()
 	player.Postion.X = 5

@@ -27,7 +27,7 @@ func createBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	biscuit := entity.CreateBiscuitEnemy()
 	biscuit.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-biscuit.Size.X))
 	biscuit.Postion.Y = lbTrans.Postion.Y - (biscuit.Size.Y * 1.5)
-	biscuit.Layer = ImagelayerEnemyLayer
+	biscuit.Layer = ImageLayerObjects
 	w.AddEntity(biscuit)
 }
 
@@ -36,7 +36,7 @@ func createUfoBiscuitEnemy(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 	ufo := entity.CreateUfoBiscuitEnemy()
 	ufo.Postion.X = utility.RandRangeFloat64(rand, int(lbTrans.Postion.X), int(lbTrans.Postion.X+lbTrans.Size.X-ufo.Size.X))
 	ufo.Postion.Y = lbTrans.Postion.Y - (ufo.Size.Y * 2.5)
-	ufo.Layer = ImagelayerEnemyLayer
+	ufo.Layer = ImageLayerObjects
 	w.AddEntity(ufo)
 }
 
@@ -49,7 +49,7 @@ func createJumpToken(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 		int(lbTrans.Postion.X+lbTrans.Size.X-token.TransformComponent.Size.X),
 	)
 	token.Postion.Y = lbTrans.Postion.Y - token.TransformComponent.Size.Y
-	token.Layer = ImagelayerEnemyLayer
+	token.Layer = ImageLayerObjects
 	w.AddEntity(token)
 }
 
@@ -62,7 +62,7 @@ func createSpeedToken(rand *rand.Rand, w *ecs.World, lb LevelBlockable) {
 		int(lbTrans.Postion.X+lbTrans.Size.X-token.TransformComponent.Size.X),
 	)
 	token.Postion.Y = lbTrans.Postion.Y - token.TransformComponent.Size.Y
-	token.Layer = ImagelayerEnemyLayer
+	token.Layer = ImageLayerObjects
 	w.AddEntity(token)
 }
 
