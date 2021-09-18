@@ -13,14 +13,12 @@ type GameRuleSystem struct {
 	ents            map[uint64]interface{}
 	world           *ecs.World
 	enemyDeathSound *entity.SoundPlayer
-	info            *Info
-	mainGameInfo    *MainGameInfo
+	mainGameScene   *MainGameScene
 }
 
-func CreateGameRuleSystem(info *Info) *GameRuleSystem {
+func CreateGameRuleSystem(mainGameScene *MainGameScene) *GameRuleSystem {
 	return &GameRuleSystem{
-		info:         info,
-		mainGameInfo: info.MainGameInfo,
+		mainGameScene: mainGameScene,
 	}
 }
 
@@ -31,7 +29,7 @@ func (s *GameRuleSystem) Priority() int {
 func (s *GameRuleSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]interface{})
 	s.world = world
-	s.mainGameInfo.State = gameStateStarting
+	s.mainGameScene.State = gameStateStarting
 }
 
 type Wrapable interface {
@@ -81,9 +79,9 @@ func (s *GameRuleSystem) Update(dt float32) {
 		s.world.AddEntity(s.enemyDeathSound)
 	}
 
-	switch s.mainGameInfo.State {
+	switch s.mainGameScene.State {
 	case gameStateScrolling:
-		s.mainGameInfo.ScrollingSpeed.X -= 1 * float64(dt)
+		s.mainGameScene.ScrollingSpeed.X -= 1 * float64(dt)
 	}
 
 	for _, ent := range s.ents {
@@ -95,7 +93,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if scrollable, ok := ent.(Scrollable); ok {
 			velCom := scrollable.GetVelocityComponent()
-			velCom.Vel = velCom.Vel.Add(s.mainGameInfo.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
+			velCom.Vel = velCom.Vel.Add(s.mainGameScene.ScrollingSpeed.Mul(scrollable.GetScrollableComponent().Modifier))
 		}
 
 		if building, ok := ent.(*LevelBlock); ok {
@@ -107,7 +105,7 @@ func (s *GameRuleSystem) Update(dt float32) {
 
 		if gravityable, ok := ent.(Gravityable); ok {
 			vel := gravityable.GetVelocityComponent()
-			vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameInfo.Gravity})
+			vel.Vel = vel.Vel.Add(math.Vector2{Y: s.mainGameScene.Gravity})
 		}
 
 		if bullet, ok := ent.(Bulletable); ok {
@@ -146,8 +144,8 @@ func (s *GameRuleSystem) Update(dt float32) {
 		}
 	}
 
-	s.mainGameInfo.Level.StartX += s.mainGameInfo.ScrollingSpeed.X * float64(dt)
-	generateCityBuildings(s.info, s.world)
+	s.mainGameScene.Level.StartX += s.mainGameScene.ScrollingSpeed.X * float64(dt)
+	s.mainGameScene.generateCityBuildings()
 }
 
 func (s *GameRuleSystem) Add(r GameRuleable) {

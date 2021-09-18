@@ -26,10 +26,10 @@ type ResolvSystem struct {
 	debugInput     *entity.DebugInput
 }
 
-func CreateResolvSystem(mainGameInfo *MainGameInfo, space *resolv.Space) *ResolvSystem {
+func CreateResolvSystem(space *resolv.Space, debugInput *entity.DebugInput) *ResolvSystem {
 	return &ResolvSystem{
 		space:      space,
-		debugInput: mainGameInfo.InputEnt,
+		debugInput: debugInput,
 	}
 }
 

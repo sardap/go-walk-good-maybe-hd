@@ -23,14 +23,14 @@ type Playerable interface {
 }
 
 type PlayerSystem struct {
-	ents         map[uint64]*entity.Player
-	mainGameInfo *MainGameInfo
-	world        *ecs.World
+	ents          map[uint64]*entity.Player
+	mainGameScene *MainGameScene
+	world         *ecs.World
 }
 
-func CreatePlayerSystem(mainGameInfo *MainGameInfo) *PlayerSystem {
+func CreatePlayerSystem(mainGameScene *MainGameScene) *PlayerSystem {
 	return &PlayerSystem{
-		mainGameInfo: mainGameInfo,
+		mainGameScene: mainGameScene,
 	}
 }
 
@@ -82,11 +82,11 @@ func (s *PlayerSystem) changeToWalk(player *entity.Player) {
 
 func (s *PlayerSystem) Update(dt float32) {
 	for _, player := range s.ents {
-		switch s.mainGameInfo.State {
+		switch s.mainGameScene.State {
 		case gameStateStarting:
 			if player.TransformComponent.Postion.X > 50 {
-				s.mainGameInfo.State = gameStateScrolling
-				s.mainGameInfo.ScrollingSpeed.X = xStartScrollSpeed
+				s.mainGameScene.State = gameStateScrolling
+				s.mainGameScene.ScrollingSpeed.X = xStartScrollSpeed
 			}
 		case gameStateScrolling:
 		}
@@ -114,10 +114,10 @@ func (s *PlayerSystem) Update(dt float32) {
 
 			player.AirHorzSpeedModifier = utility.ClampFloat64(player.AirHorzSpeedModifier+0.1, 0.5, 1)
 			extraSpeed := xStartScrollSpeed * 4
-			s.mainGameInfo.ScrollingSpeed.X += extraSpeed
+			s.mainGameScene.ScrollingSpeed.X += extraSpeed
 			go func(extraSpeed float64) {
 				time.Sleep(2 * time.Second)
-				s.mainGameInfo.ScrollingSpeed.X -= extraSpeed
+				s.mainGameScene.ScrollingSpeed.X -= extraSpeed
 			}(extraSpeed)
 		}
 

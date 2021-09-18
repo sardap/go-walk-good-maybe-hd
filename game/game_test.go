@@ -14,6 +14,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/game"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/stretchr/testify/assert"
@@ -150,12 +151,7 @@ func TestVelocitySystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-		},
-	}
+	debugEnt := entity.CreateDebugInput()
 
 	// Setup
 	velocitySystem := game.CreateVelocitySystem(s)
@@ -163,7 +159,7 @@ func TestVelocitySystem(t *testing.T) {
 	w.AddSystemInterface(velocitySystem, velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, debugEnt), resolvable, nil)
 
 	entA := &struct {
 		ecs.BasicEntity
@@ -326,15 +322,10 @@ func TestResolvSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		Level: &game.Level{
-			// Disable building spawn
-			StartX: 50000,
-		},
-	}
+	debugEnt := entity.CreateDebugInput()
 
 	// Setup
-	resolvSystem := game.CreateResolvSystem(mainGameInfo, s)
+	resolvSystem := game.CreateResolvSystem(s, debugEnt)
 
 	var resolvable *game.Resolvable
 	w.AddSystemInterface(resolvSystem, resolvable, nil)
@@ -739,19 +730,18 @@ func TestWrapInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
+		Gravity: 10,
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -797,20 +787,19 @@ func TestScrollInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
+		Gravity:        10,
 		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -853,21 +842,19 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
-		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
+	mainGameScene := &game.MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		Gravity:        10,
+		ScrollingSpeed: math.Vector2{X: 50, Y: 0},
 		Level: &game.Level{
 			// Disable building spawn
 			StartX: 50000,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -875,7 +862,7 @@ func TestGravityInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, mainGameScene.InputEnt), resolvable, nil)
 
 	fallingEnt := &struct {
 		ecs.BasicEntity
@@ -942,7 +929,10 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &game.MainGameInfo{
+	mainGameScene := &game.MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &game.Level{
 			// Disable building spawn
@@ -950,13 +940,8 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &game.Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := game.CreateGameRuleSystem(info)
+	gameRuleSystem := game.CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *game.GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
@@ -964,7 +949,7 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 	w.AddSystemInterface(game.CreateVelocitySystem(s), velocityable, nil)
 
 	var resolvable *game.Resolvable
-	w.AddSystemInterface(game.CreateResolvSystem(mainGameInfo, s), resolvable, nil)
+	w.AddSystemInterface(game.CreateResolvSystem(s, mainGameScene.InputEnt), resolvable, nil)
 
 	bullet := &struct {
 		ecs.BasicEntity

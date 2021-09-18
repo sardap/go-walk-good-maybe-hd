@@ -352,19 +352,3 @@ func createRandomLevelBlock(rand *rand.Rand, basic ecs.BasicEntity) *LevelBlock 
 
 	panic("random number bug")
 }
-
-func generateCityBuildings(info *Info, w *ecs.World) {
-	mainGameInfo := info.MainGameInfo
-	x := mainGameInfo.Level.StartX
-	for x < mainGameInfo.Level.Width {
-		ent := ecs.NewBasic()
-		levelBlock := createRandomLevelBlock(info.Rand, ent)
-		trans := levelBlock.GetTransformComponent()
-		levelBlock.GetTransformComponent().Postion.Y = mainGameInfo.Level.Height - trans.Size.Y
-		levelBlock.GetTransformComponent().Postion.X = x
-		x += levelBlock.Size.X + float64(utility.RandRange(info.Rand, minSpaceBetweenBuildings, minSpaceBetweenBuildings+20*scaleMultiplier))
-		w.AddEntity(levelBlock)
-		populateLevelBlock(info.Rand, w, levelBlock)
-	}
-	mainGameInfo.Level.StartX = x
-}

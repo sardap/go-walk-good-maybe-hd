@@ -46,13 +46,9 @@ func TestCreateAllBuildings(t *testing.T) {
 	t.Parallel()
 
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
 		Level: &Level{},
-	}
-
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Space:        s,
+		Space: s,
 	}
 
 	// Building 5 is non standard shape
@@ -73,9 +69,9 @@ func TestCreateAllBuildings(t *testing.T) {
 		max := step * float64(i+1)
 		seed, _ := findSeed(max-step, max)
 
-		info.Rand = rand.New(&fakeRand{seq: []int64{seed}})
+		mainGameScene.Rand = rand.New(&fakeRand{seq: []int64{seed}})
 
-		LevelBlock := createRandomLevelBlock(info.Rand, ecs.NewBasic())
+		LevelBlock := createRandomLevelBlock(mainGameScene.Rand, ecs.NewBasic())
 		expected := LevelBlock.TileMap.TileWidth * LevelBlock.TileMap.TileXNum
 		assert.Equalf(t, expected, int(LevelBlock.Size.X), "invalid tileWidth for %s", testcase.name)
 
@@ -90,19 +86,17 @@ func TestCityLevelGenerate(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
 		Level: &Level{},
-	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
+		Rand:  rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space: s,
+		World: w,
 	}
 
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
-	generateCityBuildings(info, w)
+	mainGameScene.generateCityBuildings()
 
 	ground := s.FilterByTags(entity.TagGround)
 	for i := 0; i < ground.Length()-1; i++ {
@@ -118,26 +112,24 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
 		Level: &Level{
 			// Disable building spawn Yes we want this
 			StartX: 50000,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 
 	// Buildings need to move
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(s, mainGameScene.InputEnt), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
@@ -186,26 +178,26 @@ func TestPlayerSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
 		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
+		Gravity:        10,
 		Level: &Level{
-			Width: 500,
+			StartX: 0,
+			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	playerSystem := CreatePlayerSystem(mainGameInfo)
+	playerSystem := CreatePlayerSystem(mainGameScene)
 	var playerable *Playerable
 	w.AddSystemInterface(playerSystem, playerable, nil)
 
 	var gameRuleable *GameRuleable
-	w.AddSystemInterface(CreateGameRuleSystem(info), gameRuleable, nil)
+	w.AddSystemInterface(CreateGameRuleSystem(mainGameScene), gameRuleable, nil)
 	var resolveable *Resolvable
-	w.AddSystemInterface(CreateResolvSystem(mainGameInfo, s), resolveable, nil)
+	w.AddSystemInterface(CreateResolvSystem(s, mainGameScene.InputEnt), resolveable, nil)
 	var velocityable *Velocityable
 	w.AddSystemInterface(CreateVelocitySystem(s), velocityable, nil)
 
@@ -226,8 +218,14 @@ func TestPlayerSystem(t *testing.T) {
 	w.Update(1)
 
 	// Loop until hit ground
+	i := 0
 	for !player.Collisions.CollidingWith(entity.TagGround) {
 		w.Update(0.1)
+		i++
+		if i > 10000 {
+			t.Error("player fell past ground")
+			t.FailNow()
+		}
 	}
 	// Change state
 	w.Update(0.1)
@@ -275,21 +273,20 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
-		Gravity: 10,
+	mainGameScene := &MainGameScene{
+		Rand:           rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:          s,
+		World:          w,
+		ScrollingSpeed: math.Vector2{X: -1, Y: 0},
+		Gravity:        10,
 		Level: &Level{
 			// Disable building spawn
 			StartX: 50000,
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
@@ -336,7 +333,10 @@ func TestEnemyBiscuit(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &Level{
 			// Disable building spawn
@@ -344,13 +344,8 @@ func TestEnemyBiscuit(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
@@ -381,7 +376,10 @@ func TestUfoBiscuit(t *testing.T) {
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
-	mainGameInfo := &MainGameInfo{
+	mainGameScene := &MainGameScene{
+		Rand:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		Space:   s,
+		World:   w,
 		Gravity: 10,
 		Level: &Level{
 			// Disable building spawn
@@ -389,13 +387,8 @@ func TestUfoBiscuit(t *testing.T) {
 			Width:  500,
 		},
 	}
-	info := &Info{
-		MainGameInfo: mainGameInfo,
-		Rand:         rand.New(rand.NewSource(time.Now().UnixNano())),
-		Space:        s,
-	}
 
-	gameRuleSystem := CreateGameRuleSystem(info)
+	gameRuleSystem := CreateGameRuleSystem(mainGameScene)
 	var gameRuleable *GameRuleable
 	w.AddSystemInterface(gameRuleSystem, gameRuleable, nil)
 	var animeable *Animeable
