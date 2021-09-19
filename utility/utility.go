@@ -12,13 +12,20 @@ func DeltaToDuration(dt float32) time.Duration {
 	return time.Duration(i)
 }
 
-func WrapInt(x, min, max int) int {
+func WrapInt(x, min, max int) (result int) {
 	if x >= max {
-		return x + min - max
+		result = x + min - max
+
 	} else if x < min {
-		return x + max - min
+		result = x + max - min
+	} else {
+		result = x
 	}
-	return x
+
+	if result > max || result < min {
+		result = WrapInt(result, min, max)
+	}
+	return result
 }
 
 func WrapFloat64(x, min, max float64) float64 {
