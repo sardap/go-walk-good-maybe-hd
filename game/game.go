@@ -51,12 +51,14 @@ func CreateGame() *Game {
 	result := &Game{
 		audioCtx: audio.NewContext(48000),
 	}
-	result.ChangeScene(&TitleScene{})
 
 	return result
 }
 
 func (g *Game) Update() error {
+	if g.current == nil {
+		g.ChangeScene(&TitleScene{})
+	}
 	if g.lastTime.Unix() == 0 {
 		g.lastTime = time.Now()
 	}
@@ -81,7 +83,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(10, 10)
-	op.GeoM.Translate(float64(windowHeight-img.Bounds().Dx()), 0)
+	op.GeoM.Translate(0, 0)
 	screen.DrawImage(img, op)
 }
 

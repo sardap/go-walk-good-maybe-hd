@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"image"
 	"image/color"
+	"io"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -17,16 +18,19 @@ import (
 )
 
 type TitleScene struct {
-	titleText  *ebiten.Image
-	beach      *ebiten.Image
-	city       *ebiten.Image
-	citySky    *ebiten.Image
-	cityFog    *ebiten.Image
-	xOffset    float64
-	xFogOffset float64
-	world      *ecs.World
-	inputEnt   *entity.InputEnt
-	player     *audio.Player
+	titleText          *ebiten.Image
+	beach              *ebiten.Image
+	beachWater         *ebiten.Image
+	beachWaterAnimeIdx int
+	elapsedTime        time.Duration
+	city               *ebiten.Image
+	citySky            *ebiten.Image
+	cityFog            *ebiten.Image
+	xOffset            float64
+	xFogOffset         float64
+	world              *ecs.World
+	inputEnt           *entity.InputEnt
+	player             *audio.Player
 }
 
 func (s *TitleScene) Start(game *Game) {
@@ -35,6 +39,11 @@ func (s *TitleScene) Start(game *Game) {
 
 	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneBeach)
 	s.beach = img
+
+	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneBeachWaterTileSet)
+	s.beachWater = img
+	s.beachWaterAnimeIdx = 0
+	s.elapsedTime = 0
 
 	img, _ = assets.LoadEbitenImage(assets.ImageBackgroundCity)
 	s.city = img
@@ -58,7 +67,10 @@ func (s *TitleScene) Start(game *Game) {
 
 	sound := components.LoadSound(assets.MusicPdTitleScreen)
 	buffer := bytes.NewReader(sound.Source)
-	stream, _ := mp3.DecodeWithSampleRate(sound.SampleRate, buffer)
+	var stream io.Reader
+	stream, _ = mp3.DecodeWithSampleRate(sound.SampleRate, buffer)
+	mp3Stream := stream.(*mp3.Stream)
+	stream = audio.NewInfiniteLoop(mp3Stream, mp3Stream.Length())
 	s.player, _ = audio.NewPlayer(game.audioCtx, stream)
 	s.player.Play()
 }
@@ -79,6 +91,13 @@ func (s *TitleScene) Update(dt time.Duration, game *Game) {
 	if s.inputEnt.MovementComponent.Select {
 		game.ChangeScene(&MainGameScene{})
 	}
+
+	s.elapsedTime += dt
+	if s.elapsedTime > 200*time.Millisecond {
+		count := s.beachWater.Bounds().Dx() / assets.ImageTitleSceneBeachWaterTileSet.FrameWidth
+		s.beachWaterAnimeIdx = utility.WrapInt(s.beachWaterAnimeIdx+1, 0, count)
+		s.elapsedTime = 0
+	}
 }
 
 func (s *TitleScene) Draw(screen *ebiten.Image) {
@@ -98,6 +117,21 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 		Min: image.Pt(int(s.xFogOffset), 0),
 		Max: image.Pt(int(s.xFogOffset)+windowWidth/2, windowHeight),
 	}).(*ebiten.Image), op)
+
+	xStart := s.beachWaterAnimeIdx * assets.ImageTitleSceneBeachWaterTileSet.FrameWidth
+	beachWater := s.beachWater.SubImage(image.Rectangle{
+		Min: image.Pt(xStart, 0),
+		Max: image.Pt(int(xStart+assets.ImageTitleSceneBeachWaterTileSet.FrameWidth), windowHeight),
+	}).(*ebiten.Image)
+
+	op = &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(-1, 1)
+	op.GeoM.Translate(float64(beachWater.Bounds().Dx())-160, 107*10)
+	beachWater = beachWater.SubImage(image.Rectangle{
+		Min: image.Pt(beachWater.Bounds().Min.X+int(s.xOffset), 0),
+		Max: image.Pt(beachWater.Bounds().Min.X+int(s.xOffset+windowWidth/2), windowHeight),
+	}).(*ebiten.Image)
+	screen.DrawImage(beachWater, op)
 
 	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(-1, 1)

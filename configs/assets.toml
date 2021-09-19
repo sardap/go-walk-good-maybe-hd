@@ -247,6 +247,14 @@ type="single"
 scaleMultiplier=10
 file="titleScene/titleSceneBeach.psd"
 
+[[Images]]
+name="titleSceneBeachWater"
+type="tileSet"
+scaleMultiplier=10
+frameWidth=256
+file="titleScene/titleSceneBeachWater.psd"
+
+
 [[Music]]
 name="city"
 file="pd_title_screen.mp3"

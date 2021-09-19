@@ -30,12 +30,18 @@ func init() {
 func getImageHash(data []byte, clrMap map[color.RGBA]color.RGBA) [16]byte {
 	result := md5.Sum(data)
 	if clrMap != nil {
-		clrJson, _ := json.Marshal(clrMap)
-		hash := md5.Sum(clrJson)
-		for i := range result {
-			result[i] += hash[i]
+		// LOOK: slowpoint
+		buf := &bytes.Buffer{}
+		je := json.NewEncoder(buf)
+
+		for key, value := range clrMap {
+			je.Encode(key)
+			je.Encode(value)
 		}
-	}
+
+		buf.Write(result[:])
+		result = md5.Sum(buf.Bytes())
+ 	}
 
 	return result
 }
