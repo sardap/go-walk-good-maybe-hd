@@ -17,12 +17,17 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/utility"
 )
 
+type MenuItem struct {
+	TargetScene Scene
+	Text        *ebiten.Image
+}
+
 type TitleScene struct {
 	titleText          *ebiten.Image
 	beach              *ebiten.Image
 	beachWater         *ebiten.Image
 	beachWaterAnimeIdx int
-	elapsedTime        time.Duration
+	waterAnimeTimer    time.Duration
 	city               *ebiten.Image
 	citySky            *ebiten.Image
 	cityFog            *ebiten.Image
@@ -31,6 +36,13 @@ type TitleScene struct {
 	world              *ecs.World
 	inputEnt           *entity.InputEnt
 	player             *audio.Player
+	menuItems          []MenuItem
+	selectedIdx        int
+	// Arrow's
+	selectionArrowCooldown time.Duration
+	selectionActiveArrow   *ebiten.Image
+	whiteArrow             *ebiten.Image
+	redArrow               *ebiten.Image
 }
 
 func (s *TitleScene) Start(game *Game) {
@@ -43,7 +55,7 @@ func (s *TitleScene) Start(game *Game) {
 	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneBeachWaterTileSet)
 	s.beachWater = img
 	s.beachWaterAnimeIdx = 0
-	s.elapsedTime = 0
+	s.waterAnimeTimer = 0
 
 	img, _ = assets.LoadEbitenImage(assets.ImageBackgroundCity)
 	s.city = img
@@ -56,6 +68,38 @@ func (s *TitleScene) Start(game *Game) {
 
 	s.xOffset = 0
 	s.xFogOffset = 0
+
+	img, _ = assets.LoadEbitenImageColorSwap(
+		assets.ImageTitleSceneArrow,
+		map[color.RGBA]color.RGBA{
+			swapColor: {R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF},
+		},
+	)
+	s.whiteArrow = img
+
+	img, _ = assets.LoadEbitenImageColorSwap(
+		assets.ImageTitleSceneArrow,
+		map[color.RGBA]color.RGBA{
+			swapColor: {R: 0xFF, G: 0x00, B: 0x00, A: 0xFF},
+		},
+	)
+	s.redArrow = img
+
+	s.selectionActiveArrow = s.whiteArrow
+	s.selectionArrowCooldown = 0
+
+	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneGameText)
+	s.menuItems = []MenuItem{
+		{
+			TargetScene: &MainGameScene{},
+			Text:        img,
+		},
+		{
+			TargetScene: &TitleScene{},
+			Text:        img,
+		},
+	}
+	s.selectedIdx = 0
 
 	s.world = &ecs.World{}
 
@@ -73,6 +117,7 @@ func (s *TitleScene) Start(game *Game) {
 	stream = audio.NewInfiniteLoop(mp3Stream, mp3Stream.Length())
 	s.player, _ = audio.NewPlayer(game.audioCtx, stream)
 	s.player.Play()
+
 }
 
 func (s *TitleScene) End(*Game) {
@@ -88,15 +133,34 @@ func (s *TitleScene) Update(dt time.Duration, game *Game) {
 
 	s.world.Update(float32(dt) / float32(time.Second))
 
-	if s.inputEnt.MovementComponent.Select {
-		game.ChangeScene(&MainGameScene{})
-	}
-
-	s.elapsedTime += dt
-	if s.elapsedTime > 200*time.Millisecond {
+	s.waterAnimeTimer += dt
+	if s.waterAnimeTimer > 200*time.Millisecond {
 		count := s.beachWater.Bounds().Dx() / assets.ImageTitleSceneBeachWaterTileSet.FrameWidth
 		s.beachWaterAnimeIdx = utility.WrapInt(s.beachWaterAnimeIdx+1, 0, count)
-		s.elapsedTime = 0
+		s.waterAnimeTimer = 0
+	}
+
+	if s.selectionArrowCooldown > 0 {
+		s.selectionArrowCooldown -= dt
+	} else {
+		s.selectionActiveArrow = s.whiteArrow
+	}
+
+	// Input's
+	if s.inputEnt.InputJustPressed(components.InputKindSelect) {
+		defer game.ChangeScene(s.menuItems[s.selectedIdx].TargetScene)
+	}
+
+	if s.inputEnt.InputJustPressed(components.InputKindMoveUp) {
+		s.selectedIdx = utility.WrapInt(s.selectedIdx-1, 0, len(s.menuItems))
+		s.selectionActiveArrow = s.redArrow
+		s.selectionArrowCooldown = 125 * time.Millisecond
+	}
+
+	if s.inputEnt.InputJustPressed(components.InputKindMoveDown) {
+		s.selectedIdx = utility.WrapInt(s.selectedIdx+1, 0, len(s.menuItems))
+		s.selectionActiveArrow = s.redArrow
+		s.selectionArrowCooldown = 125 * time.Millisecond
 	}
 }
 
@@ -141,4 +205,17 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(windowWidth/2-float64(s.titleText.Bounds().Dx()/2), 0)
 	screen.DrawImage(s.titleText, op)
+
+	textXStart := float64(windowWidth/2 - 150)
+	yStart := float64(900)
+	for _, item := range s.menuItems {
+		op = &ebiten.DrawImageOptions{}
+		op.GeoM.Translate(textXStart, yStart)
+		screen.DrawImage(item.Text, op)
+		yStart += 130
+	}
+
+	op = &ebiten.DrawImageOptions{}
+	op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 900+float64(s.selectedIdx*130))
+	screen.DrawImage(s.selectionActiveArrow, op)
 }

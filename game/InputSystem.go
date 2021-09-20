@@ -47,16 +47,17 @@ func (s *InputSystem) setInputMode(com *components.InputComponent, mode componen
 func (s *InputSystem) processGamepad(ent Inputable) {
 	inputCom := ent.GetInputComponent()
 	driver := inputCom.Gamepad.Driver
+	gamepad := inputCom.Gamepad
 
 	if driver.Ready(&inputCom.Gamepad) {
 		if len(inpututil.JustConnectedGamepadIDs()) <= 0 {
 			s.setInputMode(ent.GetInputComponent(), components.InputModeKeyboard)
 			return
 		}
-		inputCom.Gamepad.Id = inpututil.JustConnectedGamepadIDs()[0]
+		gamepad.Id = inpututil.JustConnectedGamepadIDs()[0]
 	}
 
-	id := inputCom.Gamepad.Id
+	id := gamepad.Id
 	// maxButton := ebiten.GamepadButton(ebiten.GamepadButtonNum(id))
 	// for b := ebiten.GamepadButton(id); b < maxButton; b++ {
 	// 	// Log button events.
@@ -68,24 +69,37 @@ func (s *InputSystem) processGamepad(ent Inputable) {
 	// 	}
 	// }
 
-	vx := driver.GamepadAxis(id, inputCom.Gamepad.MoveAxisX)
+	vx := driver.GamepadAxis(id, gamepad.MoveAxisX)
 	move := ent.GetMovementComponent()
-	if math.Abs(vx) > float64(inputCom.Gamepad.MoveAxisX) {
+	if math.Abs(vx) > float64(gamepad.MoveAxisX) {
 		if vx > 0 {
-			move.MoveRight = true
+			move.PressedDuration[components.InputKindMoveRight]++
+		} else {
+			if move.PressedDuration[components.InputKindMoveRight] > 0 {
+				move.JustReleased[components.InputKindMoveRight] = true
+			} else {
+				move.JustReleased[components.InputKindMoveLeft] = false
+			}
+			move.PressedDuration[components.InputKindMoveRight] = 0
+			move.JustPressed[components.InputKindMoveRight] = false
 		}
 		if vx < 0 {
-			move.MoveLeft = true
+			move.PressedDuration[components.InputKindMoveLeft]++
+		} else {
+			if move.PressedDuration[components.InputKindMoveLeft] > 0 {
+				move.JustReleased[components.InputKindMoveLeft] = true
+			} else {
+				move.JustReleased[components.InputKindMoveLeft] = false
+			}
+			move.PressedDuration[components.InputKindMoveLeft] = 0
 		}
 	}
 
-	if driver.IsGamepadButtonJustPressed(id, inputCom.Gamepad.ButtonJump) {
-		move.MoveUp = true
+	for kind, btn := range gamepad.Mapping {
+		move.PressedDuration[kind] = driver.GamepadButtonPressDuration(gamepad.Id, btn)
+		move.JustPressed[kind] = driver.IsGamepadButtonJustPressed(gamepad.Id, btn)
+		move.JustReleased[kind] = driver.IsGamepadButtonJustReleased(gamepad.Id, btn)
 	}
-	if driver.IsGamepadButtonJustPressed(id, inputCom.Gamepad.ButtonShoot) {
-		move.Shoot = true
-	}
-
 }
 
 func (s *InputSystem) processKeyboard(ent Inputable) {
@@ -93,49 +107,24 @@ func (s *InputSystem) processKeyboard(ent Inputable) {
 	driver := keyboard.Driver
 
 	move := ent.GetMovementComponent()
-	if driver.KeyPressDuration(keyboard.KeyMoveLeft) > 0 {
-		move.MoveLeft = true
-	}
 
-	if driver.KeyPressDuration(keyboard.KeyMoveRight) > 0 {
-		move.MoveRight = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeyMoveUp) > 0 || driver.KeyPressDuration(keyboard.KeyJump) > 0 {
-		move.MoveUp = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeyMoveDown) > 0 {
-		move.MoveDown = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeyShoot) > 0 {
-		move.Shoot = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeyFastGameMode) > 0 {
-		move.FastGameSpeed = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeyToggleCollsionOverlay) > 0 {
-		move.ToggleCollsionOverlay = true
-	}
-
-	if driver.KeyPressDuration(keyboard.KeySelect) > 0 {
-		move.Select = true
+	for kind, key := range keyboard.Mapping {
+		move.PressedDuration[kind] = driver.KeyPressDuration(key)
+		move.JustPressed[kind] = driver.IsKeyJustPressed(key)
+		move.JustReleased[kind] = driver.IsKeyJustReleased(key)
 	}
 }
 
 func (s *InputSystem) Update(dt float32) {
 	for _, ent := range s.ents {
-		keyboard := ent.GetInputComponent().Keyboard
-		gamepad := ent.GetInputComponent().Gamepad
+		// keyboard := ent.GetInputComponent().Keyboard
+		// gamepad := ent.GetInputComponent().Gamepad
 
-		if gamepad.Driver != nil && keyboard.Driver.KeyPressDuration(keyboard.KeyChangeToGamepad) > 0 {
-			ent.GetMovementComponent().ChangeToGamepad = true
-		} else if keyboard.Driver.KeyPressDuration(keyboard.KeyChangeToKeyboard) > 0 {
-			ent.GetMovementComponent().ChangeToKeyboard = true
-		}
+		// if gamepad.Driver != nil && keyboard.Driver.IsKeyJustReleased(keyboard.Mapping[components.InputKindChangeToGamepad]) {
+		// 	ent.GetMovementComponent().PressedDuration[components.InputKindChangeToGamepad] = 1
+		// } else if keyboard.Driver.KeyPressDuration(keyboard.Mapping[components.InputKindChangeToKeyboard]) {
+		// 	ent.GetMovementComponent().PressedDuration.ChangeToKeyboard = true
+		// }
 
 		switch ent.GetInputComponent().InputMode {
 		case components.InputModeGamepad:

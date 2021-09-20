@@ -8,6 +8,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/sardap/walk-good-maybe-hd/utility"
@@ -136,6 +137,14 @@ func (m *MainGameScene) Start(game *Game) {
 }
 
 func (m *MainGameScene) End(*Game) {
+	for _, system := range m.World.Systems() {
+		if soundSystem, ok := system.(*SoundSystem); ok {
+			for _, ent := range soundSystem.ents {
+				soundSystem.Remove(*ent.GetBasicEntity())
+			}
+		}
+	}
+
 	m.World = nil
 	m.Space = nil
 	m.ScrollingSpeed = math.Vector2{}
@@ -148,9 +157,8 @@ func (m *MainGameScene) End(*Game) {
 }
 
 func (m *MainGameScene) Update(dt time.Duration, _ *Game) {
-	if m.InputEnt.FastGameSpeed {
+	if m.InputEnt.InputPressed(components.InputKindFastGameSpeed) {
 		dt *= 20
-		m.InputEnt.FastGameSpeed = false
 	}
 
 	m.World.Update(float32(dt) / float32(time.Second))

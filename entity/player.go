@@ -69,7 +69,7 @@ func CreatePlayer() *Player {
 			ShootCooldown:        250 * time.Millisecond,
 			AirHorzSpeedModifier: 0.5,
 		},
-		MovementComponent: &components.MovementComponent{},
+		MovementComponent: components.CreateMovementComponent(),
 		ScrollableComponent: &components.ScrollableComponent{
 			Modifier: 1,
 		},

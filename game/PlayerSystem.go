@@ -112,6 +112,15 @@ func (s *PlayerSystem) Update(dt float32) {
 			player.SoundComponent.Active = true
 			player.SoundComponent.Restart = true
 
+			rand := s.mainGameScene.Rand
+			for i := 0; i < rand.Intn(10)+7; i++ {
+				speedLine := entity.CreateSpeedLine()
+				speedLine.Postion.X = windowWidth + float64(rand.Intn(2000))
+				speedLine.Postion.Y = float64(rand.Intn(windowHeight)) + rand.Float64()
+				speedLine.ImageComponent.Layer = ImageLayerObjects
+				defer s.world.AddEntity(speedLine)
+			}
+
 			player.AirHorzSpeedModifier = utility.ClampFloat64(player.AirHorzSpeedModifier+0.1, 0.5, 1)
 			extraSpeed := xStartScrollSpeed * 4
 			s.mainGameScene.ScrollingSpeed.X += extraSpeed
@@ -121,18 +130,19 @@ func (s *PlayerSystem) Update(dt float32) {
 			}(extraSpeed)
 		}
 
+		// Player State
 		switch playerCom.State {
 		case components.MainGamePlayerStateGroundIdling:
-			if move.MoveUp {
+			if move.InputPressed(components.InputKindJump) {
 				s.changeToPrepareJump(player)
-			} else if move.MoveLeft || move.MoveRight {
+			} else if move.InputPressed(components.InputKindMoveLeft) || move.InputPressed(components.InputKindMoveRight) {
 				s.changeToWalk(player)
 			}
 
 		case components.MainGamePlayerStateGroundMoving:
-			if move.MoveUp {
+			if move.InputPressed(components.InputKindJump) {
 				s.changeToPrepareJump(player)
-			} else if !move.MoveLeft && !move.MoveRight {
+			} else if !move.InputPressed(components.InputKindMoveLeft) && !move.InputPressed(components.InputKindMoveRight) {
 				s.changeToIdle(player)
 			}
 
@@ -164,16 +174,16 @@ func (s *PlayerSystem) Update(dt float32) {
 			panic("Unimplemented")
 		}
 
-		if move.MoveLeft {
+		if move.InputPressed(components.InputKindMoveLeft) {
 			vel.X = -horzSpeed
 			player.TileMap.Options.InvertX = true
-		} else if move.MoveRight {
+		} else if move.InputPressed(components.InputKindMoveRight) {
 			vel.X = horzSpeed
 			player.TileMap.Options.InvertX = false
 		}
 
 		player.ShootCooldownRemaning -= utility.DeltaToDuration(dt)
-		if move.Shoot && player.ShootCooldownRemaning < 0 {
+		if move.InputPressed(components.InputKindShoot) && player.ShootCooldownRemaning < 0 {
 			player.ShootCooldownRemaning = player.ShootCooldown
 			bullet := entity.CreatePlayerBullet()
 			bullet.Postion.X = player.Postion.X
@@ -196,12 +206,6 @@ func (s *PlayerSystem) Update(dt float32) {
 			player.SoundComponent.Active = true
 			player.SoundComponent.Restart = true
 		}
-
-		// Must reset no matter what
-		move.MoveLeft = false
-		move.MoveRight = false
-		move.MoveUp = false
-		move.Shoot = false
 
 		player.GetVelocityComponent().Vel = vel
 	}
