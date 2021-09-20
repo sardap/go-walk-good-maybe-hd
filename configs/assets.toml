@@ -68,7 +68,7 @@ file="Enemies/biscutUfoDeath.psd"
 [[Images]]
 name="speedLine"
 type="single"
-scaleMultiplier=2
+scaleMultiplier=4
 file="effect/speedLine.psd"
 
 # 
@@ -236,6 +236,18 @@ file="pd_city_0.mp3"
 #
 
 [[Images]]
+name="titleSceneArrow"
+type="single"
+scaleMultiplier=1
+file="titleScene/titleSceneArrow.psd"
+
+[[Images]]
+name="titleSceneGameText"
+type="single"
+scaleMultiplier=1
+file="titleScene/titleSceneGameText.psd"
+
+[[Images]]
 name="titleSceneText"
 type="single"
 scaleMultiplier=1
@@ -253,7 +265,6 @@ type="tileSet"
 scaleMultiplier=10
 frameWidth=256
 file="titleScene/titleSceneBeachWater.psd"
-
 
 [[Music]]
 name="city"

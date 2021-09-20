@@ -41,7 +41,7 @@ func getImageHash(data []byte, clrMap map[color.RGBA]color.RGBA) [16]byte {
 
 		buf.Write(result[:])
 		result = md5.Sum(buf.Bytes())
- 	}
+	}
 
 	return result
 }

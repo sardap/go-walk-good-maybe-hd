@@ -50,7 +50,7 @@ func CreateDebugInput() *InputEnt {
 	result := &InputEnt{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
-		MovementComponent:  &components.MovementComponent{},
+		MovementComponent:  components.CreateMovementComponent(),
 		InputComponent: &components.InputComponent{
 			InputMode: components.InputModeKeyboard,
 			Keyboard:  components.DefaultKeyboardInputType(),
@@ -64,7 +64,7 @@ func CreateMenuInput() *InputEnt {
 	result := &InputEnt{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
-		MovementComponent:  &components.MovementComponent{},
+		MovementComponent:  components.CreateMovementComponent(),
 		InputComponent: &components.InputComponent{
 			InputMode: components.InputModeKeyboard,
 			Keyboard:  components.DefaultKeyboardInputType(),

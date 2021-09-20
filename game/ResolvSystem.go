@@ -45,9 +45,8 @@ func (s *ResolvSystem) New(world *ecs.World) {
 func (s *ResolvSystem) Update(dt float32) {
 	const buffer = 1
 
-	if s.debugInput != nil && s.debugInput.MovementComponent.ToggleCollsionOverlay {
+	if s.debugInput != nil && s.debugInput.MovementComponent.InputJustReleased(components.InputKindToggleCollsionOverlay) {
 		s.OverlayEnabled = !s.OverlayEnabled
-		s.debugInput.MovementComponent.ToggleCollsionOverlay = false
 	}
 
 	for _, ent := range s.ents {

@@ -205,15 +205,17 @@ func TestPlayerSystem(t *testing.T) {
 	player.Postion.X = 5
 	w.AddEntity(player)
 
-	player.MoveRight = true
+	player.MovementComponent.PressedDuration[components.InputKindMoveRight] = 1
 	lastPostion := player.Postion
 	w.Update(0.1)
 	assert.Less(t, lastPostion.X, player.Postion.X, "player should move right")
+	player.MovementComponent.PressedDuration[components.InputKindMoveRight] = 0
 
-	player.MoveLeft = true
+	player.MovementComponent.PressedDuration[components.InputKindMoveLeft] = 1
 	lastPostion = player.Postion
 	w.Update(0.1)
 	assert.Greater(t, lastPostion.X, player.Postion.X, "player should move left")
+	player.MovementComponent.PressedDuration[components.InputKindMoveLeft] = 0
 
 	w.Update(1)
 
@@ -231,9 +233,9 @@ func TestPlayerSystem(t *testing.T) {
 	w.Update(0.1)
 
 	// Jump
-	player.MoveUp = true
+	player.MovementComponent.PressedDuration[components.InputKindJump] = 1
 	w.Update(0.1)
-	assert.False(t, player.MoveUp, "movement should be reset every update")
+	player.MovementComponent.PressedDuration[components.InputKindJump] = 0
 	player.Cycles = 1
 	w.Update(0.1)
 	assert.Equal(t, player.Cycles, 0, "cycles should get changed on anime change")
@@ -246,18 +248,18 @@ func TestPlayerSystem(t *testing.T) {
 		w.Update(0.1)
 	}
 
-	player.MoveRight = true
+	player.MovementComponent.PressedDuration[components.InputKindMoveRight] = 1
 	lastPostion = player.Postion
 	w.Update(0.9)
 	assert.Less(t, lastPostion.X, player.Postion.X, "player should move right")
 
-	player.MoveLeft = true
+	player.MovementComponent.PressedDuration[components.InputKindMoveLeft] = 1
 	lastPostion = player.Postion
 	w.Update(0.01)
 	assert.Greater(t, lastPostion.X, player.Postion.X, "player should move left")
 
 	// Check bullet is flipped
-	player.Shoot = true
+	player.MovementComponent.PressedDuration[components.InputKindShoot] = 1
 	// This is very sensitive since a bullet can be destroyed if the player is too far left
 	w.Update(0.001)
 	bullet, ok := s.FilterByTags(entity.TagBullet).Get(0).GetData().(*entity.Bullet)
@@ -435,7 +437,7 @@ func TestCompleteMainGameScene(t *testing.T) {
 	})
 	assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
 
-	mgs.InputEnt.MovementComponent.FastGameSpeed = true
+	mgs.InputEnt.PressedDuration[components.InputKindFastGameSpeed] = 1
 	mgs.Update(100*time.Millisecond, g)
 	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
 

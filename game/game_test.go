@@ -990,9 +990,25 @@ func TestBulletInGameRuleSystem(t *testing.T) {
 }
 
 type testDriver struct {
-	btns map[ebiten.GamepadButton]bool
-	axis map[int]float64
-	keys map[ebiten.Key]int
+	axis                map[int]float64
+	pressedKeys         map[ebiten.Key]int
+	justPressedKeys     map[ebiten.Key]bool
+	justReleasedKeys    map[ebiten.Key]bool
+	pressedButtons      map[ebiten.GamepadButton]int
+	justPressedButton   map[ebiten.GamepadButton]bool
+	justReleasedButtons map[ebiten.GamepadButton]bool
+}
+
+func createTestDriver() *testDriver {
+	return &testDriver{
+		axis:                make(map[int]float64),
+		pressedKeys:         make(map[ebiten.Key]int),
+		justPressedKeys:     make(map[ebiten.Key]bool),
+		justReleasedKeys:    make(map[ebiten.Key]bool),
+		pressedButtons:      make(map[ebiten.GamepadButton]int),
+		justPressedButton:   make(map[ebiten.GamepadButton]bool),
+		justReleasedButtons: make(map[ebiten.GamepadButton]bool),
+	}
 }
 
 func (t *testDriver) Ready(g *components.GamepadInputType) bool {
@@ -1004,11 +1020,27 @@ func (t *testDriver) GamepadAxis(id ebiten.GamepadID, axis int) float64 {
 }
 
 func (t *testDriver) IsGamepadButtonJustPressed(id ebiten.GamepadID, btn ebiten.GamepadButton) bool {
-	return t.btns[btn]
+	return t.justPressedButton[btn]
 }
 
 func (t *testDriver) KeyPressDuration(k ebiten.Key) int {
-	return t.keys[k]
+	return t.pressedKeys[k]
+}
+
+func (t *testDriver) IsKeyJustPressed(key ebiten.Key) bool {
+	return t.justPressedKeys[key]
+}
+
+func (t *testDriver) IsKeyJustReleased(key ebiten.Key) bool {
+	return t.justReleasedKeys[key]
+}
+
+func (t *testDriver) GamepadButtonPressDuration(_ ebiten.GamepadID, btn ebiten.GamepadButton) int {
+	return t.pressedButtons[btn]
+}
+
+func (t *testDriver) IsGamepadButtonJustReleased(_ ebiten.GamepadID, btn ebiten.GamepadButton) bool {
+	return t.justReleasedButtons[btn]
 }
 
 func TestInputSystem(t *testing.T) {
@@ -1020,10 +1052,7 @@ func TestInputSystem(t *testing.T) {
 	var inputable *game.Inputable
 	w.AddSystemInterface(inputSystem, inputable, nil)
 
-	driver := &testDriver{}
-	driver.btns = make(map[ebiten.GamepadButton]bool)
-	driver.axis = make(map[int]float64)
-	driver.keys = make(map[ebiten.Key]int)
+	driver := createTestDriver()
 
 	ent := &struct {
 		ecs.BasicEntity
@@ -1031,73 +1060,80 @@ func TestInputSystem(t *testing.T) {
 		*components.InputComponent
 	}{
 		BasicEntity:       ecs.NewBasic(),
-		MovementComponent: &components.MovementComponent{},
+		MovementComponent: components.CreateMovementComponent(),
 		InputComponent: &components.InputComponent{
 			InputMode: components.InputModeGamepad,
 			Gamepad:   components.DefaultGamepadInputType(),
 			Keyboard:  components.DefaultKeyboardInputType(),
 		},
 	}
-	ent.Gamepad.Driver = driver
 	ent.Keyboard.Driver = driver
+	ent.Gamepad.Driver = driver
 	w.AddEntity(ent)
 
 	xAxisTestCases := []struct {
 		xAxis  int
-		target *bool
+		target *int
 		name   string
 	}{
-		{xAxis: 1, target: &ent.MovementComponent.MoveRight, name: "Move right"},
-		{xAxis: -1, target: &ent.MovementComponent.MoveLeft, name: "Move left"},
+		{xAxis: 1, target: &ent.MovementComponent.PressedDuration[components.InputKindMoveRight], name: "Move right"},
+		{xAxis: -1, target: &ent.MovementComponent.PressedDuration[components.InputKindMoveLeft], name: "Move left"},
 	}
 	for _, testCase := range xAxisTestCases {
 		driver.axis[ent.Gamepad.MoveAxisX] = float64(testCase.xAxis)
-		assert.False(t, *testCase.target, testCase.name)
+		assert.Zero(t, *testCase.target, testCase.name)
 		w.Update(1)
-		assert.True(t, *testCase.target, testCase.name)
-		*testCase.target = false
+		assert.NotZero(t, *testCase.target, testCase.name)
 	}
 
-	gamepadButtonTestCases := []struct {
-		btn    ebiten.GamepadButton
-		target *bool
-		name   string
-	}{
-		{btn: ent.Gamepad.ButtonJump, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
-		{btn: ent.Gamepad.ButtonShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
-	}
-	for _, testCase := range gamepadButtonTestCases {
-		driver.btns[testCase.btn] = true
-		assert.False(t, *testCase.target, testCase.name)
+	ent.MovementComponent = components.CreateMovementComponent()
+
+	// Button pressed
+	for kind, btn := range ent.Gamepad.Mapping {
+		assert.Zero(t, ent.PressedDuration[kind])
+		assert.False(t, ent.JustPressed[kind])
+		assert.False(t, ent.JustReleased[kind])
+
+		driver.pressedButtons[btn] = 1
+		driver.justPressedButton[btn] = true
+		driver.justReleasedButtons[btn] = true
+
 		w.Update(1)
-		assert.True(t, *testCase.target, testCase.name)
-		*testCase.target = false
+
+		assert.NotZero(t, ent.PressedDuration[kind])
+		assert.True(t, ent.JustPressed[kind])
+		assert.True(t, ent.JustReleased[kind])
+
+		driver.pressedButtons[btn] = 0
+		driver.justPressedButton[btn] = false
+		driver.justReleasedButtons[btn] = false
+
+		ent.MovementComponent = components.CreateMovementComponent()
 	}
 
-	ent.InputComponent.InputMode = components.InputModeKeyboard
+	ent.InputMode = components.InputModeKeyboard
 
-	keyboardTestCases := []struct {
-		key    ebiten.Key
-		target *bool
-		name   string
-	}{
-		{key: ent.Keyboard.KeyMoveLeft, target: &ent.MovementComponent.MoveLeft, name: "Move Left"},
-		{key: ent.Keyboard.KeyMoveRight, target: &ent.MovementComponent.MoveRight, name: "Move Right"},
-		{key: ent.Keyboard.KeyMoveDown, target: &ent.MovementComponent.MoveDown, name: "Move Down"},
-		{key: ent.Keyboard.KeyMoveUp, target: &ent.MovementComponent.MoveUp, name: "Move Up"},
-		{key: ent.Keyboard.KeyJump, target: &ent.MovementComponent.MoveUp, name: "Move Jump"},
-		{key: ent.Keyboard.KeyShoot, target: &ent.MovementComponent.Shoot, name: "Shoot"},
-		{key: ent.Keyboard.KeyFastGameMode, target: &ent.MovementComponent.FastGameSpeed, name: "Scrolling speed up"},
-		{key: ent.Keyboard.KeyToggleCollsionOverlay, target: &ent.MovementComponent.ToggleCollsionOverlay, name: "Collsion Overlay"},
-		{key: ent.Keyboard.KeyChangeToGamepad, target: &ent.MovementComponent.ChangeToGamepad, name: "Change to gamepad"},
-		{key: ent.Keyboard.KeyChangeToKeyboard, target: &ent.MovementComponent.ChangeToKeyboard, name: "change to keyboard"},
-	}
-	for _, testCase := range keyboardTestCases {
-		driver.keys[testCase.key] = 1
+	// Key
+	for kind, key := range ent.Keyboard.Mapping {
+		assert.Zero(t, ent.PressedDuration[kind])
+		assert.False(t, ent.JustPressed[kind])
+		assert.False(t, ent.JustReleased[kind])
+
+		driver.pressedKeys[key] = 1
+		driver.justPressedKeys[key] = true
+		driver.justReleasedKeys[key] = true
+
 		w.Update(1)
-		assert.True(t, *testCase.target, testCase.name)
-		*testCase.target = false
-		driver.keys[testCase.key] = 0
+
+		assert.NotZero(t, ent.PressedDuration[kind])
+		assert.True(t, ent.JustPressed[kind])
+		assert.True(t, ent.JustReleased[kind])
+
+		driver.pressedKeys[key] = 0
+		driver.justPressedKeys[key] = false
+		driver.justReleasedKeys[key] = false
+
+		ent.MovementComponent = components.CreateMovementComponent()
 	}
 
 	w.RemoveEntity(ent.BasicEntity)
