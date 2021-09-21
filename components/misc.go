@@ -13,6 +13,7 @@ type DrawOptions struct {
 	InvertY     bool
 	Scale       math.Vector2
 	InvertColor bool
+	Opacity     float64
 }
 
 type ImageLayer int

@@ -10,6 +10,7 @@ type systemPriority int
 
 const (
 	systemPriorityImageRenderSystem systemPriority = iota
+	systemPriorityKaraokeRenderSystem
 	systemPriorityTileImageRenderSystem
 	systemPriorityTextRenderSystem
 	systemPriorityMainGameUiSystem

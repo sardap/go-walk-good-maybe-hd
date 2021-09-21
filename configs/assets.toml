@@ -226,7 +226,37 @@ file="JdwBlowOne.wav"
 
 [[Music]]
 name="city"
-file="pd_city_0.mp3"
+file="pdCity0.mp3"
+
+# ---------------------------------- #
+
+# 
+# --- karaoke ---
+#
+
+[[Images]]
+name="karaokeBackground"
+type="single"
+scaleMultiplier=1
+file="karaoke/karaokeBackground.psd"
+
+[[Images]]
+name="whaleSinging"
+type="single"
+scaleMultiplier=4
+file="karaoke/whaleSinging.psd"
+
+[[Sounds]]
+name="spaceVoiceC5"
+file="spaceVoiceC5.wav"
+
+[[Music]]
+name="karaokeRock"
+file="pdRockBackground.mp3"
+
+[[Karaoke]]
+name="KaraokeTest"
+file="test.json"
 
 
 # ---------------------------------- #
@@ -268,4 +298,35 @@ file="titleScene/titleSceneBeachWater.psd"
 
 [[Music]]
 name="city"
-file="pd_title_screen.mp3"
+file="pdTitleScreen.mp3"
+
+# ---------------------------------- #
+
+# 
+# --- input icons ---
+#
+
+[[Images]]
+name="iconXboxSeriesXA"
+type="single"
+scaleMultiplier=1
+file="inputIcons/xboxSeriesXA.psd"
+
+[[Images]]
+name="iconXboxSeriesXB"
+type="single"
+scaleMultiplier=1
+file="inputIcons/xboxSeriesXB.psd"
+
+[[Images]]
+name="iconXboxSeriesXX"
+type="single"
+scaleMultiplier=1
+file="inputIcons/xboxSeriesXX.psd"
+
+[[Images]]
+name="iconXboxSeriesXY"
+type="single"
+scaleMultiplier=1
+file="inputIcons/xboxSeriesXY.psd"
+

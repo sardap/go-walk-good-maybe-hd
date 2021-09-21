@@ -82,6 +82,14 @@ type InputFace interface {
 	GetInputComponent() *InputComponent
 }
 
+func (k *KaraokeImageComponent) GetKaraokeImageComponent() *KaraokeImageComponent {
+	return k
+}
+
+type KaraokeImageFace interface {
+	GetKaraokeImageComponent() *KaraokeImageComponent
+}
+
 func (l *LifeComponent) GetLifeComponent() *LifeComponent {
 	return l
 }

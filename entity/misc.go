@@ -174,3 +174,27 @@ func CreateSpeedDisplay() *BasicTileMap {
 		},
 	}
 }
+
+type BasicImage struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.ImageComponent
+}
+
+func CreateBasicImage(imageAsset interface{}) *BasicImage {
+	img, _ := assets.LoadEbitenImage(imageAsset)
+
+	return &BasicImage{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: float64(assets.ImageUiLifeAmountTileSet.FrameWidth),
+				Y: float64(assets.ImageUiLifeAmountTileSet.FrameWidth),
+			},
+		},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+			Image:  img,
+		},
+	}
+}

@@ -2,6 +2,7 @@ package game
 
 import (
 	"bytes"
+	"encoding/json"
 	"image"
 	"image/color"
 	"io"
@@ -88,6 +89,10 @@ func (s *TitleScene) Start(game *Game) {
 	s.selectionActiveArrow = s.whiteArrow
 	s.selectionArrowCooldown = 0
 
+	jsonStr := assets.LoadKaraoke(assets.KaraokeTest)
+	session := &KaraokeSession{}
+	json.Unmarshal(jsonStr, session)
+
 	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneGameText)
 	s.menuItems = []MenuItem{
 		{
@@ -97,6 +102,12 @@ func (s *TitleScene) Start(game *Game) {
 		{
 			TargetScene: &TitleScene{},
 			Text:        img,
+		},
+		{
+			TargetScene: &KaraokeScene{
+				Session: session,
+			},
+			Text: img,
 		},
 	}
 	s.selectedIdx = 0
@@ -181,6 +192,8 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 		Min: image.Pt(int(s.xFogOffset), 0),
 		Max: image.Pt(int(s.xFogOffset)+windowWidth/2, windowHeight),
 	}).(*ebiten.Image), op)
+	op.ColorM.Reset()
+	op.GeoM.Reset()
 
 	xStart := s.beachWaterAnimeIdx * assets.ImageTitleSceneBeachWaterTileSet.FrameWidth
 	beachWater := s.beachWater.SubImage(image.Rectangle{
@@ -188,7 +201,6 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 		Max: image.Pt(int(xStart+assets.ImageTitleSceneBeachWaterTileSet.FrameWidth), windowHeight),
 	}).(*ebiten.Image)
 
-	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(-1, 1)
 	op.GeoM.Translate(float64(beachWater.Bounds().Dx())-160, 107*10)
 	beachWater = beachWater.SubImage(image.Rectangle{
@@ -196,26 +208,32 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 		Max: image.Pt(beachWater.Bounds().Min.X+int(s.xOffset+windowWidth/2), windowHeight),
 	}).(*ebiten.Image)
 	screen.DrawImage(beachWater, op)
+	op.ColorM.Reset()
+	op.GeoM.Reset()
 
-	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Scale(-1, 1)
 	op.GeoM.Translate(float64(s.beach.Bounds().Dx())-160, 0)
 	screen.DrawImage(s.beach.SubImage(subRect).(*ebiten.Image), op)
+	op.ColorM.Reset()
+	op.GeoM.Reset()
 
-	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(windowWidth/2-float64(s.titleText.Bounds().Dx()/2), 0)
 	screen.DrawImage(s.titleText, op)
+	op.ColorM.Reset()
+	op.GeoM.Reset()
 
 	textXStart := float64(windowWidth/2 - 150)
 	yStart := float64(900)
 	for _, item := range s.menuItems {
-		op = &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(textXStart, yStart)
 		screen.DrawImage(item.Text, op)
+		op.ColorM.Reset()
+		op.GeoM.Reset()
 		yStart += 130
 	}
 
-	op = &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 900+float64(s.selectedIdx*130))
 	screen.DrawImage(s.selectionActiveArrow, op)
+	op.ColorM.Reset()
+	op.GeoM.Reset()
 }

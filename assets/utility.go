@@ -109,3 +109,11 @@ func LoadSound(asset interface{}) (data []byte, sampleRate int, soundType SoundT
 
 	return
 }
+
+func LoadKaraoke(asset interface{}) (data []byte) {
+	t := reflect.ValueOf(asset)
+
+	data = []byte(t.FieldByName("JsonStr").String())
+
+	return
+}
