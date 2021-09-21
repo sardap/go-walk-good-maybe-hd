@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/json"
 	"fmt"
 	"image"
 	"image/png"
@@ -293,6 +294,42 @@ func genSoundAssets(jf *jen.File, sounds []SoundOutput, assetsPath string) {
 	}
 }
 
+type KaraokeOutput struct {
+	Name string
+	File string
+}
+
+func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
+	data, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	compactJson := &bytes.Buffer{}
+	json.Compact(compactJson, data)
+
+	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+	name = strcase.ToCamel(name)
+	name = "Karaoke" + name
+
+	fields := []jen.Code{
+		jen.Id("JsonStr").String(),
+	}
+
+	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
+		jf.Id("JsonStr").Op(":").Lit(string(compactJson.Bytes())).Op(",")
+	})
+}
+
+func genKarokeAssets(jf *jen.File, karaoke []KaraokeOutput, assetsPath string) {
+	fmt.Printf("\nGenerating Karaoke\n")
+
+	for _, target := range karaoke {
+		fmt.Printf("...%s\n", target.Name)
+		target.genKaraokeAssetFromFile(jf, filepath.Join(assetsPath, target.File))
+	}
+}
+
 func genAssets() {
 	fmt.Printf("Generating assets\n")
 
@@ -302,9 +339,10 @@ func genAssets() {
 	}
 
 	var config struct {
-		Images []GraphicsOutput
-		Music  []MusicOutput
-		Sounds []SoundOutput
+		Images  []GraphicsOutput
+		Music   []MusicOutput
+		Sounds  []SoundOutput
+		Karaoke []KaraokeOutput
 	}
 	if err := toml.Unmarshal(buildFile, &config); err != nil {
 		panic(err)
@@ -327,6 +365,7 @@ func genAssets() {
 
 	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
 	genSoundAssets(jf, config.Sounds, filepath.Join(assetsPath, "sounds"))
+	genKarokeAssets(jf, config.Karaoke, filepath.Join(assetsPath, "karaoke"))
 
 	f, err := os.Create(filepath.Join(workspacePath, "assets", "gen.go"))
 	if err != nil {

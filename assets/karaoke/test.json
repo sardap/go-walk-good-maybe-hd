@@ -1,0 +1,20 @@
+{
+	"inputs": [
+		{
+			"duration": 3000,
+			"sound": "A"
+		},
+		{
+			"duration": 1000,
+			"sound": "B"
+		},
+		{
+			"duration": 500,
+			"sound": "X"
+		},
+		{
+			"duration": 3000,
+			"sound": "Y"
+		}
+	]
+}

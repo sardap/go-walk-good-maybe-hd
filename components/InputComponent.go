@@ -24,6 +24,8 @@ const (
 	InputKindMoveRight
 	InputKindJump
 	InputKindShoot
+	// Karaoke
+	InputKindKaraokeA
 	// Misc
 	InputKindChangeToGamepad
 	InputKindChangeToKeyboard
@@ -84,6 +86,7 @@ func DefaultKeyboardInputType() KeyboardInputType {
 			InputKindFastGameSpeed:         ebiten.KeyTab,
 			InputKindToggleCollsionOverlay: ebiten.KeyO,
 			InputKindSelect:                ebiten.KeyZ,
+			InputKindKaraokeA:              ebiten.KeyZ,
 		},
 		Driver: EbitenKeyboardDriver{},
 	}
@@ -138,9 +141,10 @@ func DefaultGamepadInputType() GamepadInputType {
 		MoveAxisY: 1,
 		DeadZone:  0.1,
 		Mapping: map[InputKind]ebiten.GamepadButton{
-			InputKindJump:   0,
-			InputKindShoot:  1,
-			InputKindSelect: 0,
+			InputKindJump:     0,
+			InputKindShoot:    1,
+			InputKindSelect:   0,
+			InputKindKaraokeA: 0,
 		},
 		Driver: EbitenGamepadDriver{},
 	}

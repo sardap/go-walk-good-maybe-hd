@@ -38,15 +38,18 @@ func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 
 		op := &ebiten.DrawImageOptions{}
 
-		if imgCom.Options.InvertX && imgCom.Options.InvertY {
-			op.GeoM.Scale(-1, -1)
-			op.GeoM.Translate(float64(imgCom.Image.Bounds().Dx()), float64(imgCom.Image.Bounds().Dy()))
-		} else if imgCom.Options.InvertX {
+		if imgCom.Options.InvertX {
 			op.GeoM.Scale(-1, 1)
 			op.GeoM.Translate(float64(imgCom.Image.Bounds().Dx()), 0)
-		} else if imgCom.Options.InvertY {
+		}
+
+		if imgCom.Options.InvertY {
 			op.GeoM.Scale(1, -1)
 			op.GeoM.Translate(0, float64(imgCom.Image.Bounds().Dy()))
+		}
+
+		if imgCom.Options.Opacity != 0 {
+			op.ColorM.Scale(1, 1, 1, imgCom.Options.Opacity)
 		}
 
 		op.GeoM.Translate(trans.Postion.X, trans.Postion.Y)
