@@ -1,6 +1,7 @@
 package game
 
 import (
+	"encoding/base64"
 	gomath "math"
 	"math/rand"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -447,4 +449,40 @@ func TestCompleteMainGameScene(t *testing.T) {
 	assert.Nil(t, mgs.World)
 	assert.Nil(t, mgs.Space)
 	assert.Nil(t, mgs.Level)
+}
+
+func TestKaraokeScene(t *testing.T) {
+
+	g := &Game{
+		audioCtx: audio.CurrentContext(),
+	}
+	ks := &KaraokeScene{}
+
+	ks.Session = &KaraokeSession{
+		Inputs: []*KaraokeInput{
+			{},
+		},
+		Backgrounds: []*KaraokeBackground{
+			{
+				Duration: 0,
+				Image:    base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data)),
+			},
+		},
+		Music:      "",
+		SampleRate: 1000,
+	}
+
+	assert.NotPanics(t, func() {
+		ks.Start(g)
+	})
+
+	assert.NotNil(t, ks.Session)
+
+	assert.NotPanics(t, func() {
+		ks.Update(100*time.Millisecond, g)
+	})
+
+	ks.End(g)
+
+	assert.Nil(t, ks.Session)
 }
