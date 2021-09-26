@@ -11,7 +11,16 @@ import (
 )
 
 func TestDeltaToDuration(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, time.Duration(500)*time.Millisecond, utility.DeltaToDuration(0.5))
+}
+
+func TestAbsInt(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, int(1), utility.AbsInt(-1))
+	assert.Equal(t, int(1), utility.AbsInt(1))
 }
 
 func TestWrapInt(t *testing.T) {
@@ -139,4 +148,13 @@ func TestContainsString(t *testing.T) {
 	assert.True(t, utility.ContainsString(ary, "foo"))
 	assert.True(t, utility.ContainsString(ary, "greg", "bar"))
 	assert.False(t, utility.ContainsString(ary, "greg", "got"))
+}
+
+func TestContainsInt(t *testing.T) {
+	t.Parallel()
+
+	ary := []int{1, 2}
+	assert.True(t, utility.ContainsInt(ary, 1))
+	assert.True(t, utility.ContainsInt(ary, 1, 2))
+	assert.False(t, utility.ContainsInt(ary, 4, 3))
 }
