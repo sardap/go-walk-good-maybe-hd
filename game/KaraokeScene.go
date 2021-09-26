@@ -132,7 +132,7 @@ type KaraokeBackground struct {
 type KaraokeSession struct {
 	Inputs        []*KaraokeInput      `json:"inputs"`
 	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
-	Music         string               `json:"music"`
+	Music         *string              `json:"music"`
 	SampleRate    int                  `json:"sampleRate"`
 	backgroundIdx int
 }
@@ -211,7 +211,7 @@ func (k *KaraokeScene) addSystems(audioCtx *audio.Context) {
 }
 
 func (k *KaraokeScene) addEnts() {
-	rawMusic, _ := base64.StdEncoding.DecodeString(k.Session.Music)
+	rawMusic, _ := base64.StdEncoding.DecodeString(*k.Session.Music)
 	k.musicEnt = &entity.SoundPlayer{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},

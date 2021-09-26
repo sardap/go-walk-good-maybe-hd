@@ -2,6 +2,7 @@ package game
 
 import (
 	"encoding/base64"
+	"image/color"
 	gomath "math"
 	"math/rand"
 	"testing"
@@ -17,6 +18,18 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/stretchr/testify/assert"
 )
+
+func emptyImage(img *ebiten.Image) bool {
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			if img.At(x, y) != color.White {
+				return false
+			}
+		}
+	}
+
+	return true
+}
 
 type fakeRand struct {
 	seq []int64
@@ -443,6 +456,11 @@ func TestCompleteMainGameScene(t *testing.T) {
 	mgs.Update(100*time.Millisecond, g)
 	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
 
+	screen := ebiten.NewImage(windowWidth, windowHeight)
+	screen.Fill(color.White)
+	mgs.Draw(screen)
+	assert.False(t, emptyImage(screen))
+
 	mgs.End(g)
 
 	assert.Nil(t, mgs.Rand)
@@ -468,8 +486,8 @@ func TestKaraokeScene(t *testing.T) {
 				Image:    base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data)),
 			},
 		},
-		Music:      "",
-		SampleRate: 1000,
+		Music:      &assets.MusicPdRockBackground.Data,
+		SampleRate: assets.MusicPdRockBackground.SampleRate,
 	}
 
 	assert.NotPanics(t, func() {
@@ -482,7 +500,53 @@ func TestKaraokeScene(t *testing.T) {
 		ks.Update(100*time.Millisecond, g)
 	})
 
+	screen := ebiten.NewImage(windowWidth, windowHeight)
+	screen.Fill(color.White)
+	ks.Draw(screen)
+	assert.False(t, emptyImage(screen))
+
 	ks.End(g)
 
 	assert.Nil(t, ks.Session)
+}
+
+func TestTitleScene(t *testing.T) {
+
+	g := &Game{
+		audioCtx: audio.CurrentContext(),
+	}
+	ts := &TitleScene{}
+
+	assert.NotPanics(t, func() {
+		ts.Start(g)
+	})
+
+	assert.NotPanics(t, func() {
+		ts.Update(100*time.Millisecond, g)
+	})
+
+	screen := ebiten.NewImage(windowWidth, windowHeight)
+	screen.Fill(color.White)
+	ts.Draw(screen)
+	assert.False(t, emptyImage(screen))
+
+	assert.NotPanics(t, func() {
+		ts.End(g)
+	})
+}
+
+func TestCompleteGame(t *testing.T) {
+
+	g := &Game{
+		audioCtx: audio.CurrentContext(),
+	}
+
+	g.Update()
+
+	screen := ebiten.NewImage(windowWidth, windowHeight)
+	screen.Fill(color.White)
+	g.Draw(screen)
+	assert.False(t, emptyImage(screen))
+
+	g.Layout(100, 100)
 }

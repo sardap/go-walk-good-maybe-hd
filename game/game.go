@@ -1,11 +1,13 @@
 package game
 
 import (
+	"fmt"
 	"image/color"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
@@ -77,12 +79,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.White)
 	g.current.Draw(screen)
 
-	// img := ebiten.NewImage(50, 50)
-	// ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
-	// op := &ebiten.DrawImageOptions{}
-	// op.GeoM.Scale(10, 10)
-	// op.GeoM.Translate(0, 0)
-	// screen.DrawImage(img, op)
+	img := ebiten.NewImage(50, 50)
+	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
+	op := &ebiten.DrawImageOptions{}
+	op.GeoM.Scale(10, 10)
+	op.GeoM.Translate(0, 0)
+	screen.DrawImage(img, op)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

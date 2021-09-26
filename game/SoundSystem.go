@@ -59,7 +59,11 @@ func (s *SoundSystem) Update(dt float32) {
 			switch soundCom.Sound.SoundType {
 			case assets.SoundTypeMp3:
 				buffer := bytes.NewReader(soundCom.Sound.Source)
-				stream, _ = mp3.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				var err error
+				stream, err = mp3.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				if err != nil {
+					panic(err)
+				}
 				if soundCom.Loop {
 					mp3Stream := stream.(*mp3.Stream)
 					if soundCom.Intro > 0 {
