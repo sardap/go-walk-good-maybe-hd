@@ -130,10 +130,10 @@ type KaraokeBackground struct {
 }
 
 type KaraokeSession struct {
-	Inputs        []KaraokeInput      `json:"inputs"`
-	Backgrounds   []KaraokeBackground `json:"backgrounds"`
-	Music         string              `json:"music"`
-	SampleRate    int                 `json:"sampleRate"`
+	Inputs        []*KaraokeInput      `json:"inputs"`
+	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
+	Music         string               `json:"music"`
+	SampleRate    int                  `json:"sampleRate"`
 	backgroundIdx int
 }
 
@@ -313,6 +313,10 @@ func parseHex(hex string) color.Color {
 }
 
 func (k *KaraokeScene) Start(game *Game) {
+	if k.Session == nil || len(k.Session.Backgrounds) <= 0 || len(k.Session.Inputs) <= 0 {
+		panic("Must set Session, at least one background must be set and one input")
+	}
+
 	k.world = &ecs.World{}
 	k.rand = rand.New(rand.NewSource(time.Now().Unix()))
 	k.state = KaraokeStateStarting
@@ -410,6 +414,8 @@ func (k *KaraokeScene) Start(game *Game) {
 }
 
 func (k *KaraokeScene) End(*Game) {
+	k.Session = nil
+
 	k.world = nil
 	k.rand = nil
 	k.timeElapsed = 0
@@ -420,12 +426,14 @@ func (k *KaraokeScene) End(*Game) {
 	k.musicEnt = nil
 	k.karaokePlayer = nil
 
-	if k.scorePlayer.Player != nil {
+	if k.scorePlayer != nil && k.scorePlayer.Player != nil {
 		k.scorePlayer.Player.Pause()
 		k.scorePlayer.Player.Close()
 	}
 
-	k.textScreen.Dispose()
+	if k.textScreen != nil {
+		k.textScreen.Dispose()
+	}
 }
 
 func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
@@ -472,8 +480,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 			var selectedInput *KaraokeInput
 			bestScore := KaraokeScore(0)
 
-			for i := 0; i < len(k.Session.Inputs); i++ {
-				input := &k.Session.Inputs[i]
+			for i, input := range k.Session.Inputs {
 
 				if k.timeElapsed < time.Duration(input.StartTime) || input.xPostion-100 > windowWidth {
 					if input.xPostion-100 > windowWidth && i == len(k.Session.Inputs)-1 {
@@ -590,8 +597,7 @@ func (k *KaraokeScene) Draw(screen *ebiten.Image) {
 	switch k.state {
 	case KaraokeStateSinging:
 		op := ebiten.DrawImageOptions{}
-		for i := 0; i < len(k.Session.Inputs); i++ {
-			input := &k.Session.Inputs[i]
+		for _, input := range k.Session.Inputs {
 
 			if input.xPostion <= 0 || input.xPostion-100 > windowWidth {
 				continue

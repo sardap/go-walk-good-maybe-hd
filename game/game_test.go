@@ -1246,6 +1246,7 @@ func TestConstantSpeedSystem(t *testing.T) {
 		assert.Equal(t, testCase.ExpectedPostion, ent.Postion)
 	}
 
+	assert.NotZero(t, speedSystem.Priority())
 }
 
 func TestDestoryBoundSystem(t *testing.T) {
@@ -1291,6 +1292,52 @@ func TestDestoryBoundSystem(t *testing.T) {
 
 		w.RemoveEntity(ent.BasicEntity)
 	}
+
+	assert.NotZero(t, destorySystem.Priority())
+}
+
+func TestEnemyBiscuitSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+	s := resolv.NewSpace()
+	debugEnt := entity.CreateDebugInput()
+
+	enemyBiscuitSystem := game.CreateEnemyBiscuitSystem(s)
+	var enemyBiscuitable *game.EnemyBiscuitable
+	w.AddSystemInterface(enemyBiscuitSystem, enemyBiscuitable, nil)
+
+	var resolvable *game.Resolvable
+	w.AddSystemInterface(game.CreateResolvSystem(s, debugEnt), resolvable, nil)
+
+	ent := entity.CreateBiscuitEnemy()
+	w.AddEntity(ent)
+
+	testCases := []struct {
+		cols          components.CollisionEvents
+		Vel           math.Vector2
+		ExpectedVel   math.Vector2
+		ExpectedSpeed math.Vector2
+	}{
+		{
+			cols:          components.CollisionEvents{&components.CollisionEvent{}},
+			Vel:           math.Vector2{X: 1},
+			ExpectedVel:   math.Vector2{X: 1},
+			ExpectedSpeed: math.Vector2{X: -150},
+		},
+	}
+	for _, testCase := range testCases {
+		ent.Vel = testCase.Vel
+
+		w.Update(1)
+
+		assert.Equal(t, testCase.ExpectedVel, ent.Vel)
+		assert.Equal(t, testCase.ExpectedSpeed, ent.Speed)
+	}
+
+	enemyBiscuitSystem.Remove(ent.BasicEntity)
+
+	assert.NotZero(t, enemyBiscuitSystem.Priority())
 }
 
 type testGame struct {
