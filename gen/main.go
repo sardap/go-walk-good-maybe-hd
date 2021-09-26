@@ -3,9 +3,11 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
+	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"os"
@@ -200,6 +202,25 @@ type MusicOutput struct {
 	File string
 }
 
+func getMp3SampleRate(path string) int {
+	mp3F, _ := os.Open(path)
+	defer mp3F.Close()
+	d := mp3.NewDecoder(mp3F)
+	var f mp3.Frame
+	skipped := 0
+	if err := d.Decode(&f, &skipped); err != nil {
+		panic(err)
+	}
+
+	sampleRate := f.Header().SampleRate()
+	if sampleRate == mp3.ErrInvalidSampleRate {
+		panic("Invalid sample rate")
+	}
+
+	return int(sampleRate)
+
+}
+
 func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -210,23 +231,7 @@ func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
 	name = strcase.ToCamel(name)
 	name = "Music" + name
 
-	sampleRate := func() int {
-		mp3F, _ := os.Open(path)
-		defer mp3F.Close()
-		d := mp3.NewDecoder(mp3F)
-		var f mp3.Frame
-		skipped := 0
-		if err := d.Decode(&f, &skipped); err != nil {
-			panic(err)
-		}
-
-		sampleRate := f.Header().SampleRate()
-		if sampleRate == mp3.ErrInvalidSampleRate {
-			panic("Invalid sample rate")
-		}
-
-		return int(sampleRate)
-	}()
+	sampleRate := getMp3SampleRate(path)
 
 	fields := []jen.Code{
 		jen.Id("Data").String(),
@@ -255,6 +260,13 @@ type SoundOutput struct {
 	File string
 }
 
+func getWavSampleRate(path string) int {
+	wavF, _ := os.Open(path)
+	defer wavF.Close()
+	w, _ := wav.New(wavF)
+	return int(w.SampleRate)
+}
+
 func (s *SoundOutput) genSoundAssetFromFile(jf *jen.File, path string) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -265,12 +277,7 @@ func (s *SoundOutput) genSoundAssetFromFile(jf *jen.File, path string) {
 	name = strcase.ToCamel(name)
 	name = "Sound" + name
 
-	sampleRate := func() int {
-		wavF, _ := os.Open(path)
-		defer wavF.Close()
-		w, _ := wav.New(wavF)
-		return int(w.SampleRate)
-	}()
+	sampleRate := getWavSampleRate(path)
 
 	fields := []jen.Code{
 		jen.Id("Data").String(),
@@ -299,14 +306,80 @@ type KaraokeOutput struct {
 	File string
 }
 
+type KaraokeInput struct {
+	StartTime   int    `json:"start_time"`
+	Duration    int    `json:"duration"`
+	StartOffset int    `json:"start_off,omitempty"`
+	Sound       string `json:"sound"`
+}
+
+type KaraokeBackground struct {
+	Duration int    `json:"duration"`
+	FadeIn   int    `json:"fade_in"`
+	Image    string `json:"image"`
+}
+
+type KaraokeIn struct {
+	Inputs      []KaraokeInput      `json:"inputs"`
+	Backgrounds []KaraokeBackground `json:"backgrounds"`
+	Music       string              `json:"music"`
+	SampleRate  int                 `json:"sampleRate"`
+}
+
 func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
 
+	karaoke := KaraokeIn{}
+	err = json.Unmarshal(data, &karaoke)
+	if err != nil {
+		panic(err)
+	}
+
+	karaokePath := strings.TrimSuffix(path, filepath.Base(path))
+
+	for i, background := range karaoke.Backgrounds {
+		karaoke.Backgrounds[i].Image = func() string {
+			f, err := os.Open(filepath.Join(karaokePath, background.Image))
+			if err != nil {
+				panic(err)
+			}
+			defer f.Close()
+
+			img, _, err := image.Decode(f)
+			if err != nil {
+				panic(err)
+			}
+
+			buffer := &bytes.Buffer{}
+			if err := jpeg.Encode(buffer, img, &jpeg.Options{Quality: 30}); err != nil {
+				panic(err)
+			}
+
+			return base64.StdEncoding.EncodeToString(buffer.Bytes())
+		}()
+	}
+
+	timeElapsed := 0
+	for i := 1; i < len(karaoke.Inputs); i++ {
+		lastInput := &karaoke.Inputs[i-1]
+		input := &karaoke.Inputs[i]
+		input.StartTime = timeElapsed + lastInput.Duration + input.StartOffset
+		input.StartOffset = 0
+		timeElapsed += input.Duration
+	}
+
+	karaoke.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaoke.Music))
+	rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaoke.Music))
+	karaoke.Music = string(base64.StdEncoding.EncodeToString(rawMusic))
+
+	data, _ = json.Marshal(karaoke)
+
 	compactJson := &bytes.Buffer{}
 	json.Compact(compactJson, data)
+	compressedJson, _ := compressAsset(compactJson.Bytes())
 
 	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	name = strcase.ToCamel(name)
@@ -317,7 +390,7 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	}
 
 	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
-		jf.Id("JsonStr").Op(":").Lit(string(compactJson.Bytes())).Op(",")
+		jf.Id("JsonStr").Op(":").Lit(string(compressedJson)).Op(",")
 	})
 }
 

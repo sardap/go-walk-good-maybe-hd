@@ -26,6 +26,9 @@ const (
 	InputKindShoot
 	// Karaoke
 	InputKindKaraokeA
+	InputKindKaraokeB
+	InputKindKaraokeX
+	InputKindKaraokeY
 	// Misc
 	InputKindChangeToGamepad
 	InputKindChangeToKeyboard
@@ -87,6 +90,9 @@ func DefaultKeyboardInputType() KeyboardInputType {
 			InputKindToggleCollsionOverlay: ebiten.KeyO,
 			InputKindSelect:                ebiten.KeyZ,
 			InputKindKaraokeA:              ebiten.KeyZ,
+			InputKindKaraokeB:              ebiten.KeyX,
+			InputKindKaraokeX:              ebiten.KeyC,
+			InputKindKaraokeY:              ebiten.KeyV,
 		},
 		Driver: EbitenKeyboardDriver{},
 	}

@@ -198,3 +198,27 @@ func CreateBasicImage(imageAsset interface{}) *BasicImage {
 		},
 	}
 }
+
+type FloatingText struct {
+	ecs.BasicEntity
+	*components.TransformComponent
+	*components.ConstantSpeedComponent
+	*components.CollisionComponent
+	*components.DestoryBoundComponent
+	*components.VelocityComponent
+	*components.TextComponent
+}
+
+func CreateFloatingText() *FloatingText {
+	return &FloatingText{
+		BasicEntity:            ecs.NewBasic(),
+		TransformComponent:     &components.TransformComponent{},
+		ConstantSpeedComponent: &components.ConstantSpeedComponent{},
+		CollisionComponent: &components.CollisionComponent{
+			Active: true,
+		},
+		DestoryBoundComponent: &components.DestoryBoundComponent{},
+		VelocityComponent:     &components.VelocityComponent{},
+		TextComponent:         &components.TextComponent{},
+	}
+}

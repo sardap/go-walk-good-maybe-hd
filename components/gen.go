@@ -34,12 +34,28 @@ type CollisionFace interface {
 	GetCollisionComponent() *CollisionComponent
 }
 
+func (c *ConstantSpeedComponent) GetConstantSpeedComponent() *ConstantSpeedComponent {
+	return c
+}
+
+type ConstantSpeedFace interface {
+	GetConstantSpeedComponent() *ConstantSpeedComponent
+}
+
 func (d *DamageComponent) GetDamageComponent() *DamageComponent {
 	return d
 }
 
 type DamageFace interface {
 	GetDamageComponent() *DamageComponent
+}
+
+func (d *DestoryBoundComponent) GetDestoryBoundComponent() *DestoryBoundComponent {
+	return d
+}
+
+type DestoryBoundFace interface {
+	GetDestoryBoundComponent() *DestoryBoundComponent
 }
 
 func (d *DestoryOnAnimeComponent) GetDestoryOnAnimeComponent() *DestoryOnAnimeComponent {

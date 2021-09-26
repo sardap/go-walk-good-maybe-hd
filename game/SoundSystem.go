@@ -78,6 +78,11 @@ func (s *SoundSystem) Update(dt float32) {
 			case assets.SoundTypeWav:
 				buffer := bytes.NewReader(soundCom.Sound.Source)
 				stream, _ = wav.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				wavStream := stream.(*wav.Stream)
+
+				if soundCom.Loop {
+					stream = audio.NewInfiniteLoop(wavStream, wavStream.Length())
+				}
 
 			default:
 				log.Fatalf("Unknown sound type %v", soundCom.Sound.SoundType)

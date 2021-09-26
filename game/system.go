@@ -16,10 +16,12 @@ const (
 	systemPriorityMainGameUiSystem
 	systemPrioritySoundSystem
 	systemPriorityDamageSystem
+	systemPriorityDestoryBoundSystem
 	systemPriorityAnimeSystem
 	systemPriorityResolvSystem
 	systemPriorityVelocitySystem
 	systemPriorityDumbVelocitySystem
+	systemPriorityConstantSpeedSystem
 	systemPriorityScrollingSystem
 	systemPriorityGameRuleSystem
 	systemPriorityPlayerSystem

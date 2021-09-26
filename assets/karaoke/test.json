@@ -1,20 +1,46 @@
 {
+	"title": "",
+	"music": "music/pdRockBackground.mp3",
 	"inputs": [
 		{
 			"duration": 3000,
 			"sound": "A"
 		},
 		{
-			"duration": 1000,
-			"sound": "B"
+			"duration": 3000,
+			"start_off": -2000,
+			"sound": "A"
 		},
 		{
-			"duration": 500,
+			"duration": 3000,
+			"start_off": -2000,
 			"sound": "X"
 		},
 		{
 			"duration": 3000,
+			"start_off": -2000,
+			"sound": "B"
+		},
+		{
+			"duration": 2000,
+			"start_off": -500,
 			"sound": "Y"
+		}
+	],
+	"backgrounds": [
+		{
+			"duration": 10000,
+			"image": "images/souelTreesHillCityFog.psd"
+		},
+		{
+			"duration": 10000,
+			"fade_in": 3000,
+			"image": "images/souelTreesCity.psd"
+		},
+		{
+			"duration": 10000,
+			"fade_in": 3000,
+			"image": "images/souelCityAlley.psd"
 		}
 	]
 }
