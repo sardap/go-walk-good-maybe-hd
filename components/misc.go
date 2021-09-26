@@ -34,9 +34,9 @@ func ChangeAnimeImage(a Animeable, img *ebiten.Image, frameDuration time.Duratio
 	animeCom.Cycles = 0
 }
 
-func LoadSound(asset interface{}) Sound {
+func LoadSound(asset interface{}) *Sound {
 	data, sampleRate, soundType := assets.LoadSound(asset)
-	return Sound{
+	return &Sound{
 		Source:     data,
 		SampleRate: sampleRate,
 		SoundType:  assets.SoundType(soundType),

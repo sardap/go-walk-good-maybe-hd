@@ -81,7 +81,11 @@ func (s *SoundSystem) Update(dt float32) {
 
 			case assets.SoundTypeWav:
 				buffer := bytes.NewReader(soundCom.Sound.Source)
-				stream, _ = wav.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				var err error
+				stream, err = wav.DecodeWithSampleRate(soundCom.Sound.SampleRate, buffer)
+				if err != nil {
+					panic(err)
+				}
 				wavStream := stream.(*wav.Stream)
 
 				if soundCom.Loop {

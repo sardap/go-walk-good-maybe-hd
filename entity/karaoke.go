@@ -39,13 +39,11 @@ type KaraokeInputSound struct {
 	*components.SoundComponent
 }
 
-func CreateKaraokeInputSound(soundAsset interface{}) *KaraokeInputSound {
+func CreateKaraokeInputSound() *KaraokeInputSound {
 	return &KaraokeInputSound{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
-		SoundComponent: &components.SoundComponent{
-			Sound: components.LoadSound(soundAsset),
-		},
+		SoundComponent:     &components.SoundComponent{},
 	}
 }
 

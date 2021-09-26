@@ -20,6 +20,9 @@ import (
 	"github.com/mjibson/go-dsp/wav"
 	"github.com/tcolgate/mp3"
 
+	_ "image/jpeg"
+	_ "image/png"
+
 	_ "github.com/oov/psd"
 )
 
@@ -322,6 +325,9 @@ type KaraokeBackground struct {
 type KaraokeIn struct {
 	Inputs      []KaraokeInput      `json:"inputs"`
 	Backgrounds []KaraokeBackground `json:"backgrounds"`
+	Sounds      map[string]string   `json:"sounds"`
+	SoundFiles  map[string]string   `json:"sounds_files,omitempty"`
+	MusicFile   string              `json:"music_file,omitempty"`
 	Music       string              `json:"music"`
 	SampleRate  int                 `json:"sampleRate"`
 }
@@ -366,16 +372,36 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	for i := 1; i < len(karaoke.Inputs); i++ {
 		lastInput := &karaoke.Inputs[i-1]
 		input := &karaoke.Inputs[i]
+
+		if input.StartTime > 0 {
+			continue
+		}
+
 		input.StartTime = timeElapsed + lastInput.Duration + input.StartOffset
 		input.StartOffset = 0
 		timeElapsed += input.Duration
 	}
 
-	karaoke.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaoke.Music))
-	rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaoke.Music))
-	karaoke.Music = string(base64.StdEncoding.EncodeToString(rawMusic))
+	karaoke.Sounds = make(map[string]string)
 
-	data, _ = json.Marshal(karaoke)
+	for key, sound := range karaoke.SoundFiles {
+		soundRaw, err := ioutil.ReadFile(filepath.Join(karaokePath, sound))
+		if err != nil {
+			panic(err)
+		}
+		karaoke.Sounds[key] = base64.RawStdEncoding.EncodeToString(soundRaw)
+	}
+	karaoke.SoundFiles = nil
+
+	karaoke.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaoke.MusicFile))
+	rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaoke.MusicFile))
+	karaoke.MusicFile = ""
+	karaoke.Music = base64.RawStdEncoding.EncodeToString(rawMusic)
+
+	data, err = json.Marshal(karaoke)
+	if err != nil {
+		panic(err)
+	}
 
 	compactJson := &bytes.Buffer{}
 	json.Compact(compactJson, data)

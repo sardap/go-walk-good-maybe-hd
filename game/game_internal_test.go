@@ -486,7 +486,7 @@ func TestKaraokeScene(t *testing.T) {
 				Image:    base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data)),
 			},
 		},
-		Music:      &assets.MusicPdRockBackground.Data,
+		Music:      assets.MusicPdRockBackground.Data,
 		SampleRate: assets.MusicPdRockBackground.SampleRate,
 	}
 

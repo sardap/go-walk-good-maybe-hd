@@ -5,3 +5,14 @@
 ## CC
 TODO clean this up
 * input icons https://opengameart.org/content/free-keyboard-and-controllers-prompts-pack
+
+*  SPANAC: Single clap
+
+## Credits
+
+Patrick 
+
+## Thanks To
+
+* Mitchell
+* John

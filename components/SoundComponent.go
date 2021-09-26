@@ -15,7 +15,7 @@ type Sound struct {
 }
 
 type SoundComponent struct {
-	Sound   Sound
+	Sound   *Sound
 	Intro   time.Duration
 	Active  bool
 	Restart bool
@@ -24,7 +24,7 @@ type SoundComponent struct {
 	Player *audio.Player
 }
 
-func (s *SoundComponent) ChangeSound(newSound Sound) {
+func (s *SoundComponent) ChangeSound(newSound *Sound) {
 	if s.Player != nil {
 		s.Player.Pause()
 		s.Player.Close()

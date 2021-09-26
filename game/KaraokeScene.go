@@ -132,7 +132,8 @@ type KaraokeBackground struct {
 type KaraokeSession struct {
 	Inputs        []*KaraokeInput      `json:"inputs"`
 	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
-	Music         *string              `json:"music"`
+	Sounds        map[string]string    `json:"sounds"`
+	Music         string               `json:"music"`
 	SampleRate    int                  `json:"sampleRate"`
 	backgroundIdx int
 }
@@ -211,12 +212,12 @@ func (k *KaraokeScene) addSystems(audioCtx *audio.Context) {
 }
 
 func (k *KaraokeScene) addEnts() {
-	rawMusic, _ := base64.StdEncoding.DecodeString(*k.Session.Music)
+	rawMusic, _ := base64.StdEncoding.DecodeString(k.Session.Music)
 	k.musicEnt = &entity.SoundPlayer{
 		BasicEntity:        ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{},
 		SoundComponent: &components.SoundComponent{
-			Sound: components.Sound{
+			Sound: &components.Sound{
 				Source:     rawMusic,
 				SampleRate: k.Session.SampleRate,
 				SoundType:  assets.SoundTypeMp3,
@@ -324,33 +325,31 @@ func (k *KaraokeScene) Start(game *Game) {
 	k.soundInfo = map[components.KaraokeSound]*karaokeInfo{
 		components.KaraokeSoundA: {
 			input: components.InputKindKaraokeA,
-			sound: entity.CreateKaraokeInputSound(assets.SoundByCollect5),
+			sound: entity.CreateKaraokeInputSound(),
 		},
 		components.KaraokeSoundB: {
 			input: components.InputKindKaraokeB,
-			sound: entity.CreateKaraokeInputSound(assets.SoundByCollect5),
+			sound: entity.CreateKaraokeInputSound(),
 		},
 		components.KaraokeSoundX: {
 			input: components.InputKindKaraokeX,
-			sound: entity.CreateKaraokeInputSound(assets.SoundByCollect5),
+			sound: entity.CreateKaraokeInputSound(),
 		},
 		components.KaraokeSoundY: {
 			input: components.InputKindKaraokeY,
-			sound: entity.CreateKaraokeInputSound(assets.SoundByCollect5),
+			sound: entity.CreateKaraokeInputSound(),
 		},
 	}
 
-	img, _ := assets.LoadEbitenImage(assets.ImageIconXboxSeriesXA)
-	k.soundInfo[components.KaraokeSoundA].image = img
-
-	img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXB)
-	k.soundInfo[components.KaraokeSoundB].image = img
-
-	img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXX)
-	k.soundInfo[components.KaraokeSoundX].image = img
-
-	img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXY)
-	k.soundInfo[components.KaraokeSoundY].image = img
+	for key, _ := range k.soundInfo {
+		raw, _ := base64.StdEncoding.DecodeString(k.Session.Sounds[string(key)])
+		k.soundInfo[key].sound.Sound = &components.Sound{
+			Source:     []byte(raw),
+			SampleRate: 44100,
+			Volume:     1,
+			SoundType:  assets.SoundTypeWav,
+		}
+	}
 
 	k.Session.backgroundIdx = 0
 	k.inputLeeway = 100 * time.Millisecond
@@ -358,6 +357,35 @@ func (k *KaraokeScene) Start(game *Game) {
 
 	k.addSystems(game.audioCtx)
 	k.addEnts()
+
+	// Make it do it dynamically based on binding
+	switch k.inputEnt.InputMode {
+	case components.InputModeGamepad:
+		img, _ := assets.LoadEbitenImage(assets.ImageIconXboxSeriesXA)
+		k.soundInfo[components.KaraokeSoundA].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXB)
+		k.soundInfo[components.KaraokeSoundB].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXX)
+		k.soundInfo[components.KaraokeSoundX].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXY)
+		k.soundInfo[components.KaraokeSoundY].image = img
+	case components.InputModeKeyboard:
+
+		img, _ := assets.LoadEbitenImage(assets.ImageIconKeyboardKeyW)
+		k.soundInfo[components.KaraokeSoundA].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyD)
+		k.soundInfo[components.KaraokeSoundB].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyA)
+		k.soundInfo[components.KaraokeSoundX].image = img
+
+		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyS)
+		k.soundInfo[components.KaraokeSoundY].image = img
+	}
 
 	for _, info := range k.soundInfo {
 		k.world.AddEntity(info.sound)
