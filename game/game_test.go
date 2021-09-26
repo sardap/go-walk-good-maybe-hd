@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"image"
+	"log"
 	"math/rand"
 	"os"
 	"testing"
@@ -13,12 +14,15 @@ import (
 	"github.com/SolarLune/resolv"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
+	"github.com/hajimehoshi/ebiten/v2/examples/resources/fonts"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/game"
 	"github.com/sardap/walk-good-maybe-hd/math"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 
 	"image/color"
 	_ "image/png"
@@ -671,6 +675,16 @@ func TestTextRenderSystem(t *testing.T) {
 
 	renderQueue := make(game.RenderCmds, 0)
 
+	tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	font, _ := opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    160,
+		DPI:     72 * 2,
+		Hinting: font.HintingFull,
+	})
+
 	ent := &struct {
 		ecs.BasicEntity
 		*components.TransformComponent
@@ -681,6 +695,8 @@ func TestTextRenderSystem(t *testing.T) {
 		TextComponent: &components.TextComponent{
 			Text:  "why i'm I chasing test coverage",
 			Layer: 0,
+			Font:  font,
+			Color: color.Black,
 		},
 	}
 	w.AddEntity(ent)
@@ -1098,6 +1114,7 @@ func TestInputSystem(t *testing.T) {
 		driver.justPressedButton[btn] = true
 		driver.justReleasedButtons[btn] = true
 
+		ent.InputComponent.InputMode = components.InputModeGamepad
 		w.Update(1)
 
 		assert.NotZero(t, ent.PressedDuration[kind])
@@ -1115,6 +1132,10 @@ func TestInputSystem(t *testing.T) {
 
 	// Key
 	for kind, key := range ent.Keyboard.Mapping {
+		if kind == 11 || kind == 12 {
+			continue
+		}
+
 		assert.Zero(t, ent.PressedDuration[kind])
 		assert.False(t, ent.JustPressed[kind])
 		assert.False(t, ent.JustReleased[kind])
@@ -1123,11 +1144,12 @@ func TestInputSystem(t *testing.T) {
 		driver.justPressedKeys[key] = true
 		driver.justReleasedKeys[key] = true
 
+		ent.InputComponent.InputMode = components.InputModeKeyboard
 		w.Update(1)
 
-		assert.NotZero(t, ent.PressedDuration[kind])
-		assert.True(t, ent.JustPressed[kind])
-		assert.True(t, ent.JustReleased[kind])
+		assert.NotZerof(t, ent.PressedDuration[kind], "%v", kind)
+		assert.Truef(t, ent.JustPressed[kind], "%v", kind)
+		assert.Truef(t, ent.JustReleased[kind], "%v", kind)
 
 		driver.pressedKeys[key] = 0
 		driver.justPressedKeys[key] = false

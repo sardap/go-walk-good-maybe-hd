@@ -115,5 +115,13 @@ func LoadKaraoke(asset interface{}) (data []byte) {
 
 	data = []byte(t.FieldByName("JsonStr").String())
 
+	zr, _ := gzip.NewReader(bytes.NewReader(data))
+	defer zr.Close()
+	var err error
+	data, err = ioutil.ReadAll(zr)
+	if err != nil {
+		panic(err)
+	}
+
 	return
 }

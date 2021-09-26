@@ -1,13 +1,11 @@
 package game
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/sardap/walk-good-maybe-hd/components"
-	"github.com/sardap/walk-good-maybe-hd/entity"
 )
 
 type Inputable interface {
@@ -17,8 +15,7 @@ type Inputable interface {
 }
 
 type InputSystem struct {
-	ents    map[uint64]Inputable
-	infoEnt *entity.InputInfo
+	ents map[uint64]Inputable
 }
 
 func CreateInputSystem() *InputSystem {
@@ -31,16 +28,9 @@ func (s *InputSystem) Priority() int {
 
 func (s *InputSystem) New(world *ecs.World) {
 	s.ents = make(map[uint64]Inputable)
-
-	s.infoEnt = entity.CreateInputInfo()
-	s.infoEnt.Text = ""
-	s.infoEnt.Postion.X = 300
-	s.infoEnt.Postion.Y = 10
-	world.AddEntity(s.infoEnt)
 }
 
 func (s *InputSystem) setInputMode(com *components.InputComponent, mode components.InputMode) {
-	s.infoEnt.TextComponent.Text = fmt.Sprintf("Current:%s Change with K or G", mode.String())
 	com.InputMode = mode
 }
 
@@ -117,22 +107,31 @@ func (s *InputSystem) processKeyboard(ent Inputable) {
 
 func (s *InputSystem) Update(dt float32) {
 	for _, ent := range s.ents {
-		// keyboard := ent.GetInputComponent().Keyboard
-		// gamepad := ent.GetInputComponent().Gamepad
+		keyboard := ent.GetInputComponent().Keyboard
+		gamepad := ent.GetInputComponent().Gamepad
+		moveCom := ent.GetMovementComponent()
+		inputCom := ent.GetInputComponent()
 
-		// if gamepad.Driver != nil && keyboard.Driver.IsKeyJustReleased(keyboard.Mapping[components.InputKindChangeToGamepad]) {
-		// 	ent.GetMovementComponent().PressedDuration[components.InputKindChangeToGamepad] = 1
-		// } else if keyboard.Driver.KeyPressDuration(keyboard.Mapping[components.InputKindChangeToKeyboard]) {
-		// 	ent.GetMovementComponent().PressedDuration.ChangeToKeyboard = true
-		// }
+		if gamepad.Driver != nil && keyboard.Driver.KeyPressDuration(keyboard.Mapping[components.InputKindChangeToGamepad]) > 0 {
+			moveCom.PressedDuration[components.InputKindChangeToGamepad] = 1
+		} else if keyboard.Driver.KeyPressDuration(keyboard.Mapping[components.InputKindChangeToKeyboard]) > 0 {
+			moveCom.PressedDuration[components.InputKindChangeToKeyboard] = 1
+		}
 
-		switch ent.GetInputComponent().InputMode {
+		switch inputCom.InputMode {
 		case components.InputModeGamepad:
 			s.processGamepad(ent)
 		case components.InputModeKeyboard:
 			s.processKeyboard(ent)
 		}
 
+		if moveCom.InputPressed(components.InputKindChangeToGamepad) {
+			inputCom.InputMode = components.InputModeGamepad
+			moveCom.PressedDuration[components.InputKindChangeToGamepad] = 0
+		} else if moveCom.InputPressed(components.InputKindChangeToKeyboard) {
+			inputCom.InputMode = components.InputModeKeyboard
+			moveCom.PressedDuration[components.InputKindChangeToKeyboard] = 0
+		}
 	}
 
 }

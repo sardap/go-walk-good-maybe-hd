@@ -6,6 +6,7 @@ import (
 	"github.com/EngoEngine/ecs"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
+	"github.com/sardap/walk-good-maybe-hd/math"
 )
 
 type KaraokePlayer struct {
@@ -18,8 +19,13 @@ func CreateKaraokePlayer() *KaraokePlayer {
 	img, _ := assets.LoadEbitenImage(assets.ImageWhaleSinging)
 
 	return &KaraokePlayer{
-		BasicEntity:        ecs.NewBasic(),
-		TransformComponent: &components.TransformComponent{},
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{
+				X: float64(img.Bounds().Dx()),
+				Y: float64(img.Bounds().Dy()),
+			},
+		},
 		ImageComponent: &components.ImageComponent{
 			Active: true,
 			Image:  img,

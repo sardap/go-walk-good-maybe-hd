@@ -250,6 +250,14 @@ file="karaoke/whaleSinging.psd"
 name="spaceVoiceC5"
 file="spaceVoiceC5.wav"
 
+[[Sounds]]
+name="bit8CoinOne"
+file="bit8CoinOne.wav"
+
+[[Sounds]]
+name="bit8CoinOneRepeated"
+file="bit8CoinOneRepeated.wav"
+
 [[Music]]
 name="karaokeRock"
 file="pdRockBackground.mp3"

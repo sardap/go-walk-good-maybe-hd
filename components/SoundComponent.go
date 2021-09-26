@@ -23,3 +23,12 @@ type SoundComponent struct {
 	// This should be null on creation
 	Player *audio.Player
 }
+
+func (s *SoundComponent) ChangeSound(newSound Sound) {
+	if s.Player != nil {
+		s.Player.Pause()
+		s.Player.Close()
+	}
+
+	s.Sound = newSound
+}

@@ -12,6 +12,14 @@ func DeltaToDuration(dt float32) time.Duration {
 	return time.Duration(i)
 }
 
+func AbsInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+
+	return x
+}
+
 func WrapInt(x, min, max int) (result int) {
 	if x >= max {
 		result = x + min - max
