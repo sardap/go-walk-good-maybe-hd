@@ -153,6 +153,13 @@ func TestLoadSound(t *testing.T) {
 	assert.Equal(t, SoundTypeWav, soundType)
 }
 
+func TestLoadKaraoke(t *testing.T) {
+	t.Parallel()
+
+	data := LoadKaraoke(KaraokeTest)
+	assert.NotNil(t, data)
+}
+
 type testGame struct {
 	m    *testing.M
 	code int
