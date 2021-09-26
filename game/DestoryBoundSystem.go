@@ -54,3 +54,8 @@ func (s *DestoryBoundSystem) Remove(e ecs.BasicEntity) {
 func (s *DestoryBoundSystem) AddByInterface(o ecs.Identifier) {
 	s.Add(o.(DestoryBoundable))
 }
+
+func (s *DestoryBoundSystem) ContainsEnt(id uint64) bool {
+	_, ok := s.ents[id]
+	return ok
+}

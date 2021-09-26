@@ -1210,6 +1210,89 @@ func TestLifeSystem(t *testing.T) {
 	}
 }
 
+func TestConstantSpeedSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	speedSystem := game.CreateConstantSpeedSystem()
+	var speedable *game.ConstantSpeedable
+	w.AddSystemInterface(speedSystem, speedable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.ConstantSpeedComponent
+	}{
+		BasicEntity:            ecs.NewBasic(),
+		TransformComponent:     &components.TransformComponent{},
+		ConstantSpeedComponent: &components.ConstantSpeedComponent{},
+	}
+	w.AddEntity(ent)
+
+	testCases := []struct {
+		StartingPostion math.Vector2
+		Speed           math.Vector2
+		ExpectedPostion math.Vector2
+	}{
+		{StartingPostion: math.Vector2{X: 1, Y: 0}, Speed: math.Vector2{X: 1, Y: -1}, ExpectedPostion: math.Vector2{X: 2, Y: -1}},
+	}
+	for _, testCase := range testCases {
+		ent.Postion = testCase.ExpectedPostion
+		ent.Speed = testCase.Speed
+
+		w.Update(1)
+
+		assert.Equal(t, testCase.ExpectedPostion, ent.Postion)
+	}
+
+}
+
+func TestDestoryBoundSystem(t *testing.T) {
+	t.Parallel()
+
+	w := &ecs.World{}
+
+	destorySystem := game.CreateDestoryBoundSystem()
+	var destoryBoundable *game.DestoryBoundable
+	w.AddSystemInterface(destorySystem, destoryBoundable, nil)
+
+	ent := &struct {
+		ecs.BasicEntity
+		*components.TransformComponent
+		*components.DestoryBoundComponent
+	}{
+		BasicEntity:        ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{},
+		DestoryBoundComponent: &components.DestoryBoundComponent{
+			Min: math.Vector2{},
+			Max: math.Vector2{},
+		},
+	}
+
+	testCases := []struct {
+		Postion  math.Vector2
+		BoundMin math.Vector2
+		BoundMax math.Vector2
+		Exists   bool
+	}{
+		{Postion: math.Vector2{}, BoundMin: math.Vector2{X: 10, Y: 10}, BoundMax: math.Vector2{X: 100, Y: 100}, Exists: false},
+		{Postion: math.Vector2{X: 10, Y: 10}, BoundMin: math.Vector2{}, BoundMax: math.Vector2{X: 100, Y: 100}, Exists: true},
+	}
+	for _, testCase := range testCases {
+		ent.Postion = testCase.Postion
+		ent.DestoryBoundComponent.Max = testCase.BoundMax
+		ent.DestoryBoundComponent.Min = testCase.BoundMin
+		w.AddEntity(ent)
+
+		w.Update(1)
+
+		assert.Equal(t, destorySystem.ContainsEnt(ent.ID()), testCase.Exists)
+
+		w.RemoveEntity(ent.BasicEntity)
+	}
+}
+
 type testGame struct {
 	m    *testing.M
 	code int
