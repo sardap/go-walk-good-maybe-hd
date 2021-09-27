@@ -3,7 +3,6 @@ package game
 import (
 	"bytes"
 	"encoding/base64"
-	"encoding/json"
 	"image"
 	"image/color"
 	_ "image/jpeg"
@@ -21,6 +20,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/icza/gox/imagex/colorx"
 	"github.com/sardap/walk-good-maybe-hd/assets"
+	"github.com/sardap/walk-good-maybe-hd/common"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -36,43 +36,6 @@ const (
 	ImageLayerKaraokeUi
 	ImageLayerKaraokeText
 )
-
-type DurationMil time.Duration
-
-func (d *DurationMil) UnmarshalJSON(b []byte) error {
-	var v time.Duration
-	if err := json.Unmarshal(b, &v); err != nil {
-		return err
-	}
-
-	*d = DurationMil(v * time.Millisecond)
-
-	return nil
-}
-
-type KaraokeInput struct {
-	StartTime  DurationMil             `json:"start_time"`
-	Duration   DurationMil             `json:"duration"`
-	Sound      components.KaraokeSound `json:"sound"`
-	xPostion   float64
-	xSpeed     float64
-	hitPostion float64
-}
-
-func (k *KaraokeInput) Y() float64 {
-	switch k.Sound {
-	case components.KaraokeSoundA:
-		return 550
-	case components.KaraokeSoundB:
-		return 450
-	case components.KaraokeSoundX:
-		return 350
-	case components.KaraokeSoundY:
-		return 250
-	}
-
-	return 400
-}
 
 const (
 	karaBoundStep     = 100
@@ -123,21 +86,6 @@ func Score(x float64) KaraokeScore {
 	return KaraokeScorePerfect
 }
 
-type KaraokeBackground struct {
-	Duration DurationMil `json:"duration"`
-	FadeIn   DurationMil `json:"fade_in"`
-	Image    string      `json:"image"`
-}
-
-type KaraokeSession struct {
-	Inputs        []*KaraokeInput      `json:"inputs"`
-	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
-	Sounds        map[string]string    `json:"sounds"`
-	Music         string               `json:"music"`
-	SampleRate    int                  `json:"sampleRate"`
-	backgroundIdx int
-}
-
 type KaraokeState int
 
 const (
@@ -153,7 +101,7 @@ type karaokeInfo struct {
 }
 
 type KaraokeScene struct {
-	Session     *KaraokeSession
+	Session     *common.KaraokeSession
 	inputLeeway time.Duration
 
 	rand  *rand.Rand
@@ -274,10 +222,11 @@ func (k *KaraokeScene) addEnts() {
 	k.world.AddEntity(k.inputEnt)
 }
 
-func loadImage(encoded string) image.Image {
-	decoded, _ := base64.StdEncoding.DecodeString(encoded)
-	raw := bytes.NewBuffer(decoded)
-	img, _, err := image.Decode(raw)
+func KaraokeLoadImage(background *common.KaraokeBackground) image.Image {
+
+	raw := make([]byte, base64.StdEncoding.DecodedLen(len(background.Image)))
+	base64.StdEncoding.Decode(raw, []byte(background.Image))
+	img, _, err := image.Decode(bytes.NewReader(raw))
 	if err != nil {
 		panic(err)
 	}
@@ -287,7 +236,7 @@ func loadImage(encoded string) image.Image {
 
 func (k *KaraokeScene) loadBackground() {
 	if k.nextImage == nil {
-		k.nextImage = ebiten.NewImageFromImage(loadImage(k.Session.Backgrounds[k.Session.backgroundIdx].Image))
+		k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage(k.Session.Backgrounds[k.Session.BackgroundIdx]))
 	}
 
 	if k.currentImage == nil {
@@ -298,13 +247,13 @@ func (k *KaraokeScene) loadBackground() {
 		k.backgroundBack.Image = k.currentImage
 		k.backgroundFront.Image = k.nextImage
 		k.backgroundFront.Options.Opacity = 0.0001
-		k.backgroundFrontFadeIn = time.Duration(k.Session.Backgrounds[k.Session.backgroundIdx].FadeIn)
+		k.backgroundFrontFadeIn = time.Duration(k.Session.Backgrounds[k.Session.BackgroundIdx].FadeIn)
 	}
 
 	k.currentImage = k.nextImage
 
-	if k.Session.backgroundIdx+1 < len(k.Session.Backgrounds) {
-		k.nextImage = ebiten.NewImageFromImage(loadImage(k.Session.Backgrounds[k.Session.backgroundIdx+1].Image))
+	if k.Session.BackgroundIdx+1 < len(k.Session.Backgrounds) {
+		k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage(k.Session.Backgrounds[k.Session.BackgroundIdx+1]))
 	}
 }
 
@@ -341,7 +290,7 @@ func (k *KaraokeScene) Start(game *Game) {
 		},
 	}
 
-	for key, _ := range k.soundInfo {
+	for key := range k.soundInfo {
 		raw, _ := base64.StdEncoding.DecodeString(k.Session.Sounds[string(key)])
 		k.soundInfo[key].sound.Sound = &components.Sound{
 			Source:     []byte(raw),
@@ -351,7 +300,7 @@ func (k *KaraokeScene) Start(game *Game) {
 		}
 	}
 
-	k.Session.backgroundIdx = 0
+	k.Session.BackgroundIdx = 0
 	k.inputLeeway = 100 * time.Millisecond
 	k.backgroundElapsed = 0
 
@@ -495,38 +444,38 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 			}
 		}
 
-		targetBackground := k.Session.Backgrounds[k.Session.backgroundIdx]
-		if k.Session.backgroundIdx+1 < len(k.Session.Backgrounds) &&
+		targetBackground := k.Session.Backgrounds[k.Session.BackgroundIdx]
+		if k.Session.BackgroundIdx+1 < len(k.Session.Backgrounds) &&
 			k.timeElapsed > k.backgroundElapsed+time.Duration(targetBackground.Duration) {
 			k.backgroundElapsed = k.timeElapsed
-			k.Session.backgroundIdx++
+			k.Session.BackgroundIdx++
 			k.loadBackground()
 		}
 
 		complete := false
 		{
-			var selectedInput *KaraokeInput
+			var selectedInput *common.KaraokeInput
 			bestScore := KaraokeScore(0)
 
 			for i, input := range k.Session.Inputs {
 
-				if k.timeElapsed < time.Duration(input.StartTime) || input.xPostion-100 > windowWidth {
-					if input.xPostion-100 > windowWidth && i == len(k.Session.Inputs)-1 {
+				if k.timeElapsed < input.StartTime || input.XPostion-100 > windowWidth {
+					if input.XPostion-100 > windowWidth && i == len(k.Session.Inputs)-1 {
 						complete = true
 					}
 					continue
 				}
 
-				if input.xSpeed == 0 {
-					input.xSpeed = 1650 / (float64(input.Duration) / float64(time.Second))
+				if input.XSpeed == 0 {
+					input.XSpeed = 1650 / (float64(input.Duration) / float64(time.Second))
 				}
 
-				input.xPostion += input.xSpeed * (float64(dt) / float64(time.Second))
+				input.XPostion += input.XSpeed * (float64(dt) / float64(time.Second))
 
 				inputKind := k.soundInfo[input.Sound].input
-				x := windowWidth - input.xPostion + 50
-				if input.hitPostion <= 0 && x > karaLeftBound && x < karaRightBound && k.inputEnt.InputJustPressed(inputKind) {
-					if score := Score(input.xPostion); score > bestScore {
+				x := windowWidth - input.XPostion + 50
+				if input.HitPostion <= 0 && x > karaLeftBound && x < karaRightBound && k.inputEnt.InputJustPressed(inputKind) {
+					if score := Score(input.XPostion); score > bestScore {
 						selectedInput = input
 						bestScore = score
 					}
@@ -534,7 +483,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 			}
 
 			if selectedInput != nil {
-				selectedInput.hitPostion = selectedInput.xPostion
+				selectedInput.HitPostion = selectedInput.XPostion
 				k.soundInfo[selectedInput.Sound].sound.Active = true
 				k.soundInfo[selectedInput.Sound].sound.Restart = true
 
@@ -545,10 +494,10 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 				}
 				textEnt.Color = parseHex("#A020F0")
 				textEnt.ConstantSpeedComponent.Speed.Y = -1000
-				textEnt.TextComponent.Text = Score(selectedInput.xPostion).String()
+				textEnt.TextComponent.Text = Score(selectedInput.XPostion).String()
 				textEnt.TextComponent.Font = k.comboFont
 				b := text.BoundString(textEnt.Font, textEnt.Text)
-				textEnt.Postion.X = windowWidth - selectedInput.xPostion - float64(b.Dx()/2)
+				textEnt.Postion.X = windowWidth - selectedInput.XPostion - float64(b.Dx()/2)
 				textEnt.Postion.Y = selectedInput.Y()
 				textEnt.Layer = ImageLayerKaraokeText
 				defer k.world.AddEntity(textEnt)
@@ -603,7 +552,7 @@ func (k *KaraokeScene) CalcScore() (score KaraokeScore) {
 	score = 1
 
 	for _, input := range k.Session.Inputs {
-		score += Score(input.hitPostion)
+		score += Score(input.HitPostion)
 	}
 
 	return
@@ -627,16 +576,16 @@ func (k *KaraokeScene) Draw(screen *ebiten.Image) {
 		op := ebiten.DrawImageOptions{}
 		for _, input := range k.Session.Inputs {
 
-			if input.xPostion <= 0 || input.xPostion-100 > windowWidth {
+			if input.XPostion <= 0 || input.XPostion-100 > windowWidth {
 				continue
 			}
 
 			op.ColorM.Reset()
 			op.GeoM.Reset()
 
-			op.GeoM.Translate(windowWidth-input.xPostion, input.Y())
+			op.GeoM.Translate(windowWidth-input.XPostion, input.Y())
 
-			if input.hitPostion > 0 {
+			if input.HitPostion > 0 {
 				op.ColorM.Scale(-1, -1, -1, 1)
 				op.ColorM.Translate(1, 1, 1, 0)
 			}

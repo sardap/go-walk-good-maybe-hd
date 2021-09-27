@@ -13,15 +13,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
 	"github.com/mjibson/go-dsp/wav"
+	"github.com/sardap/walk-good-maybe-hd/common"
+	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/tcolgate/mp3"
-
-	_ "image/jpeg"
-	_ "image/png"
 
 	_ "github.com/oov/psd"
 )
@@ -322,14 +322,11 @@ type KaraokeBackground struct {
 	Image    string `json:"image"`
 }
 
-type KaraokeIn struct {
+type KaraokeSession struct {
 	Inputs      []KaraokeInput      `json:"inputs"`
 	Backgrounds []KaraokeBackground `json:"backgrounds"`
-	Sounds      map[string]string   `json:"sounds"`
 	SoundFiles  map[string]string   `json:"sounds_files,omitempty"`
 	MusicFile   string              `json:"music_file,omitempty"`
-	Music       string              `json:"music"`
-	SampleRate  int                 `json:"sampleRate"`
 }
 
 func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
@@ -338,16 +335,20 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 		panic(err)
 	}
 
-	karaoke := KaraokeIn{}
-	err = json.Unmarshal(data, &karaoke)
+	karaokeIn := KaraokeSession{}
+	err = json.Unmarshal(data, &karaokeIn)
 	if err != nil {
 		panic(err)
 	}
 
+	karaokeOut := common.KaraokeSession{
+		Sounds: make(map[string]string),
+	}
+
 	karaokePath := strings.TrimSuffix(path, filepath.Base(path))
 
-	for i, background := range karaoke.Backgrounds {
-		karaoke.Backgrounds[i].Image = func() string {
+	for _, background := range karaokeIn.Backgrounds {
+		imageRaw := func() string {
 			f, err := os.Open(filepath.Join(karaokePath, background.Image))
 			if err != nil {
 				panic(err)
@@ -366,46 +367,56 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 
 			return base64.StdEncoding.EncodeToString(buffer.Bytes())
 		}()
+
+		karaokeOut.Backgrounds = append(karaokeOut.Backgrounds,
+			&common.KaraokeBackground{
+				Duration: time.Duration(background.Duration) * time.Millisecond,
+				FadeIn:   time.Duration(background.FadeIn) * time.Millisecond,
+				Image:    imageRaw,
+			},
+		)
 	}
 
-	timeElapsed := 0
-	for i := 1; i < len(karaoke.Inputs); i++ {
-		lastInput := &karaoke.Inputs[i-1]
-		input := &karaoke.Inputs[i]
-
-		if input.StartTime > 0 {
-			continue
-		}
-
-		input.StartTime = timeElapsed + lastInput.Duration + input.StartOffset
-		input.StartOffset = 0
-		timeElapsed += input.Duration
+	for _, input := range karaokeIn.Inputs {
+		karaokeOut.Inputs = append(karaokeOut.Inputs, &common.KaraokeInput{
+			StartTime: time.Duration(input.StartTime) * time.Millisecond,
+			Duration:  time.Duration(input.Duration) * time.Millisecond,
+			Sound:     components.KaraokeSound(input.Sound),
+		})
 	}
 
-	karaoke.Sounds = make(map[string]string)
+	// timeElapsed := 0
+	// for i := 1; i < len(karaokeIn.Inputs); i++ {
+	// 	lastInput := &karaokeIn.Inputs[i-1]
+	// 	input := &karaokeIn.Inputs[i]
 
-	for key, sound := range karaoke.SoundFiles {
+	// 	if input.StartTime > 0 {
+	// 		continue
+	// 	}
+
+	// 	input.StartTime = timeElapsed + lastInput.Duration + input.StartOffset
+	// 	input.StartOffset = 0
+	// 	timeElapsed += input.Duration
+	// }
+
+	for key, sound := range karaokeIn.SoundFiles {
 		soundRaw, err := ioutil.ReadFile(filepath.Join(karaokePath, sound))
 		if err != nil {
 			panic(err)
 		}
-		karaoke.Sounds[key] = base64.RawStdEncoding.EncodeToString(soundRaw)
+		karaokeOut.Sounds[key] = base64.RawStdEncoding.EncodeToString(soundRaw)
 	}
-	karaoke.SoundFiles = nil
 
-	karaoke.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaoke.MusicFile))
-	rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaoke.MusicFile))
-	karaoke.MusicFile = ""
-	karaoke.Music = base64.RawStdEncoding.EncodeToString(rawMusic)
+	karaokeOut.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaokeIn.MusicFile))
+	rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaokeIn.MusicFile))
+	karaokeOut.Music = base64.RawStdEncoding.EncodeToString(rawMusic)
 
-	data, err = json.Marshal(karaoke)
-	if err != nil {
+	buf := new(bytes.Buffer)
+	if err := toml.NewEncoder(buf).Encode(karaokeOut); err != nil {
 		panic(err)
 	}
 
-	compactJson := &bytes.Buffer{}
-	json.Compact(compactJson, data)
-	compressedJson, _ := compressAsset(compactJson.Bytes())
+	compressed, _ := compressAsset(buf.Bytes())
 
 	name := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
 	name = strcase.ToCamel(name)
@@ -416,7 +427,7 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	}
 
 	jf.Var().Id(name).Op("=").Struct(fields...).BlockFunc(func(jf *jen.Group) {
-		jf.Id("JsonStr").Op(":").Lit(string(compressedJson)).Op(",")
+		jf.Id("JsonStr").Op(":").Lit(string(compressed)).Op(",")
 	})
 }
 

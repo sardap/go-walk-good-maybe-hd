@@ -1,95 +1,76 @@
-// package common
+package common
 
-// import (
-// 	"time"
+import (
+	"time"
 
-// 	"github.com/sardap/walk-good-maybe-hd/components"
-// )
+	"github.com/sardap/walk-good-maybe-hd/components"
+)
 
-// type KaraokeInput struct {
-// 	StartTime  time.Time               `json:"start_time"`
-// 	Duration   time.Time               `json:"duration"`
-// 	Sound      components.KaraokeSound `json:"sound"`
-// 	xPostion   float64
-// 	xSpeed     float64
-// 	hitPostion float64
-// }
+type KaraokeInput struct {
+	StartTime  time.Duration           `toml:"start_time"`
+	Duration   time.Duration           `toml:"duration"`
+	Sound      components.KaraokeSound `toml:"sound"`
+	XPostion   float64                 `toml:"x_postion,omitempty"`
+	XSpeed     float64                 `toml:"x_speed,omitempty"`
+	HitPostion float64                 `toml:"x_hit_postion,omitempty"`
+}
 
-// func (k *KaraokeInput) Y() float64 {
-// 	switch k.Sound {
-// 	case components.KaraokeSoundA:
-// 		return 550
-// 	case components.KaraokeSoundB:
-// 		return 450
-// 	case components.KaraokeSoundX:
-// 		return 350
-// 	case components.KaraokeSoundY:
-// 		return 250
-// 	}
+func (k *KaraokeInput) Y() float64 {
+	switch k.Sound {
+	case components.KaraokeSoundA:
+		return 550
+	case components.KaraokeSoundB:
+		return 450
+	case components.KaraokeSoundX:
+		return 350
+	case components.KaraokeSoundY:
+		return 250
+	}
 
-// 	return 400
-// }
+	return 400
+}
 
-// const (
-// 	karaBoundStep     = 100
-// 	karaCenter        = 850
-// 	karaLeftBound     = karaCenter - karaBoundStep
-// 	karaRightBound    = karaCenter + karaBoundStep
-// 	karaScoreSpinTime = 2*time.Second + 500*time.Millisecond
-// )
+const (
+	karaBoundStep     = 100
+	karaCenter        = 850
+	karaLeftBound     = karaCenter - karaBoundStep
+	karaRightBound    = karaCenter + karaBoundStep
+	karaScoreSpinTime = 2*time.Second + 500*time.Millisecond
+)
 
-// type KaraokeScore int
+type KaraokeScore int
 
-// func (k KaraokeScore) String() string {
-// 	switch {
-// 	case k < 25:
-// 		return "Okay"
-// 	case k < 50:
-// 		return "Good"
-// 	case k < 75:
-// 		return "Great"
-// 	}
+func (k KaraokeScore) String() string {
+	switch {
+	case k < 25:
+		return "Okay"
+	case k < 50:
+		return "Good"
+	case k < 75:
+		return "Great"
+	}
 
-// 	return "Perfect"
-// }
+	return "Perfect"
+}
 
-// const (
-// 	KaraokeScoreOkay    KaraokeScore = 10
-// 	KaraokeScoreGood    KaraokeScore = 20
-// 	KaraokeScoreGreat   KaraokeScore = 40
-// 	KaraokeScorePerfect KaraokeScore = 80
-// )
+const (
+	KaraokeScoreOkay    KaraokeScore = 10
+	KaraokeScoreGood    KaraokeScore = 20
+	KaraokeScoreGreat   KaraokeScore = 40
+	KaraokeScorePerfect KaraokeScore = 80
+)
 
-// func Score(x float64) KaraokeScore {
-// 	if x == 0 {
-// 		return 0
-// 	}
+type KaraokeBackground struct {
+	Duration time.Duration `json:"duration"`
+	FadeIn   time.Duration `json:"fade_in"`
+	Image    string        `json:"image"`
+}
 
-// 	delta := gomath.Abs((x + 50) - (windowWidth - karaCenter))
-
-// 	switch {
-// 	case delta < 25:
-// 		return KaraokeScoreOkay
-// 	case delta < 50:
-// 		return KaraokeScoreGood
-// 	case delta < 75:
-// 		return KaraokeScoreGreat
-// 	}
-
-// 	return KaraokeScorePerfect
-// }
-
-// type KaraokeBackground struct {
-// 	Duration DurationMil `json:"duration"`
-// 	FadeIn   DurationMil `json:"fade_in"`
-// 	Image    string      `json:"image"`
-// }
-
-// type KaraokeSession struct {
-// 	Inputs        []*KaraokeInput      `json:"inputs"`
-// 	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
-// 	Sounds        map[string]string    `json:"sounds"`
-// 	Music         string               `json:"music"`
-// 	SampleRate    int                  `json:"sampleRate"`
-// 	backgroundIdx int
-// }
+type KaraokeSession struct {
+	Inputs        []*KaraokeInput      `json:"inputs"`
+	Backgrounds   []*KaraokeBackground `json:"backgrounds"`
+	Sounds        map[string]string    `json:"sounds"`
+	Music         string               `json:"music"`
+	SampleRate    int                  `json:"sampleRate"`
+	BackgroundIdx int
+}

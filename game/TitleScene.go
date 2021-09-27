@@ -2,17 +2,18 @@ package game
 
 import (
 	"bytes"
-	"encoding/json"
 	"image"
 	"image/color"
 	"io"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
 	"github.com/sardap/walk-good-maybe-hd/assets"
+	"github.com/sardap/walk-good-maybe-hd/common"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/utility"
@@ -90,8 +91,8 @@ func (s *TitleScene) Start(game *Game) {
 	s.selectionArrowCooldown = 0
 
 	jsonStr := assets.LoadKaraoke(assets.KaraokeTest)
-	session := &KaraokeSession{}
-	json.Unmarshal(jsonStr, session)
+	session := &common.KaraokeSession{}
+	toml.Decode(string(jsonStr), session)
 
 	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneGameText)
 	s.menuItems = []MenuItem{
