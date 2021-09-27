@@ -104,11 +104,6 @@ func compressAsset(data []byte) ([]byte, int) {
 	return compressed.Bytes(), len(data) - compressed.Len()
 }
 
-func genByteArray(jf *jen.File, data []byte, name string) {
-	jf.Var().Id(name).Op("=").Index().Byte().Params(jen.Lit(string(data)))
-	jf.Line()
-}
-
 type GraphicsOutput struct {
 	Name            string
 	Type            string
@@ -323,10 +318,52 @@ type KaraokeBackground struct {
 }
 
 type KaraokeSession struct {
-	Inputs      []KaraokeInput      `json:"inputs"`
-	Backgrounds []KaraokeBackground `json:"backgrounds"`
-	SoundFiles  map[string]string   `json:"sounds_files,omitempty"`
-	MusicFile   string              `json:"music_file,omitempty"`
+	Inputs           []KaraokeInput      `json:"inputs"`
+	Backgrounds      []KaraokeBackground `json:"backgrounds"`
+	SoundFiles       map[string]string   `json:"sounds_files,omitempty"`
+	MusicFile        string              `json:"music_file,omitempty"`
+	TextImageFiles   map[string]string   `json:"text_image_files"`
+	TitleScreenImage string              `json:"title_screen_file"`
+}
+
+func encodeJpeg(imagePath string) string {
+	f, err := os.Open(imagePath)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		panic(err)
+	}
+
+	buffer := &bytes.Buffer{}
+	if err := jpeg.Encode(buffer, img, &jpeg.Options{Quality: 30}); err != nil {
+		panic(err)
+	}
+
+	return base64.StdEncoding.EncodeToString(buffer.Bytes())
+}
+
+func encodePng(imagePath string) string {
+	f, err := os.Open(imagePath)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		panic(err)
+	}
+
+	buffer := &bytes.Buffer{}
+	if err := png.Encode(buffer, img); err != nil {
+		panic(err)
+	}
+
+	return base64.StdEncoding.EncodeToString(buffer.Bytes())
 }
 
 func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
@@ -342,32 +379,16 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	}
 
 	karaokeOut := common.KaraokeSession{
-		Sounds: make(map[string]string),
+		Sounds:     make(map[string]string),
+		TextImages: make(map[string]string),
 	}
 
 	karaokePath := strings.TrimSuffix(path, filepath.Base(path))
 
+	karaokeOut.TitleScreenImage = encodeJpeg(filepath.Join(karaokePath, karaokeIn.TitleScreenImage))
+
 	for _, background := range karaokeIn.Backgrounds {
-		imageRaw := func() string {
-			f, err := os.Open(filepath.Join(karaokePath, background.Image))
-			if err != nil {
-				panic(err)
-			}
-			defer f.Close()
-
-			img, _, err := image.Decode(f)
-			if err != nil {
-				panic(err)
-			}
-
-			buffer := &bytes.Buffer{}
-			if err := jpeg.Encode(buffer, img, &jpeg.Options{Quality: 30}); err != nil {
-				panic(err)
-			}
-
-			return base64.StdEncoding.EncodeToString(buffer.Bytes())
-		}()
-
+		imageRaw := encodeJpeg(filepath.Join(karaokePath, background.Image))
 		karaokeOut.Backgrounds = append(karaokeOut.Backgrounds,
 			&common.KaraokeBackground{
 				Duration: time.Duration(background.Duration) * time.Millisecond,
@@ -383,6 +404,10 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 			Duration:  time.Duration(input.Duration) * time.Millisecond,
 			Sound:     components.KaraokeSound(input.Sound),
 		})
+	}
+
+	for key, textImageFile := range karaokeIn.TextImageFiles {
+		karaokeOut.TextImages[key] = encodePng(filepath.Join(karaokePath, textImageFile))
 	}
 
 	// timeElapsed := 0

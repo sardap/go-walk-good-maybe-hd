@@ -1,9 +1,7 @@
 package game
 
 import (
-	"bytes"
 	"encoding/base64"
-	"image"
 	"image/color"
 	gomath "math"
 	"math/rand"
@@ -554,35 +552,15 @@ func TestCompleteGame(t *testing.T) {
 	g.Layout(100, 100)
 }
 
-func loadImageTwo(background *common.KaraokeBackground) image.Image {
-
-	raw := make([]byte, base64.StdEncoding.DecodedLen(len(background.Image)))
-	base64.StdEncoding.Decode(raw, []byte(background.Image))
-	img, _, err := image.Decode(bytes.NewReader(raw))
-	if err != nil {
-		panic(err)
+func benchmarkKaraokeLoadImage(image []byte, b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		KaraokeLoadImage(image)
 	}
-
-	return img
 }
 
-func TestBenchKaraokeLoadImage(t *testing.T) {
-	kb := &common.KaraokeBackground{
-		Duration: 0,
-		Image:    base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data)),
-	}
-
-	sum := 0 * time.Millisecond
-
-	for i := 0; i < 10; i++ {
-		start := time.Now()
-		for j := 0; j < 100; j++ {
-			KaraokeLoadImage(kb)
-		}
-		sum += time.Since(start)
-	}
-
-	avg := sum / 1000
-
-	assert.Less(t, avg, 10*time.Millisecond)
+func BenchmarkKaraokeLoadImageCityFog(b *testing.B) {
+	benchmarkKaraokeLoadImage(
+		[]byte(base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data))),
+		b,
+	)
 }

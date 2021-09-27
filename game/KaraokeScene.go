@@ -11,6 +11,7 @@ import (
 	gomath "math"
 	"math/rand"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/EngoEngine/ecs"
@@ -61,6 +62,7 @@ func (k KaraokeScore) String() string {
 }
 
 const (
+	KaraokeScoreMiss    KaraokeScore = 0
 	KaraokeScoreOkay    KaraokeScore = 10
 	KaraokeScoreGood    KaraokeScore = 20
 	KaraokeScoreGreat   KaraokeScore = 40
@@ -69,7 +71,7 @@ const (
 
 func Score(x float64) KaraokeScore {
 	if x == 0 {
-		return 0
+		return KaraokeScoreMiss
 	}
 
 	delta := gomath.Abs((x + 50) - (windowWidth - karaCenter))
@@ -112,11 +114,13 @@ type KaraokeScene struct {
 	karaokePlayer *entity.KaraokePlayer
 
 	currentImage          *ebiten.Image
+	titleScreenImage      *ebiten.Image
 	nextImage             *ebiten.Image
 	backgroundFront       *entity.BasicImage
 	backgroundFrontFadeIn time.Duration
 	backgroundBack        *entity.BasicImage
 	ui                    *entity.BasicImage
+	loadingBackgroundLock *sync.Mutex
 
 	scorePlayer      *entity.SoundPlayer
 	scoreTitleFont   font.Face
@@ -133,7 +137,8 @@ type KaraokeScene struct {
 	backgroundElapsed time.Duration
 	state             KaraokeState
 
-	soundInfo map[components.KaraokeSound]*karaokeInfo
+	soundInfo  map[components.KaraokeSound]*karaokeInfo
+	textImages map[KaraokeScore]*ebiten.Image
 }
 
 func (k *KaraokeScene) addSystems(audioCtx *audio.Context) {
@@ -215,17 +220,17 @@ func (k *KaraokeScene) addEnts() {
 	k.karaokePlayer = entity.CreateKaraokePlayer()
 	k.karaokePlayer.ImageComponent.Layer = ImageLayerKaraokeObjects
 	k.karaokePlayer.Postion.Y = windowHeight / 2
-	k.karaokePlayer.ImageComponent.Options.Opacity = 0.01
+	k.karaokePlayer.ImageComponent.Options.Opacity = 1
 	k.world.AddEntity(k.karaokePlayer)
 
 	k.inputEnt = entity.CreateMenuInput()
 	k.world.AddEntity(k.inputEnt)
 }
 
-func KaraokeLoadImage(background *common.KaraokeBackground) image.Image {
+func KaraokeLoadImage(data []byte) image.Image {
 
-	raw := make([]byte, base64.StdEncoding.DecodedLen(len(background.Image)))
-	base64.StdEncoding.Decode(raw, []byte(background.Image))
+	raw := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+	base64.StdEncoding.Decode(raw, []byte(data))
 	img, _, err := image.Decode(bytes.NewReader(raw))
 	if err != nil {
 		panic(err)
@@ -235,8 +240,11 @@ func KaraokeLoadImage(background *common.KaraokeBackground) image.Image {
 }
 
 func (k *KaraokeScene) loadBackground() {
+	k.loadingBackgroundLock.Lock()
+	defer k.loadingBackgroundLock.Unlock()
+
 	if k.nextImage == nil {
-		k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage(k.Session.Backgrounds[k.Session.BackgroundIdx]))
+		k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.Backgrounds[k.Session.BackgroundIdx].Image)))
 	}
 
 	if k.currentImage == nil {
@@ -253,7 +261,11 @@ func (k *KaraokeScene) loadBackground() {
 	k.currentImage = k.nextImage
 
 	if k.Session.BackgroundIdx+1 < len(k.Session.Backgrounds) {
-		k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage(k.Session.Backgrounds[k.Session.BackgroundIdx+1]))
+		go func() {
+			k.loadingBackgroundLock.Lock()
+			defer k.loadingBackgroundLock.Unlock()
+			k.nextImage = ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.Backgrounds[k.Session.BackgroundIdx+1].Image)))
+		}()
 	}
 }
 
@@ -266,6 +278,8 @@ func (k *KaraokeScene) Start(game *Game) {
 	if k.Session == nil || len(k.Session.Backgrounds) <= 0 || len(k.Session.Inputs) <= 0 {
 		panic("Must set Session, at least one background must be set and one input")
 	}
+
+	k.loadingBackgroundLock = &sync.Mutex{}
 
 	k.world = &ecs.World{}
 	k.rand = rand.New(rand.NewSource(time.Now().Unix()))
@@ -290,6 +304,13 @@ func (k *KaraokeScene) Start(game *Game) {
 		},
 	}
 
+	k.textImages = map[KaraokeScore]*ebiten.Image{
+		KaraokeScoreOkay:    ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TextImages["okay"]))),
+		KaraokeScoreGood:    ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TextImages["good"]))),
+		KaraokeScoreGreat:   ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TextImages["great"]))),
+		KaraokeScorePerfect: ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TextImages["perfect"]))),
+	}
+
 	for key := range k.soundInfo {
 		raw, _ := base64.StdEncoding.DecodeString(k.Session.Sounds[string(key)])
 		k.soundInfo[key].sound.Sound = &components.Sound{
@@ -306,6 +327,8 @@ func (k *KaraokeScene) Start(game *Game) {
 
 	k.addSystems(game.audioCtx)
 	k.addEnts()
+
+	k.titleScreenImage = ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TitleScreenImage)))
 
 	// Make it do it dynamically based on binding
 	switch k.inputEnt.InputMode {
@@ -425,11 +448,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 
 	switch k.state {
 	case KaraokeStateStarting:
-		const fadeInTime = 0 * time.Second
-		const fadeInTimeBackground = 0 * time.Second
-
-		k.karaokePlayer.ImageComponent.Options.Opacity = utility.ClampFloat64(1-(float64(fadeInTime-k.timeElapsed)/float64(fadeInTime)), 0, 1)
-		k.backgroundFront.ImageComponent.Options.Opacity = utility.ClampFloat64(1-(float64(fadeInTimeBackground-k.timeElapsed)/float64(fadeInTimeBackground)), 0, 1)
+		const fadeInTimeBackground = 3 * time.Second
 		if k.timeElapsed > fadeInTimeBackground {
 			k.timeElapsed = 0
 			k.state = KaraokeStateSinging
@@ -487,18 +506,19 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 				k.soundInfo[selectedInput.Sound].sound.Active = true
 				k.soundInfo[selectedInput.Sound].sound.Restart = true
 
-				textEnt := entity.CreateFloatingText()
-				textEnt.DestoryBoundComponent.Max = math.Vector2{
-					X: windowWidth,
-					Y: windowHeight,
+				textEnt := entity.CreateFloatingTimedImage()
+				textEnt.DestoryBoundComponent.Min = math.Vector2{
+					X: -500,
+					Y: -500,
 				}
-				textEnt.Color = parseHex("#A020F0")
-				textEnt.ConstantSpeedComponent.Speed.Y = -1000
-				textEnt.TextComponent.Text = Score(selectedInput.XPostion).String()
-				textEnt.TextComponent.Font = k.comboFont
-				b := text.BoundString(textEnt.Font, textEnt.Text)
-				textEnt.Postion.X = windowWidth - selectedInput.XPostion - float64(b.Dx()/2)
-				textEnt.Postion.Y = selectedInput.Y()
+				textEnt.DestoryBoundComponent.Max = math.Vector2{
+					X: windowWidth + 500,
+					Y: windowHeight + 500,
+				}
+				textEnt.ConstantSpeedComponent.Speed.X = 1000
+				textEnt.Image = k.textImages[bestScore]
+				textEnt.Postion.X = k.karaokePlayer.Postion.X + k.karaokePlayer.TransformComponent.Size.X
+				textEnt.Postion.Y = 1150
 				textEnt.Layer = ImageLayerKaraokeText
 				defer k.world.AddEntity(textEnt)
 			}
@@ -572,6 +592,8 @@ func (k *KaraokeScene) Draw(screen *ebiten.Image) {
 	}
 
 	switch k.state {
+	case KaraokeStateStarting:
+		screen.DrawImage(k.titleScreenImage, &ebiten.DrawImageOptions{})
 	case KaraokeStateSinging:
 		op := ebiten.DrawImageOptions{}
 		for _, input := range k.Session.Inputs {

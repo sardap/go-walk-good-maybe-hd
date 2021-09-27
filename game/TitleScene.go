@@ -90,7 +90,7 @@ func (s *TitleScene) Start(game *Game) {
 	s.selectionActiveArrow = s.whiteArrow
 	s.selectionArrowCooldown = 0
 
-	jsonStr := assets.LoadKaraoke(assets.KaraokeTest)
+	jsonStr := assets.LoadKaraoke(assets.KaraokePdRock01)
 	session := &common.KaraokeSession{}
 	toml.Decode(string(jsonStr), session)
 

@@ -156,7 +156,7 @@ func TestLoadSound(t *testing.T) {
 func TestLoadKaraoke(t *testing.T) {
 	t.Parallel()
 
-	data := LoadKaraoke(KaraokeTest)
+	data := LoadKaraoke(KaraokePdRock01)
 	assert.NotNil(t, data)
 }
 

@@ -222,3 +222,25 @@ func CreateFloatingText() *FloatingText {
 		TextComponent:         &components.TextComponent{},
 	}
 }
+
+type FloatingTimedImage struct {
+	ecs.BasicEntity
+	*components.ConstantSpeedComponent
+	*components.TransformComponent
+	*components.ImageComponent
+	*components.DestoryBoundComponent
+	*components.VelocityComponent
+}
+
+func CreateFloatingTimedImage() *FloatingTimedImage {
+	return &FloatingTimedImage{
+		BasicEntity:            ecs.NewBasic(),
+		TransformComponent:     &components.TransformComponent{},
+		ConstantSpeedComponent: &components.ConstantSpeedComponent{},
+		DestoryBoundComponent:  &components.DestoryBoundComponent{},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+		},
+		VelocityComponent: &components.VelocityComponent{},
+	}
+}
