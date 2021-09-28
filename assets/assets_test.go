@@ -60,14 +60,14 @@ func TestLoadEbitenImage(t *testing.T) {
 
 	startTime := time.Now()
 	for i := 0; i < 1000; i++ {
-		delete(imageCache, md5.Sum([]byte(asset.Data)))
-		LoadEbitenImage(asset)
+		assets.DeleteImageCache(md5.Sum([]byte(asset.Data)))
+		assets.LoadEbitenImageAsset(asset)
 	}
 	delta := time.Since(startTime)
 
 	startTime = time.Now()
 	for i := 0; i < 1000; i++ {
-		LoadEbitenImage(asset)
+		assets.LoadEbitenImageAsset(asset)
 	}
 	assert.Less(t, time.Since(startTime), delta/5)
 	assert.NoError(t, err)
@@ -83,7 +83,7 @@ func TestLoadEbitenImage(t *testing.T) {
 		Data:            string(compress([]byte(testImg))),
 	}
 
-	img, err = LoadEbitenImage(asset)
+	img, err = assets.LoadEbitenImageAsset(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
 }
@@ -126,7 +126,7 @@ func TestLoadEbitenImageColorSwap(t *testing.T) {
 		}
 	}
 
-	img, err := LoadEbitenImageColorSwap(asset, colorMap)
+	img, err := assets.LoadEbitenImageColorSwap(asset, colorMap)
 	assert.NoError(t, err)
 
 	for _, update := range updates {
@@ -141,23 +141,23 @@ func TestLoadSound(t *testing.T) {
 	asset := struct {
 		SampleRate int
 		Data       string
-		SoundType  SoundType
+		SoundType  assets.SoundType
 	}{
 		SampleRate: 10312312,
 		Data:       "looky here",
-		SoundType:  SoundTypeWav,
+		SoundType:  assets.SoundTypeWav,
 	}
 
-	data, sr, soundType := LoadSound(asset)
+	data, sr, soundType := assets.LoadSound(asset)
 	assert.Equal(t, int(10312312), sr)
 	assert.Equal(t, []byte("looky here"), data)
-	assert.Equal(t, SoundTypeWav, soundType)
+	assert.Equal(t, assets.SoundTypeWav, soundType)
 }
 
 func TestLoadKaraoke(t *testing.T) {
 	t.Parallel()
 
-	data := LoadKaraoke(KaraokePdRock01)
+	data := assets.LoadKaraoke(assets.KaraokePdRock01)
 	assert.NotNil(t, data)
 }
 

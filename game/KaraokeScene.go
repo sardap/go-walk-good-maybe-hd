@@ -330,36 +330,10 @@ func (k *KaraokeScene) Start(game *Game) {
 
 	k.titleScreenImage = ebiten.NewImageFromImage(KaraokeLoadImage([]byte(k.Session.TitleScreenImage)))
 
-	// Make it do it dynamically based on binding
-	switch k.inputEnt.InputMode {
-	case components.InputModeGamepad:
-		img, _ := assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXA)
-		k.soundInfo[components.KaraokeSoundA].image = img
-
-		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXB)
-		k.soundInfo[components.KaraokeSoundB].image = img
-
-		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXX)
-		k.soundInfo[components.KaraokeSoundX].image = img
-
-		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXY)
-		k.soundInfo[components.KaraokeSoundY].image = img
-	case components.InputModeKeyboard:
-
-		keyboard := k.inputEnt.Keyboard
-
-		img, _ := assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeA]]))
-		k.soundInfo[components.KaraokeSoundA].image = img
-
-		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeB]]))
-		k.soundInfo[components.KaraokeSoundB].image = img
-
-		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeX]]))
-		k.soundInfo[components.KaraokeSoundX].image = img
-
-		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeY]]))
-		k.soundInfo[components.KaraokeSoundY].image = img
-	}
+	k.soundInfo[components.KaraokeSoundA].image = loadIconImage(k.inputEnt.InputComponent, components.InputKindKaraokeA)
+	k.soundInfo[components.KaraokeSoundB].image = loadIconImage(k.inputEnt.InputComponent, components.InputKindKaraokeB)
+	k.soundInfo[components.KaraokeSoundX].image = loadIconImage(k.inputEnt.InputComponent, components.InputKindKaraokeX)
+	k.soundInfo[components.KaraokeSoundY].image = loadIconImage(k.inputEnt.InputComponent, components.InputKindKaraokeY)
 
 	for _, info := range k.soundInfo {
 		k.world.AddEntity(info.sound)

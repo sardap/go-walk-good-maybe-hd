@@ -310,61 +310,28 @@ file="pdTitleScreen.mp3"
 
 # ---------------------------------- #
 
-# 
+# +
 # --- input icons ---
 #
 
 [[Icons]]
 name="keyboardDark"
 path="keyboard"
+type="keyboard"
 expression="^(?P<name>.*?)_Key_Dark\\.png$"
 
-[[Images]]
-name="iconXboxSeriesXA"
-type="single"
-scaleMultiplier=1
-file="inputIcons/xboxSeriesXA.psd"
-
-[[Images]]
-name="iconXboxSeriesXB"
-type="single"
-scaleMultiplier=1
-file="inputIcons/xboxSeriesXB.psd"
-
-[[Images]]
-name="iconXboxSeriesXX"
-type="single"
-scaleMultiplier=1
-file="inputIcons/xboxSeriesXX.psd"
-
-[[Images]]
-name="iconXboxSeriesXY"
-type="single"
-scaleMultiplier=1
-file="inputIcons/xboxSeriesXY.psd"
-
-# [[Images]]
-# name="iconKeyboardKeyW"
-# type="single"
-# scaleMultiplier=1
-# file="inputIcons/keyboard/W_Key_Dark.png"
-
-# [[Images]]
-# name="iconKeyboardKeyA"
-# type="single"
-# scaleMultiplier=1
-# file="inputIcons/keyboard/A_Key_Dark.png"
-
-# [[Images]]
-# name="iconKeyboardKeyS"
-# type="single"
-# scaleMultiplier=1
-# file="inputIcons/keyboard/S_Key_Dark.png"
-
-# [[Images]]
-# name="iconKeyboardKeyD"
-# type="single"
-# scaleMultiplier=1
-# file="inputIcons/keyboard/D_Key_Dark.png"
-
-
+[[Icons]]
+name="xboxSeries"
+path="XboxSeriesX"
+type="gamepad"
+[Icons.Buttons]
+a="XboxSeriesX_A.png"
+b="XboxSeriesX_B.png"
+x="XboxSeriesX_X.png"
+y="XboxSeriesX_Y.png"
+lb="XboxSeriesX_LB.png"
+rb="XboxSeriesX_RB.png"
+select="XboxSeriesX_View.png"
+start="XboxSeriesX_Menu.png"
+left_stick="XboxSeriesX_Left_Stick.png"
+right_stick="XboxSeriesX_Right_Stick.png"

@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/components"
 )
 
@@ -89,4 +90,19 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return windowWidth, windowHeight
+}
+
+func loadIconImage(inputCom *components.InputComponent, kind components.InputKind) *ebiten.Image {
+	var result *ebiten.Image
+
+	switch inputCom.InputMode {
+	case components.InputModeGamepad:
+		gamepad := inputCom.Gamepad
+		result, _ = assets.LoadEbitenImageRaw([]byte(assets.IconXboxSeries[int(gamepad.Mapping[kind])]))
+	case components.InputModeKeyboard:
+		keyboard := inputCom.Keyboard
+		result, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[kind]]))
+	}
+
+	return result
 }

@@ -151,6 +151,9 @@ func DefaultGamepadInputType() GamepadInputType {
 			InputKindShoot:    1,
 			InputKindSelect:   0,
 			InputKindKaraokeA: 0,
+			InputKindKaraokeB: 1,
+			InputKindKaraokeX: 2,
+			InputKindKaraokeY: 3,
 		},
 		Driver: EbitenGamepadDriver{},
 	}

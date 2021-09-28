@@ -469,6 +469,21 @@ type IconOutput struct {
 	Name       string
 	Path       string
 	Expression string
+	Type       string
+	Buttons    GamepadButtonMap
+}
+
+type GamepadButtonMap struct {
+	A          string `toml:"a"`
+	B          string `toml:"b"`
+	X          string `toml:"x"`
+	Y          string `toml:"y"`
+	LB         string `toml:"lb"`
+	RB         string `toml:"rb"`
+	Select     string `toml:"select"`
+	Start      string `toml:"start"`
+	LeftStick  string `toml:"left_stick"`
+	RightStick string `toml:"right_stick"`
 }
 
 func findGroupIdx(key string, keys []string) int {
@@ -483,7 +498,7 @@ func findGroupIdx(key string, keys []string) int {
 	return result
 }
 
-func (i *IconOutput) genIconAsset(jf *jen.File, path string) {
+func (i *IconOutput) genKeyboardIconAsset(jf *jen.File, path string) {
 	re := regexp.MustCompile(i.Expression)
 	keys := re.SubexpNames()
 	nameGroup := findGroupIdx("name", keys)
@@ -518,14 +533,48 @@ func (i *IconOutput) genIconAsset(jf *jen.File, path string) {
 			d[jen.Qual("github.com/hajimehoshi/ebiten/v2", key)] = jen.Lit(string(image))
 		}
 	}))
+	jf.Line()
 }
 
-func genIconAssets(jf *jen.File, sounds []IconOutput, assetsPath string) {
+func (i *IconOutput) genGamepadIconAsset(jf *jen.File, path string) {
+	inputMap := make(jen.Dict)
+
+	loadData := func(fileName string) string {
+		data, err := ioutil.ReadFile(filepath.Join(path, fileName))
+		if err != nil {
+			panic(err)
+		}
+		return string(data)
+	}
+
+	inputMap[jen.Lit(0)] = jen.Lit(loadData(i.Buttons.A))
+	inputMap[jen.Lit(1)] = jen.Lit(loadData(i.Buttons.B))
+	inputMap[jen.Lit(2)] = jen.Lit(loadData(i.Buttons.X))
+	inputMap[jen.Lit(3)] = jen.Lit(loadData(i.Buttons.Y))
+	inputMap[jen.Lit(4)] = jen.Lit(loadData(i.Buttons.LB))
+	inputMap[jen.Lit(5)] = jen.Lit(loadData(i.Buttons.RB))
+	inputMap[jen.Lit(6)] = jen.Lit(loadData(i.Buttons.Select))
+	inputMap[jen.Lit(7)] = jen.Lit(loadData(i.Buttons.Start))
+	inputMap[jen.Lit(8)] = jen.Lit(loadData(i.Buttons.LeftStick))
+	inputMap[jen.Lit(9)] = jen.Lit(loadData(i.Buttons.RightStick))
+
+	name := "Icon" + strcase.ToCamel(i.Name)
+
+	jf.Var().Id(name).Op("=").Map(jen.Int()).String().Values(inputMap)
+	jf.Line()
+}
+
+func genIconAssets(jf *jen.File, icons []IconOutput, assetsPath string) {
 	fmt.Printf("\nGenerating Icons\n")
 
-	for _, target := range sounds {
+	for _, target := range icons {
 		fmt.Printf("...%s\n", target.Name)
-		target.genIconAsset(jf, filepath.Join(assetsPath, target.Path))
+		switch target.Type {
+		case "keyboard":
+			target.genKeyboardIconAsset(jf, filepath.Join(assetsPath, target.Path))
+		case "gamepad":
+			target.genGamepadIconAsset(jf, filepath.Join(assetsPath, target.Path))
+		}
 	}
 }
 
