@@ -61,7 +61,7 @@ func CreateBullet(img *ebiten.Image) *Bullet {
 }
 
 func CreatePlayerBullet() *Bullet {
-	img, _ := assets.LoadEbitenImage(assets.ImageBulletSmallGreen)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBulletSmallGreen)
 
 	return CreateBullet(img)
 }

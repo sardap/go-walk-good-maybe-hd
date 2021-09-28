@@ -1,4 +1,4 @@
-package assets
+package assets_test
 
 import (
 	"bytes"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,7 +54,7 @@ func TestLoadEbitenImage(t *testing.T) {
 		ScaleMultiplier: 1,
 	}
 
-	img, err := LoadEbitenImage(asset)
+	img, err := assets.LoadEbitenImageAsset(asset)
 	assert.NoError(t, err)
 	assert.Equal(t, int(16), img.Bounds().Max.X)
 

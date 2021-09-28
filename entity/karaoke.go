@@ -16,7 +16,7 @@ type KaraokePlayer struct {
 }
 
 func CreateKaraokePlayer() *KaraokePlayer {
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleSinging)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleSinging)
 
 	return &KaraokePlayer{
 		BasicEntity: ecs.NewBasic(),

@@ -119,7 +119,7 @@ type BasicTileMap struct {
 }
 
 func CreateLifeDisplay() *BasicTileMap {
-	img, _ := assets.LoadEbitenImage(assets.ImageUiLifeAmountTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageUiLifeAmountTileSet)
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageUiLifeAmountTileSet.FrameWidth)
 
 	return &BasicTileMap{
@@ -138,7 +138,7 @@ func CreateLifeDisplay() *BasicTileMap {
 }
 
 func CreateJumpDisplay() *BasicTileMap {
-	img, _ := assets.LoadEbitenImage(assets.ImageUiJumpAmountTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageUiJumpAmountTileSet)
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageUiJumpAmountTileSet.FrameWidth)
 
 	return &BasicTileMap{
@@ -157,7 +157,7 @@ func CreateJumpDisplay() *BasicTileMap {
 }
 
 func CreateSpeedDisplay() *BasicTileMap {
-	img, _ := assets.LoadEbitenImage(assets.ImageUiSpeedAmountTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageUiSpeedAmountTileSet)
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageUiSpeedAmountTileSet.FrameWidth)
 
 	return &BasicTileMap{
@@ -182,7 +182,7 @@ type BasicImage struct {
 }
 
 func CreateBasicImage(imageAsset interface{}) *BasicImage {
-	img, _ := assets.LoadEbitenImage(imageAsset)
+	img, _ := assets.LoadEbitenImageAsset(imageAsset)
 
 	return &BasicImage{
 		BasicEntity: ecs.NewBasic(),

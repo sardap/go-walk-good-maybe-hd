@@ -28,7 +28,7 @@ type Player struct {
 }
 
 func CreatePlayer() *Player {
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleAirTileSet)
 
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageWhaleAirTileSet.FrameWidth)
 

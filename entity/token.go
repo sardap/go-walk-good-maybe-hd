@@ -49,11 +49,11 @@ func createToken(img *ebiten.Image, tag int) *Token {
 }
 
 func CreateJumpUpToken() *Token {
-	img, _ := assets.LoadEbitenImage(assets.ImageTokenJumpUp)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageTokenJumpUp)
 	return createToken(img, TagJumpToken)
 }
 
 func CreateSpeedUpToken() *Token {
-	img, _ := assets.LoadEbitenImage(assets.ImageTokenSpeedUp)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageTokenSpeedUp)
 	return createToken(img, TagSpeedToken)
 }

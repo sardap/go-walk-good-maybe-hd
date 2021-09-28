@@ -114,7 +114,7 @@ func createLevelBlock(ent ecs.BasicEntity, tileMap *components.TileMap, width, h
 }
 
 func createBuilding0(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding0TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding0TileSet)
 
 	width := utility.RandRange(rand, 5, 9)
 	height := utility.RandRange(rand, 5, 10)
@@ -133,7 +133,7 @@ func createBuilding0(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 }
 
 func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding1TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding1TileSet)
 
 	width := utility.RandRange(rand, 4, 6)
 	height := utility.RandRange(rand, 3, 5)
@@ -154,7 +154,7 @@ func createBuilding1(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 }
 
 func createBuilding2(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding2TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding2TileSet)
 
 	width := utility.RandRange(rand, 4, 6)
 	if width%2 == 0 {
@@ -201,7 +201,7 @@ func createBuilding2(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 }
 
 func createBuilding3(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding3TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding3TileSet)
 
 	width := utility.RandRange(rand, 3, 5)
 
@@ -236,7 +236,7 @@ func createBuilding3(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 }
 
 func createBuilding4(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding4TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding4TileSet)
 
 	width := utility.RandRange(rand, 5, 6)
 
@@ -288,7 +288,7 @@ func createBuilding4(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
 }
 
 func createBuilding5(rand *rand.Rand, ent ecs.BasicEntity) *LevelBlock {
-	tileSet, _ := assets.LoadEbitenImage(assets.ImageBuilding5TileSet)
+	tileSet, _ := assets.LoadEbitenImageAsset(assets.ImageBuilding5TileSet)
 
 	width := utility.RandRange(rand, 4, 6)
 

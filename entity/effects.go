@@ -17,7 +17,7 @@ type SpeedLine struct {
 }
 
 func CreateSpeedLine() *SpeedLine {
-	img, _ := assets.LoadEbitenImage(assets.ImageSpeedLine)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageSpeedLine)
 
 	return &SpeedLine{
 		BasicEntity: ecs.NewBasic(),

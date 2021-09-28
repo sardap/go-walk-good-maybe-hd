@@ -48,24 +48,24 @@ type TitleScene struct {
 }
 
 func (s *TitleScene) Start(game *Game) {
-	img, _ := assets.LoadEbitenImage(assets.ImageTitleSceneText)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageTitleSceneText)
 	s.titleText = img
 
-	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneBeach)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageTitleSceneBeach)
 	s.beach = img
 
-	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneBeachWaterTileSet)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageTitleSceneBeachWaterTileSet)
 	s.beachWater = img
 	s.beachWaterAnimeIdx = 0
 	s.waterAnimeTimer = 0
 
-	img, _ = assets.LoadEbitenImage(assets.ImageBackgroundCity)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageBackgroundCity)
 	s.city = img
 
-	img, _ = assets.LoadEbitenImage(assets.ImageCityFog)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageCityFog)
 	s.cityFog = img
 
-	img, _ = assets.LoadEbitenImage(assets.ImageSkyCity)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageSkyCity)
 	s.citySky = img
 
 	s.xOffset = 0
@@ -94,7 +94,7 @@ func (s *TitleScene) Start(game *Game) {
 	session := &common.KaraokeSession{}
 	toml.Decode(string(jsonStr), session)
 
-	img, _ = assets.LoadEbitenImage(assets.ImageTitleSceneGameText)
+	img, _ = assets.LoadEbitenImageAsset(assets.ImageTitleSceneGameText)
 	s.menuItems = []MenuItem{
 		{
 			TargetScene: &MainGameScene{},

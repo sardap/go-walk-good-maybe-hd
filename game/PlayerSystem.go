@@ -46,7 +46,7 @@ func (s *PlayerSystem) New(world *ecs.World) {
 func (s *PlayerSystem) changeToPrepareJump(player *entity.Player) {
 	player.State = components.MainGamePlayerStatePrepareJumping
 
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleJumpTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleJumpTileSet)
 	components.ChangeAnimeImage(player, img, 125*time.Millisecond)
 }
 
@@ -57,7 +57,7 @@ func (s *PlayerSystem) changeToJumping(player *entity.Player) {
 	player.SoundComponent.Active = true
 	player.SoundComponent.Restart = true
 
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleAirTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleAirTileSet)
 	components.ChangeAnimeImage(player, img, 50*time.Millisecond)
 	player.JumpPowerRemaning = player.JumpPower
 }
@@ -69,14 +69,14 @@ func (s *PlayerSystem) changeToFlying(player *entity.Player) {
 func (s *PlayerSystem) changeToIdle(player *entity.Player) {
 	player.State = components.MainGamePlayerStateGroundIdling
 
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleIdleTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleIdleTileSet)
 	components.ChangeAnimeImage(player, img, 50*time.Millisecond)
 }
 
 func (s *PlayerSystem) changeToWalk(player *entity.Player) {
 	player.State = components.MainGamePlayerStateGroundMoving
 
-	img, _ := assets.LoadEbitenImage(assets.ImageWhaleWalkTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageWhaleWalkTileSet)
 	components.ChangeAnimeImage(player, img, 50*time.Millisecond)
 }
 

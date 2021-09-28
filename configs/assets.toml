@@ -314,6 +314,11 @@ file="pdTitleScreen.mp3"
 # --- input icons ---
 #
 
+[[Icons]]
+name="keyboardDark"
+path="keyboard"
+expression="^(?P<name>.*?)_Key_Dark\\.png$"
+
 [[Images]]
 name="iconXboxSeriesXA"
 type="single"
@@ -338,28 +343,28 @@ type="single"
 scaleMultiplier=1
 file="inputIcons/xboxSeriesXY.psd"
 
-[[Images]]
-name="iconKeyboardKeyW"
-type="single"
-scaleMultiplier=1
-file="inputIcons/keyboard/W_Key_Dark.png"
+# [[Images]]
+# name="iconKeyboardKeyW"
+# type="single"
+# scaleMultiplier=1
+# file="inputIcons/keyboard/W_Key_Dark.png"
 
-[[Images]]
-name="iconKeyboardKeyA"
-type="single"
-scaleMultiplier=1
-file="inputIcons/keyboard/A_Key_Dark.png"
+# [[Images]]
+# name="iconKeyboardKeyA"
+# type="single"
+# scaleMultiplier=1
+# file="inputIcons/keyboard/A_Key_Dark.png"
 
-[[Images]]
-name="iconKeyboardKeyS"
-type="single"
-scaleMultiplier=1
-file="inputIcons/keyboard/S_Key_Dark.png"
+# [[Images]]
+# name="iconKeyboardKeyS"
+# type="single"
+# scaleMultiplier=1
+# file="inputIcons/keyboard/S_Key_Dark.png"
 
-[[Images]]
-name="iconKeyboardKeyD"
-type="single"
-scaleMultiplier=1
-file="inputIcons/keyboard/D_Key_Dark.png"
+# [[Images]]
+# name="iconKeyboardKeyD"
+# type="single"
+# scaleMultiplier=1
+# file="inputIcons/keyboard/D_Key_Dark.png"
 
 

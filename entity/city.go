@@ -39,7 +39,7 @@ type CityBackground struct {
 }
 
 func CreateCityBackground() *CityBackground {
-	img, _ := assets.LoadEbitenImage(assets.ImageBackgroundCity)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBackgroundCity)
 
 	w, h := img.Size()
 
@@ -73,7 +73,7 @@ type CitySkyBackground struct {
 }
 
 func CreateCitySkyBackground() *CitySkyBackground {
-	img, _ := assets.LoadEbitenImage(assets.ImageSkyCity)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageSkyCity)
 
 	w, h := img.Size()
 
@@ -100,7 +100,7 @@ type CityFogBackground struct {
 }
 
 func CreateCityFogBackground() *CityFogBackground {
-	img, _ := assets.LoadEbitenImage(assets.ImageCityFog)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageCityFog)
 
 	w, h := img.Size()
 

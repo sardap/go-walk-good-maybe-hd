@@ -26,7 +26,7 @@ type BiscuitEnemy struct {
 }
 
 func CreateBiscuitEnemy() *BiscuitEnemy {
-	img, _ := assets.LoadEbitenImage(assets.ImageBiscuitEnemyIdleTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBiscuitEnemyIdleTileSet)
 
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageBiscuitEnemyIdleTileSet.FrameWidth)
 	tileMap.SetTile(0, 0, 0)
@@ -75,7 +75,7 @@ func CreateBiscuitEnemy() *BiscuitEnemy {
 }
 
 func CreateBiscuitEnemyDeath() *SingleScrollableAnime {
-	img, _ := assets.LoadEbitenImage(assets.ImageBiscuitEnemyDeathTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBiscuitEnemyDeathTileSet)
 
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageBiscuitEnemyDeathTileSet.FrameWidth)
 	tileMap.SetTile(0, 0, 0)
@@ -121,7 +121,7 @@ type UfoBiscuitEnemy struct {
 }
 
 func CreateUfoBiscuitEnemy() *UfoBiscuitEnemy {
-	img, _ := assets.LoadEbitenImage(assets.ImageBiscutUFOIdleTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBiscutUFOIdleTileSet)
 
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageBiscutUFOIdleTileSet.FrameWidth)
 	tileMap.SetTile(0, 0, 0)
@@ -166,7 +166,7 @@ func CreateUfoBiscuitEnemy() *UfoBiscuitEnemy {
 }
 
 func CreateUfoBiscuitEnemyDeath() *SingleScrollableAnime {
-	img, _ := assets.LoadEbitenImage(assets.ImageBiscutUfoDeathTileSet)
+	img, _ := assets.LoadEbitenImageAsset(assets.ImageBiscutUfoDeathTileSet)
 
 	tileMap := components.CreateTileMap(1, 1, img, assets.ImageBiscutUfoDeathTileSet.FrameWidth)
 	tileMap.SetTile(0, 0, 0)

@@ -96,8 +96,29 @@ func LoadEbitenImageColorSwap(asset interface{}, clrMap map[color.RGBA]color.RGB
 	return eImg, nil
 }
 
-func LoadEbitenImage(asset interface{}) (*ebiten.Image, error) {
+func LoadEbitenImageAsset(asset interface{}) (*ebiten.Image, error) {
 	return LoadEbitenImageColorSwap(asset, nil)
+}
+
+func LoadEbitenImageRaw(imageData []byte) (*ebiten.Image, error) {
+	hash := getImageHash(imageData, nil)
+
+	lock.Lock()
+	defer lock.Unlock()
+	eImg, ok := imageCache[hash]
+	if ok {
+		return eImg, nil
+	}
+
+	img, _, err := image.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		return nil, err
+	}
+
+	eImg = ebiten.NewImageFromImage(img)
+	imageCache[hash] = eImg
+
+	return eImg, nil
 }
 
 func LoadSound(asset interface{}) (data []byte, sampleRate int, soundType SoundType) {

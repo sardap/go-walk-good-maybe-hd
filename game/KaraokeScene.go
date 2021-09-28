@@ -333,29 +333,31 @@ func (k *KaraokeScene) Start(game *Game) {
 	// Make it do it dynamically based on binding
 	switch k.inputEnt.InputMode {
 	case components.InputModeGamepad:
-		img, _ := assets.LoadEbitenImage(assets.ImageIconXboxSeriesXA)
+		img, _ := assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXA)
 		k.soundInfo[components.KaraokeSoundA].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXB)
+		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXB)
 		k.soundInfo[components.KaraokeSoundB].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXX)
+		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXX)
 		k.soundInfo[components.KaraokeSoundX].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconXboxSeriesXY)
+		img, _ = assets.LoadEbitenImageAsset(assets.ImageIconXboxSeriesXY)
 		k.soundInfo[components.KaraokeSoundY].image = img
 	case components.InputModeKeyboard:
 
-		img, _ := assets.LoadEbitenImage(assets.ImageIconKeyboardKeyW)
+		keyboard := k.inputEnt.Keyboard
+
+		img, _ := assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeA]]))
 		k.soundInfo[components.KaraokeSoundA].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyD)
+		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeB]]))
 		k.soundInfo[components.KaraokeSoundB].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyA)
+		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeX]]))
 		k.soundInfo[components.KaraokeSoundX].image = img
 
-		img, _ = assets.LoadEbitenImage(assets.ImageIconKeyboardKeyS)
+		img, _ = assets.LoadEbitenImageRaw([]byte(assets.IconKeyboardDark[keyboard.Mapping[components.InputKindKaraokeY]]))
 		k.soundInfo[components.KaraokeSoundY].image = img
 	}
 
@@ -491,7 +493,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 
 				input.XPostion += input.XSpeed * (float64(dt) / float64(time.Second))
 
-				inputKind := k.soundInfo[input.Sound].input
+				inputKind := k.soundInfo[components.KaraokeSound(input.Sound)].input
 				x := windowWidth - input.XPostion + 50
 				if input.HitPostion <= 0 && x > karaLeftBound && x < karaRightBound && k.inputEnt.InputJustPressed(inputKind) {
 					if score := Score(input.XPostion); score > bestScore {
@@ -503,8 +505,8 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 
 			if selectedInput != nil {
 				selectedInput.HitPostion = selectedInput.XPostion
-				k.soundInfo[selectedInput.Sound].sound.Active = true
-				k.soundInfo[selectedInput.Sound].sound.Restart = true
+				k.soundInfo[components.KaraokeSound(selectedInput.Sound)].sound.Active = true
+				k.soundInfo[components.KaraokeSound(selectedInput.Sound)].sound.Restart = true
 
 				textEnt := entity.CreateFloatingTimedImage()
 				textEnt.DestoryBoundComponent.Min = math.Vector2{
@@ -568,6 +570,21 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 	}
 }
 
+func karaokeInputY(k *common.KaraokeInput) float64 {
+	switch k.Sound {
+	case components.KaraokeSoundA:
+		return 550
+	case components.KaraokeSoundB:
+		return 450
+	case components.KaraokeSoundX:
+		return 350
+	case components.KaraokeSoundY:
+		return 250
+	}
+
+	return 400
+}
+
 func (k *KaraokeScene) CalcScore() (score KaraokeScore) {
 	score = 1
 
@@ -605,14 +622,14 @@ func (k *KaraokeScene) Draw(screen *ebiten.Image) {
 			op.ColorM.Reset()
 			op.GeoM.Reset()
 
-			op.GeoM.Translate(windowWidth-input.XPostion, input.Y())
+			op.GeoM.Translate(windowWidth-input.XPostion, karaokeInputY(input))
 
 			if input.HitPostion > 0 {
 				op.ColorM.Scale(-1, -1, -1, 1)
 				op.ColorM.Translate(1, 1, 1, 0)
 			}
 
-			screen.DrawImage(k.soundInfo[input.Sound].image, &op)
+			screen.DrawImage(k.soundInfo[components.KaraokeSound(input.Sound)].image, &op)
 		}
 	case KaraokeStateComplete:
 		yStart := 300

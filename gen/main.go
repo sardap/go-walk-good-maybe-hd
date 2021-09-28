@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -20,7 +21,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"github.com/mjibson/go-dsp/wav"
 	"github.com/sardap/walk-good-maybe-hd/common"
-	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/tcolgate/mp3"
 
 	_ "github.com/oov/psd"
@@ -402,7 +402,7 @@ func (s *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 		karaokeOut.Inputs = append(karaokeOut.Inputs, &common.KaraokeInput{
 			StartTime: time.Duration(input.StartTime) * time.Millisecond,
 			Duration:  time.Duration(input.Duration) * time.Millisecond,
-			Sound:     components.KaraokeSound(input.Sound),
+			Sound:     input.Sound,
 		})
 	}
 
@@ -465,6 +465,70 @@ func genKarokeAssets(jf *jen.File, karaoke []KaraokeOutput, assetsPath string) {
 	}
 }
 
+type IconOutput struct {
+	Name       string
+	Path       string
+	Expression string
+}
+
+func findGroupIdx(key string, keys []string) int {
+	result := -1
+	for i := 1; i < len(keys); i++ {
+		if keys[i] == key {
+			result = i * 2
+			break
+		}
+	}
+
+	return result
+}
+
+func (i *IconOutput) genIconAsset(jf *jen.File, path string) {
+	re := regexp.MustCompile(i.Expression)
+	keys := re.SubexpNames()
+	nameGroup := findGroupIdx("name", keys)
+
+	inputMap := make(map[string][]byte)
+
+	items, _ := ioutil.ReadDir(path)
+	for _, item := range items {
+		if item.IsDir() {
+			continue
+		}
+
+		matches := re.FindAllStringSubmatchIndex(item.Name(), -1)
+		if len(matches) == 0 {
+			continue
+		}
+		rawName := item.Name()[matches[0][nameGroup]:matches[0][nameGroup+1]]
+
+		data, err := ioutil.ReadFile(filepath.Join(path, item.Name()))
+		if err != nil {
+			panic(err)
+		}
+
+		cleanedName := "Key" + strcase.ToCamel(strings.ReplaceAll(rawName, "_", " "))
+		inputMap[cleanedName] = data
+	}
+
+	name := "Icon" + strcase.ToCamel(i.Name)
+
+	jf.Var().Id(name).Op("=").Map(jen.Op("ebiten.Key")).String().Values(jen.DictFunc(func(d jen.Dict) {
+		for key, image := range inputMap {
+			d[jen.Qual("github.com/hajimehoshi/ebiten/v2", key)] = jen.Lit(string(image))
+		}
+	}))
+}
+
+func genIconAssets(jf *jen.File, sounds []IconOutput, assetsPath string) {
+	fmt.Printf("\nGenerating Icons\n")
+
+	for _, target := range sounds {
+		fmt.Printf("...%s\n", target.Name)
+		target.genIconAsset(jf, filepath.Join(assetsPath, target.Path))
+	}
+}
+
 func genAssets() {
 	fmt.Printf("Generating assets\n")
 
@@ -478,6 +542,7 @@ func genAssets() {
 		Music   []MusicOutput
 		Sounds  []SoundOutput
 		Karaoke []KaraokeOutput
+		Icons   []IconOutput
 	}
 	if err := toml.Unmarshal(buildFile, &config); err != nil {
 		panic(err)
@@ -487,20 +552,18 @@ func genAssets() {
 
 	jf := jen.NewFile("assets")
 
+	jf.ImportName("github.com/hajimehoshi/ebiten/v2", "ebiten")
+
 	jf.Comment(warning)
 	jf.Line()
 
 	genImagesAssets(jf, config.Images, filepath.Join(assetsPath, "images"))
 
-	// Create sound types
-	jf.Type().Id("SoundType").Int()
-	jf.Line()
-	jf.Const().Id("SoundTypeMp3").Op("SoundType").Op("=").Lit(0)
-	jf.Const().Id("SoundTypeWav").Op("SoundType").Op("=").Lit(1)
-
 	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
 	genSoundAssets(jf, config.Sounds, filepath.Join(assetsPath, "sounds"))
 	genKarokeAssets(jf, config.Karaoke, filepath.Join(assetsPath, "karaoke"))
+
+	genIconAssets(jf, config.Icons, filepath.Join(assetsPath, "inputIcons"))
 
 	f, err := os.Create(filepath.Join(workspacePath, "assets", "gen.go"))
 	if err != nil {
@@ -509,7 +572,9 @@ func genAssets() {
 	defer f.Close()
 
 	if err := jf.Render(f); err != nil {
-		panic(err.Error()[:100])
+		f.Close()
+		os.Remove(filepath.Join(workspacePath, "assets", "gen.go"))
+		panic(err.Error()[:5000])
 	}
 }
 
