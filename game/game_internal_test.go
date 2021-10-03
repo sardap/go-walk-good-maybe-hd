@@ -58,7 +58,6 @@ func findSeed(min, max float64) (seed int64, num float64) {
 }
 
 func TestCreateAllBuildings(t *testing.T) {
-	t.Parallel()
 
 	s := resolv.NewSpace()
 	mainGameScene := &MainGameScene{
@@ -97,7 +96,6 @@ func TestCreateAllBuildings(t *testing.T) {
 }
 
 func TestCityLevelGenerate(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
@@ -123,7 +121,6 @@ func TestCityLevelGenerate(t *testing.T) {
 }
 
 func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
@@ -189,7 +186,6 @@ func TestBuildingsRemoveGameRuleSystem(t *testing.T) {
 }
 
 func TestPlayerSystem(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
@@ -285,7 +281,6 @@ func TestPlayerSystem(t *testing.T) {
 }
 
 func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
@@ -345,7 +340,6 @@ func TestDestoryOnAnimeableGameRuleSystem(t *testing.T) {
 }
 
 func TestEnemyBiscuit(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
@@ -388,7 +382,6 @@ func TestEnemyBiscuit(t *testing.T) {
 }
 
 func TestUfoBiscuit(t *testing.T) {
-	t.Parallel()
 
 	w := &ecs.World{}
 	s := resolv.NewSpace()
