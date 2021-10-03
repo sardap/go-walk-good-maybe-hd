@@ -1,12 +1,20 @@
 version: "3.9"
 services: 
-  web:
+  web_game:
+    depends_on:
+      - "asset_web"
     build: 
-      dockerfile: ./web/Dockerfile
+      dockerfile: ./webgame/Dockerfile
       context: ./
     ports: 
-      - 8080:80
-  builder:
-    build: .
-    volumes: 
-      - ./bin/:/output/
+      - 8090:80
+  asset_web:
+    build: 
+      dockerfile: ./assetweb/Dockerfile
+      context: ./
+    ports: 
+      - 8080:8080
+  # builder:
+  #   build: .
+  #   volumes: 
+  #     - ./bin/:/output/

@@ -48,6 +48,14 @@ func (s *ImageRenderSystem) Render(cmds *RenderCmds) {
 			op.GeoM.Translate(0, float64(imgCom.Image.Bounds().Dy()))
 		}
 
+		if imgCom.Options.Scale.X != 0 {
+			op.GeoM.Scale(imgCom.Options.Scale.X, 1)
+		}
+
+		if imgCom.Options.Scale.Y != 0 {
+			op.GeoM.Scale(1, imgCom.Options.Scale.Y)
+		}
+
 		if imgCom.Options.Opacity != 0 {
 			op.ColorM.Scale(1, 1, 1, imgCom.Options.Opacity)
 		}

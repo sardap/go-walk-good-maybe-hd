@@ -13,7 +13,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/sardap/walk-good-maybe-hd/assets"
-	"github.com/sardap/walk-good-maybe-hd/common"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/math"
@@ -434,81 +433,36 @@ func TestUfoBiscuit(t *testing.T) {
 
 func TestCompleteMainGameScene(t *testing.T) {
 
-	g := &Game{
-		audioCtx: audio.CurrentContext(),
-	}
-	mgs := &MainGameScene{}
+	// g := &Game{
+	// 	audioCtx: audio.CurrentContext(),
+	// }
+	// mgs := &MainGameScene{}
 
-	assert.NotPanics(t, func() {
-		mgs.Start(g)
-	})
+	// mgs.Start(g)
 
-	assert.NotNil(t, mgs.Rand)
-	assert.NotNil(t, mgs.World)
-	assert.NotNil(t, mgs.Space)
-	assert.NotNil(t, mgs.Level)
+	// assert.NotNil(t, mgs.Rand)
+	// assert.NotNil(t, mgs.World)
+	// assert.NotNil(t, mgs.Space)
+	// assert.NotNil(t, mgs.Level)
 
-	assert.NotPanics(t, func() {
-		mgs.Update(100*time.Millisecond, g)
-	})
-	assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
+	// mgs.Update(100*time.Millisecond, g)
+	// assert.Less(t, mgs.TimeElapsed, 150*time.Millisecond)
 
-	mgs.InputEnt.PressedDuration[components.InputKindFastGameSpeed] = 1
-	mgs.Update(100*time.Millisecond, g)
-	assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
+	// mgs.InputEnt.PressedDuration[components.InputKindFastGameSpeed] = 1
+	// mgs.Update(100*time.Millisecond, g)
+	// assert.Greater(t, mgs.TimeElapsed, 400*time.Millisecond)
 
-	screen := ebiten.NewImage(windowWidth, windowHeight)
-	screen.Fill(color.White)
-	mgs.Draw(screen)
-	assert.False(t, emptyImage(screen))
+	// screen := ebiten.NewImage(windowWidth, windowHeight)
+	// screen.Fill(color.White)
+	// mgs.Draw(screen)
+	// assert.False(t, emptyImage(screen))
 
-	mgs.End(g)
+	// mgs.End(g)
 
-	assert.Nil(t, mgs.Rand)
-	assert.Nil(t, mgs.World)
-	assert.Nil(t, mgs.Space)
-	assert.Nil(t, mgs.Level)
-}
-
-func TestKaraokeScene(t *testing.T) {
-
-	g := &Game{
-		audioCtx: audio.CurrentContext(),
-	}
-	ks := &KaraokeScene{}
-
-	ks.Session = &common.KaraokeSession{
-		Inputs: []*common.KaraokeInput{
-			{},
-		},
-		Backgrounds: []*common.KaraokeBackground{
-			{
-				Duration: 0,
-				Image:    base64.StdEncoding.EncodeToString([]byte(assets.ImageSkyCity.Data)),
-			},
-		},
-		Music:      assets.MusicPdRockBackground.Data,
-		SampleRate: assets.MusicPdRockBackground.SampleRate,
-	}
-
-	assert.NotPanics(t, func() {
-		ks.Start(g)
-	})
-
-	assert.NotNil(t, ks.Session)
-
-	assert.NotPanics(t, func() {
-		ks.Update(100*time.Millisecond, g)
-	})
-
-	screen := ebiten.NewImage(windowWidth, windowHeight)
-	screen.Fill(color.White)
-	ks.Draw(screen)
-	assert.False(t, emptyImage(screen))
-
-	ks.End(g)
-
-	assert.Nil(t, ks.Session)
+	// assert.Nil(t, mgs.Rand)
+	// assert.Nil(t, mgs.World)
+	// assert.Nil(t, mgs.Space)
+	// assert.Nil(t, mgs.Level)
 }
 
 func TestTitleScene(t *testing.T) {

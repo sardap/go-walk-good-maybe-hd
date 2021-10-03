@@ -38,28 +38,28 @@ name="biscuitEnemyIdle"
 type="tileSet"
 frameWidth=8
 scaleMultiplier=10
-file="Enemies/biscuitEnemyIdle.psd"
+file="enemies/biscuitEnemyIdle.psd"
 
 [[Images]]
 name="biscuitEnemyDeath"
 type="tileSet"
 frameWidth=8
 scaleMultiplier=10
-file="Enemies/biscuitEnemyDeath.psd"
+file="enemies/biscuitEnemyDeath.psd"
 
 [[Images]]
 name="biscutUFOIdle"
 type="tileSet"
 frameWidth=16
 scaleMultiplier=10
-file="Enemies/biscutUFOIdle.psd"
+file="enemies/biscutUFOIdle.psd"
 
 [[Images]]
 name="biscutUfoDeath"
 type="tileSet"
 frameWidth=16
 scaleMultiplier=10
-file="Enemies/biscutUfoDeath.psd"
+file="enemies/biscutUfoDeath.psd"
 
 # 
 # ---effects---
@@ -247,10 +247,6 @@ scaleMultiplier=4
 file="karaoke/whaleSinging.psd"
 
 [[Sounds]]
-name="spaceVoiceC5"
-file="spaceVoiceC5.wav"
-
-[[Sounds]]
 name="bit8CoinOne"
 file="bit8CoinOne.wav"
 
@@ -263,9 +259,10 @@ name="karaokeRock"
 file="pdRockBackground.mp3"
 
 [[Karaoke]]
-name="KaraokeTest"
 file="pdRock01/pdRock01.json"
 
+[[Karaoke]]
+file="dog/dog.json"
 
 # ---------------------------------- #
 
@@ -310,7 +307,7 @@ file="pdTitleScreen.mp3"
 
 # ---------------------------------- #
 
-# +
+#
 # --- input icons ---
 #
 

@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"runtime"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -42,6 +43,7 @@ type Game struct {
 func (g *Game) ChangeScene(newScene Scene) {
 	if g.current != nil {
 		g.current.End(g)
+		runtime.GC()
 	}
 	g.current = newScene
 	g.current.Start(g)

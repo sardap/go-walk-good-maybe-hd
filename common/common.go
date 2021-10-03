@@ -5,8 +5,7 @@ import (
 )
 
 type KaraokeInput struct {
-	StartTime  time.Duration
-	Duration   time.Duration
+	HitTime    time.Duration
 	Sound      string
 	XPostion   float64
 	XSpeed     float64
@@ -28,4 +27,8 @@ type KaraokeSession struct {
 	Music            string
 	SampleRate       int
 	BackgroundIdx    int
+}
+
+type KaraokeIndex struct {
+	KaraokeGames []string `toml:"karaoke_games"`
 }

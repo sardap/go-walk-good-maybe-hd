@@ -13,6 +13,8 @@ RUN go mod download
 
 COPY . .
 
+RUN go run ./gen . http://localhost:8080/assets/
+
 ENV GOOS js
 ENV GOARCH wasm
 
@@ -22,6 +24,6 @@ FROM nginx:alpine
 
 COPY --from=builder /app/wasm_exec.js /usr/share/nginx/html/wasm_exec.js
 COPY --from=builder /app/wgmhd.wasm /usr/share/nginx/html/wgmhd.wasm
-COPY web/index.html /usr/share/nginx/html/index.html
-COPY web/main.html /usr/share/nginx/html/main.html
+COPY webgame/index.html /usr/share/nginx/html/index.html
+COPY webgame/main.html /usr/share/nginx/html/main.html
 

@@ -5,26 +5,67 @@ import (
 	"image"
 	"image/color"
 	"io"
+	"log"
+	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/EngoEngine/ecs"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/hajimehoshi/ebiten/v2/audio/mp3"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/sardap/walk-good-maybe-hd/assets"
 	"github.com/sardap/walk-good-maybe-hd/common"
 	"github.com/sardap/walk-good-maybe-hd/components"
 	"github.com/sardap/walk-good-maybe-hd/entity"
 	"github.com/sardap/walk-good-maybe-hd/utility"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 )
 
-type MenuItem struct {
+type MenuItem interface {
+	Action(*Game, *TitleScene)
+	GetIcon() *ebiten.Image
+}
+
+type SceneMenuItem struct {
 	TargetScene Scene
 	Text        *ebiten.Image
 }
 
+func (s *SceneMenuItem) GetIcon() *ebiten.Image {
+	return s.Text
+}
+
+func (s *SceneMenuItem) Action(g *Game, t *TitleScene) {
+	g.ChangeScene(s.TargetScene)
+}
+
+type KaraokeMenuItem struct {
+	KaraokeScene Scene
+	Text         *ebiten.Image
+}
+
+func (k *KaraokeMenuItem) GetIcon() *ebiten.Image {
+	return k.Text
+}
+
+func (k *KaraokeMenuItem) Action(_ *Game, s *TitleScene) {
+	s.karaokeLoadingLock.Lock()
+	defer s.karaokeLoadingLock.Unlock()
+	s.selectedIdx = 0
+	s.state = TitleSceneStateKaraoke
+}
+
+type TitleSceneState int
+
+const (
+	TitleSceneStateMainMenu TitleSceneState = iota
+	TitleSceneStateKaraoke
+)
+
 type TitleScene struct {
+	state              TitleSceneState
 	titleText          *ebiten.Image
 	beach              *ebiten.Image
 	beachWater         *ebiten.Image
@@ -45,9 +86,34 @@ type TitleScene struct {
 	selectionActiveArrow   *ebiten.Image
 	whiteArrow             *ebiten.Image
 	redArrow               *ebiten.Image
+	// Karaoke
+	karaokeLoadingLock *sync.Mutex
+	karaokeIdx         *common.KaraokeIndex
+
+	font font.Face
 }
 
 func (s *TitleScene) Start(game *Game) {
+	s.state = TitleSceneStateMainMenu
+
+	s.karaokeLoadingLock = &sync.Mutex{}
+
+	s.karaokeLoadingLock.Lock()
+	go func() {
+		defer s.karaokeLoadingLock.Unlock()
+		s.karaokeIdx = assets.LoadKaraokeIndex()
+
+		tt, err := opentype.Parse(assets.FontSignikaRegular)
+		if err != nil {
+			log.Fatal(err)
+		}
+		s.font, _ = opentype.NewFace(tt, &opentype.FaceOptions{
+			Size:    80,
+			DPI:     72,
+			Hinting: font.HintingFull,
+		})
+	}()
+
 	img, _ := assets.LoadEbitenImageAsset(assets.ImageTitleSceneText)
 	s.titleText = img
 
@@ -90,24 +156,17 @@ func (s *TitleScene) Start(game *Game) {
 	s.selectionActiveArrow = s.whiteArrow
 	s.selectionArrowCooldown = 0
 
-	jsonStr := assets.LoadKaraoke(assets.KaraokePdRock01)
-	session := &common.KaraokeSession{}
-	toml.Decode(string(jsonStr), session)
-
 	img, _ = assets.LoadEbitenImageAsset(assets.ImageTitleSceneGameText)
 	s.menuItems = []MenuItem{
-		{
+		&SceneMenuItem{
 			TargetScene: &MainGameScene{},
 			Text:        img,
 		},
-		{
+		&SceneMenuItem{
 			TargetScene: &TitleScene{},
 			Text:        img,
 		},
-		{
-			TargetScene: &KaraokeScene{
-				Session: session,
-			},
+		&KaraokeMenuItem{
 			Text: img,
 		},
 	}
@@ -129,7 +188,6 @@ func (s *TitleScene) Start(game *Game) {
 	stream = audio.NewInfiniteLoop(mp3Stream, mp3Stream.Length())
 	s.player, _ = audio.NewPlayer(game.audioCtx, stream)
 	s.player.Play()
-
 }
 
 func (s *TitleScene) End(*Game) {
@@ -139,7 +197,7 @@ func (s *TitleScene) End(*Game) {
 	s.player = nil
 }
 
-func (s *TitleScene) Update(dt time.Duration, game *Game) {
+func (s *TitleScene) Update(dt time.Duration, g *Game) {
 	s.xOffset = utility.WrapFloat64(s.xOffset+1, 0, float64(s.city.Bounds().Dx()/2))
 	s.xFogOffset = utility.WrapFloat64(s.xFogOffset+0.5, 0, float64(s.city.Bounds().Dx()/2))
 
@@ -158,22 +216,48 @@ func (s *TitleScene) Update(dt time.Duration, game *Game) {
 		s.selectionActiveArrow = s.whiteArrow
 	}
 
-	// Input's
-	if s.inputEnt.InputJustPressed(components.InputKindSelect) {
-		defer game.ChangeScene(s.menuItems[s.selectedIdx].TargetScene)
+	switch s.state {
+	case TitleSceneStateMainMenu:
+		// Input's
+		if s.inputEnt.InputJustPressed(components.InputKindSelect) {
+			defer s.menuItems[s.selectedIdx].Action(g, s)
+		}
+
+		if s.inputEnt.InputJustPressed(components.InputKindMoveUp) {
+			s.selectedIdx = utility.WrapInt(s.selectedIdx-1, 0, len(s.menuItems))
+			s.selectionActiveArrow = s.redArrow
+			s.selectionArrowCooldown = 125 * time.Millisecond
+		}
+
+		if s.inputEnt.InputJustPressed(components.InputKindMoveDown) {
+			s.selectedIdx = utility.WrapInt(s.selectedIdx+1, 0, len(s.menuItems))
+			s.selectionActiveArrow = s.redArrow
+			s.selectionArrowCooldown = 125 * time.Millisecond
+		}
+	case TitleSceneStateKaraoke:
+		// Input's
+		if s.inputEnt.InputJustPressed(components.InputKindSelect) {
+			defer func() {
+				selectedSession := s.karaokeIdx.KaraokeGames[s.selectedIdx]
+				g.ChangeScene(&KaraokeScene{
+					Session: assets.LoadKaraokeSession(selectedSession),
+				})
+			}()
+		}
+
+		if s.inputEnt.InputJustPressed(components.InputKindMoveUp) {
+			s.selectedIdx = utility.WrapInt(s.selectedIdx-1, 0, len(s.karaokeIdx.KaraokeGames))
+			s.selectionActiveArrow = s.redArrow
+			s.selectionArrowCooldown = 125 * time.Millisecond
+		}
+
+		if s.inputEnt.InputJustPressed(components.InputKindMoveDown) {
+			s.selectedIdx = utility.WrapInt(s.selectedIdx+1, 0, len(s.karaokeIdx.KaraokeGames))
+			s.selectionActiveArrow = s.redArrow
+			s.selectionArrowCooldown = 125 * time.Millisecond
+		}
 	}
 
-	if s.inputEnt.InputJustPressed(components.InputKindMoveUp) {
-		s.selectedIdx = utility.WrapInt(s.selectedIdx-1, 0, len(s.menuItems))
-		s.selectionActiveArrow = s.redArrow
-		s.selectionArrowCooldown = 125 * time.Millisecond
-	}
-
-	if s.inputEnt.InputJustPressed(components.InputKindMoveDown) {
-		s.selectedIdx = utility.WrapInt(s.selectedIdx+1, 0, len(s.menuItems))
-		s.selectionActiveArrow = s.redArrow
-		s.selectionArrowCooldown = 125 * time.Millisecond
-	}
 }
 
 func (s *TitleScene) Draw(screen *ebiten.Image) {
@@ -223,18 +307,40 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	op.ColorM.Reset()
 	op.GeoM.Reset()
 
-	textXStart := float64(windowWidth/2 - 150)
-	yStart := float64(900)
-	for _, item := range s.menuItems {
-		op.GeoM.Translate(textXStart, yStart)
-		screen.DrawImage(item.Text, op)
-		op.ColorM.Reset()
-		op.GeoM.Reset()
-		yStart += 130
-	}
+	switch s.state {
+	case TitleSceneStateMainMenu:
+		{
+			textXStart := float64(windowWidth/2 - 150)
+			yStart := float64(900)
+			for _, item := range s.menuItems {
+				op.GeoM.Translate(textXStart, yStart)
+				screen.DrawImage(item.GetIcon(), op)
+				op.ColorM.Reset()
+				op.GeoM.Reset()
+				yStart += 130
+			}
 
-	op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 900+float64(s.selectedIdx*130))
-	screen.DrawImage(s.selectionActiveArrow, op)
-	op.ColorM.Reset()
-	op.GeoM.Reset()
+			op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 900+float64(s.selectedIdx*130))
+			screen.DrawImage(s.selectionActiveArrow, op)
+			op.ColorM.Reset()
+			op.GeoM.Reset()
+		}
+	case TitleSceneStateKaraoke:
+		{
+			textXStart := float64(windowWidth/2 - 150)
+			yStart := float64(900)
+			for _, karaokeGame := range s.karaokeIdx.KaraokeGames {
+				op.GeoM.Translate(textXStart, yStart)
+				text.Draw(screen, karaokeGame, s.font, int(textXStart), int(yStart), color.White)
+				op.ColorM.Reset()
+				op.GeoM.Reset()
+				yStart += 130
+			}
+
+			op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 850+float64(s.selectedIdx*130))
+			screen.DrawImage(s.selectionActiveArrow, op)
+			op.ColorM.Reset()
+			op.GeoM.Reset()
+		}
+	}
 }

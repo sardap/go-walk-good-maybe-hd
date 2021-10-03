@@ -193,6 +193,7 @@ func (k *KaraokeScene) addEnts() {
 			Layer:  ImageLayerKaraokeFront,
 			Options: components.DrawOptions{
 				Opacity: 0,
+				Scale:   math.Vector2{X: 2, Y: 2},
 			},
 		},
 	}
@@ -209,6 +210,9 @@ func (k *KaraokeScene) addEnts() {
 		ImageComponent: &components.ImageComponent{
 			Active: true,
 			Layer:  ImageLayerKaraokeBack,
+			Options: components.DrawOptions{
+				Scale: math.Vector2{X: 2, Y: 2},
+			},
 		},
 	}
 	k.world.AddEntity(k.backgroundBack)
@@ -407,9 +411,26 @@ func (k *KaraokeScene) End(*Game) {
 		k.scorePlayer.Player.Close()
 	}
 
+	if k.currentImage != nil {
+		k.currentImage.Dispose()
+	}
+
+	if k.titleScreenImage != nil {
+		k.titleScreenImage.Dispose()
+	}
+
+	if k.nextImage != nil {
+		k.nextImage.Dispose()
+	}
+
 	if k.textScreen != nil {
 		k.textScreen.Dispose()
 	}
+
+	for _, image := range k.textImages {
+		image.Dispose()
+	}
+
 }
 
 func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
@@ -454,7 +475,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 
 			for i, input := range k.Session.Inputs {
 
-				if k.timeElapsed < input.StartTime || input.XPostion-100 > windowWidth {
+				if k.timeElapsed+4*time.Second < input.HitTime {
 					if input.XPostion-100 > windowWidth && i == len(k.Session.Inputs)-1 {
 						complete = true
 					}
@@ -462,7 +483,7 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 				}
 
 				if input.XSpeed == 0 {
-					input.XSpeed = 1650 / (float64(input.Duration) / float64(time.Second))
+					input.XSpeed = 1650 / (float64(input.HitTime-k.timeElapsed) / float64(time.Second))
 				}
 
 				input.XPostion += input.XSpeed * (float64(dt) / float64(time.Second))

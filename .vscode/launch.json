@@ -20,7 +20,19 @@
 			"cwd": "${workspaceFolder}",
 			"program": "${workspaceFolder}/gen",
 			"args": [
-				"${workspaceFolder}"
+				"${workspaceFolder}",
+				"dev"
+			]
+		},
+		{
+			"name": "Launch assetweb Package",
+			"type": "go",
+			"request": "launch",
+			"mode": "debug",
+			"cwd": "${workspaceFolder}",
+			"program": "${workspaceFolder}/assetweb",
+			"args": [
+				"${workspaceFolder}/out"
 			]
 		}
 	]

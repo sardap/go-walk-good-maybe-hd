@@ -9,23 +9,36 @@ import (
 	"image/color"
 	_ "image/jpeg"
 	_ "image/png"
+	"io"
 	"io/ioutil"
+	"net/http"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 
+	"github.com/BurntSushi/toml"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/nfnt/resize"
+	"github.com/sardap/walk-good-maybe-hd/common"
 )
 
 type SoundType int
 
-const SoundTypeMp3 SoundType = 0
-const SoundTypeWav SoundType = 1
+const (
+	SoundTypeMp3 SoundType = 0
+	SoundTypeWav SoundType = 1
+)
 
 var (
 	imageCache map[[16]byte]*ebiten.Image
 	lock       *sync.Mutex
+	assetsPath string = "out"
 )
+
+func SetAssetsPath(path string) {
+	assetsPath = path
+}
 
 func ClearImageCache() {
 	imageCache = make(map[[16]byte]*ebiten.Image)
@@ -38,6 +51,20 @@ func DeleteImageCache(hash [16]byte) {
 func init() {
 	imageCache = make(map[[16]byte]*ebiten.Image)
 	lock = &sync.Mutex{}
+}
+
+func getAsset(path string) (f io.ReadCloser) {
+	f, err := os.Open(filepath.Join(assetsPath, path))
+	if err != nil {
+		resp, err := http.Get(Remote + filepath.ToSlash(path))
+		if err != nil {
+			panic(err)
+		}
+
+		f = resp.Body
+	}
+
+	return
 }
 
 func getImageHash(data []byte, clrMap map[color.RGBA]color.RGBA) [16]byte {
@@ -137,25 +164,43 @@ func LoadEbitenImageRaw(imageData []byte) (*ebiten.Image, error) {
 func LoadSound(asset interface{}) (data []byte, sampleRate int, soundType SoundType) {
 	t := reflect.ValueOf(asset)
 
+	if field := t.FieldByName("Path"); field.IsValid() {
+		data, _ = ioutil.ReadAll(getAsset(field.String()))
+	} else {
+		data = []byte(t.FieldByName("Data").String())
+	}
+
 	sampleRate = int(t.FieldByName("SampleRate").Int())
-	data = []byte(t.FieldByName("Data").String())
 	soundType = SoundType(t.FieldByName("SoundType").Int())
 
 	return
 }
 
-func LoadKaraoke(asset interface{}) (data []byte) {
-	t := reflect.ValueOf(asset)
+func LoadKaraokeSession(path string) (session *common.KaraokeSession) {
 
-	data = []byte(t.FieldByName("JsonStr").String())
+	f := getAsset(filepath.Join("karaoke", path))
+	defer f.Close()
 
-	zr, _ := gzip.NewReader(bytes.NewReader(data))
+	zr, _ := gzip.NewReader(f)
 	defer zr.Close()
-	var err error
-	data, err = ioutil.ReadAll(zr)
+	data, err := ioutil.ReadAll(zr)
 	if err != nil {
 		panic(err)
 	}
 
+	session = &common.KaraokeSession{}
+	toml.Decode(string(data), session)
+
 	return
+}
+
+func LoadKaraokeIndex() *common.KaraokeIndex {
+	r := getAsset(filepath.Join("karaoke", "index.toml"))
+	defer r.Close()
+
+	karaokeIndex := &common.KaraokeIndex{}
+	dec := toml.NewDecoder(r)
+	dec.Decode(karaokeIndex)
+
+	return karaokeIndex
 }

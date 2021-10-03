@@ -131,7 +131,7 @@ func TestSoundSystem(t *testing.T) {
 	w.Update(0)
 	assert.True(t, !ent.Player.IsPlaying(), "player should stop when not active")
 
-	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Sound = components.LoadSound(assets.SoundBit8CoinOne)
 	ent.Restart = true
 	ent.Active = true
 	w.Update(0)
@@ -141,7 +141,7 @@ func TestSoundSystem(t *testing.T) {
 	w.Update(0)
 	assert.False(t, ent.Active)
 
-	ent.Sound = components.LoadSound(assets.MusicPdCity0)
+	ent.Sound = components.LoadSound(assets.SoundBit8CoinOne)
 	ent.Loop = true
 	ent.Restart = true
 	ent.Active = true

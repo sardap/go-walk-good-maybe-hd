@@ -21,6 +21,8 @@ cd /app
 
 go mod download
 
+go run ./gen . https://backend.sarda.dev/assets/wgmhd/assets/latest
+
 echo "running tests"
 xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./...
 

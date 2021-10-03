@@ -14,8 +14,7 @@
 			"args": [
 				"run",
 				".",
-				"${workspaceFolder}",
-				"assets"
+				"${workspaceFolder}"
 			],
 			"group": {
 				"kind": "build",
