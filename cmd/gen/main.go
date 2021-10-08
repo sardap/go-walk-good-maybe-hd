@@ -24,6 +24,7 @@ import (
 	"github.com/dave/jennifer/jen"
 	"github.com/iancoleman/strcase"
 	"github.com/mjibson/go-dsp/wav"
+	"github.com/nfnt/resize"
 	"github.com/sardap/walk-good-maybe-hd/pkg/common"
 	"github.com/tcolgate/mp3"
 
@@ -550,6 +551,8 @@ func findGroupIdx(key string, keys []string) int {
 	return result
 }
 
+const iconSize = 80
+
 func (i *IconOutput) genKeyboardIconAsset(jf *jen.File, path string) {
 	re := regexp.MustCompile(i.Expression)
 	keys := re.SubexpNames()
@@ -569,13 +572,19 @@ func (i *IconOutput) genKeyboardIconAsset(jf *jen.File, path string) {
 		}
 		rawName := item.Name()[matches[0][nameGroup]:matches[0][nameGroup+1]]
 
-		data, err := ioutil.ReadFile(filepath.Join(path, item.Name()))
+		f, err := os.Open(filepath.Join(path, item.Name()))
 		if err != nil {
 			panic(err)
 		}
+		defer f.Close()
+
+		img, _, _ := image.Decode(f)
+		img = resize.Resize(iconSize, iconSize, img, resize.NearestNeighbor)
+		buf := &bytes.Buffer{}
+		png.Encode(buf, img)
 
 		cleanedName := "Key" + strcase.ToCamel(strings.ReplaceAll(rawName, "_", " "))
-		inputMap[cleanedName] = data
+		inputMap[cleanedName] = buf.Bytes()
 	}
 
 	name := "Icon" + strcase.ToCamel(i.Name)
@@ -592,11 +601,18 @@ func (i *IconOutput) genGamepadIconAsset(jf *jen.File, path string) {
 	inputMap := make(jen.Dict)
 
 	loadData := func(fileName string) string {
-		data, err := ioutil.ReadFile(filepath.Join(path, fileName))
+		f, err := os.Open(filepath.Join(path, fileName))
 		if err != nil {
 			panic(err)
 		}
-		return string(data)
+		defer f.Close()
+
+		img, _, _ := image.Decode(f)
+		img = resize.Resize(iconSize, iconSize, img, resize.NearestNeighbor)
+		buf := &bytes.Buffer{}
+		png.Encode(buf, img)
+
+		return buf.String()
 	}
 
 	inputMap[jen.Lit(0)] = jen.Lit(loadData(i.Buttons.A))
@@ -663,7 +679,7 @@ func genFonts(jf *jen.File, path string) {
 func genAssets(remote string) {
 	fmt.Printf("Generating assets\n")
 
-	buildFile, err := os.ReadFile(filepath.Join(workspacePath, "..", "configs", "assets.toml"))
+	buildFile, err := os.ReadFile(filepath.Join(workspacePath, "..", "assets", "assets.toml"))
 	if err != nil {
 		panic(err)
 	}
@@ -679,7 +695,7 @@ func genAssets(remote string) {
 		panic(err)
 	}
 
-	assetsPath := filepath.Join(workspacePath, "assets")
+	assetsPath := filepath.Join(workspacePath, "..", "assets")
 
 	jf := jen.NewFile("assets")
 

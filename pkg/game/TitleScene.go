@@ -287,7 +287,7 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	}).(*ebiten.Image)
 
 	op.GeoM.Scale(-1, 1)
-	op.GeoM.Translate(float64(beachWater.Bounds().Dx())+125, 107*10)
+	op.GeoM.Translate(float64(windowWidth), float64(windowHeight-beachWater.Bounds().Dy()+40))
 	beachWater = beachWater.SubImage(image.Rectangle{
 		Min: image.Pt(beachWater.Bounds().Min.X+int(s.xOffset), 0),
 		Max: image.Pt(beachWater.Bounds().Min.X+int(s.xOffset+windowWidth/2), windowHeight),
@@ -297,7 +297,7 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	op.GeoM.Reset()
 
 	op.GeoM.Scale(-1, 1)
-	op.GeoM.Translate(float64(s.beach.Bounds().Dx())+125, 0)
+	op.GeoM.Translate(float64(windowWidth), 0)
 	screen.DrawImage(s.beach.SubImage(subRect).(*ebiten.Image), op)
 	op.ColorM.Reset()
 	op.GeoM.Reset()
@@ -307,37 +307,43 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 	op.ColorM.Reset()
 	op.GeoM.Reset()
 
+	yStart := float64(s.titleText.Bounds().Dy() + 10)
+
 	switch s.state {
 	case TitleSceneStateMainMenu:
 		{
-			textXStart := float64(windowWidth/2 - 150)
-			yStart := float64(900)
+			textXStart := float64(windowWidth/2 - 120)
+			y := yStart
 			for _, item := range s.menuItems {
-				op.GeoM.Translate(textXStart, yStart)
+				op.GeoM.Translate(textXStart, y)
 				screen.DrawImage(item.GetIcon(), op)
 				op.ColorM.Reset()
 				op.GeoM.Reset()
-				yStart += 130
+				y += 130
 			}
 
-			op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 900+float64(s.selectedIdx*130))
+			op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, yStart+float64(s.selectedIdx*130))
 			screen.DrawImage(s.selectionActiveArrow, op)
 			op.ColorM.Reset()
 			op.GeoM.Reset()
 		}
 	case TitleSceneStateKaraoke:
 		{
-			textXStart := float64(windowWidth/2 - 150)
-			yStart := float64(900)
+
+			textXStart := float64(windowWidth/2 - 300)
+			y := yStart + 100
 			for _, karaokeGame := range s.karaokeIdx.KaraokeGames {
-				op.GeoM.Translate(textXStart, yStart)
-				text.Draw(screen, karaokeGame, s.font, int(textXStart), int(yStart), color.White)
+				op.GeoM.Translate(textXStart, y)
+				text.Draw(screen, karaokeGame, s.font, int(textXStart), int(y), color.Black)
 				op.ColorM.Reset()
 				op.GeoM.Reset()
-				yStart += 130
+				y += 130
 			}
 
-			op.GeoM.Translate(textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10, 850+float64(s.selectedIdx*130))
+			op.GeoM.Translate(
+				textXStart-float64(s.selectionActiveArrow.Bounds().Dx())-10,
+				yStart+float64(s.selectedIdx*130)+float64(text.BoundString(s.font, "A").Dx()),
+			)
 			screen.DrawImage(s.selectionActiveArrow, op)
 			op.ColorM.Reset()
 			op.GeoM.Reset()

@@ -29,21 +29,21 @@ RUN xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./...
 
 FROM builder as linux
 
-RUN go build ./cmd/wghmd
+RUN go build -o walk-good-maybe-hd ./cmd/wgmhd
 
 FROM builder as windows
 
 ENV GOARCH amd64
 ENV GOOS windows
 
-RUN go build ./cmd/wghmd
+RUN go build -o walk-good-maybe-hd.exe ./cmd/wgmhd
 
 FROM alpine:latest
 
-RUN mkdir /input
+RUN mkdir /build
 
-COPY --from=linux /app/walk-good-maybe-hd /input/walk-good-maybe-hd-linux
-COPY --from=windows /app/walk-good-maybe-hd.exe /input/walk-good-maybe-hd-windows.exe
+COPY --from=linux /app/walk-good-maybe-hd /build/walk-good-maybe-hd-linux
+COPY --from=windows /app/walk-good-maybe-hd.exe /build/walk-good-maybe-hd-windows.exe
 
 VOLUME [ "/output" ]
 WORKDIR /output

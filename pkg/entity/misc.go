@@ -188,8 +188,8 @@ func CreateBasicImage(imageAsset interface{}) *BasicImage {
 		BasicEntity: ecs.NewBasic(),
 		TransformComponent: &components.TransformComponent{
 			Size: math.Vector2{
-				X: float64(assets.ImageUiLifeAmountTileSet.FrameWidth),
-				Y: float64(assets.ImageUiLifeAmountTileSet.FrameWidth),
+				X: float64(img.Bounds().Dx()),
+				Y: float64(img.Bounds().Dy()),
 			},
 		},
 		ImageComponent: &components.ImageComponent{

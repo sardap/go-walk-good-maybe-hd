@@ -39,11 +39,12 @@ const (
 )
 
 const (
-	karaBoundStep     = 100
-	karaCenter        = 850
-	karaLeftBound     = karaCenter - karaBoundStep
-	karaRightBound    = karaCenter + karaBoundStep
+	karaBoundStep     = 40
 	karaScoreSpinTime = 2*time.Second + 500*time.Millisecond
+	uiY               = 200
+	karaCenter        = windowWidth * 0.8
+	karaRightBound    = (windowWidth - karaCenter) + karaBoundStep
+	karaLeftBound     = (windowWidth - karaCenter) - karaBoundStep
 )
 
 type KaraokeScore int
@@ -70,22 +71,18 @@ const (
 )
 
 func Score(x float64) KaraokeScore {
-	if x == 0 {
-		return KaraokeScoreMiss
-	}
-
-	delta := gomath.Abs((x + 50) - (windowWidth - karaCenter))
+	delta := gomath.Abs(x - karaCenter)
 
 	switch {
-	case delta < 25:
-		return KaraokeScoreOkay
-	case delta < 50:
-		return KaraokeScoreGood
-	case delta < 75:
+	case delta < karaBoundStep:
+		return KaraokeScorePerfect
+	case delta < karaBoundStep*1.5:
 		return KaraokeScoreGreat
+	case delta < karaBoundStep*2:
+		return KaraokeScoreGood
 	}
 
-	return KaraokeScorePerfect
+	return KaraokeScoreMiss
 }
 
 type KaraokeState int
@@ -120,7 +117,10 @@ type KaraokeScene struct {
 	backgroundFrontFadeIn time.Duration
 	backgroundBack        *entity.BasicImage
 	ui                    *entity.BasicImage
+	targetMarker          *entity.BasicImage
 	loadingBackgroundLock *sync.Mutex
+
+	hitRect image.Rectangle
 
 	scorePlayer      *entity.SoundPlayer
 	scoreTitleFont   font.Face
@@ -193,7 +193,7 @@ func (k *KaraokeScene) addEnts() {
 			Layer:  ImageLayerKaraokeFront,
 			Options: components.DrawOptions{
 				Opacity: 0,
-				Scale:   math.Vector2{X: 2, Y: 2},
+				Scale:   math.Vector2{X: 1, Y: 1},
 			},
 		},
 	}
@@ -211,19 +211,49 @@ func (k *KaraokeScene) addEnts() {
 			Active: true,
 			Layer:  ImageLayerKaraokeBack,
 			Options: components.DrawOptions{
-				Scale: math.Vector2{X: 2, Y: 2},
+				Scale: math.Vector2{X: 1, Y: 1},
 			},
 		},
 	}
 	k.world.AddEntity(k.backgroundBack)
 
 	k.ui = entity.CreateBasicImage(assets.ImageKaraokeBackground)
+	k.ui.Postion.Y = uiY
 	k.ui.Layer = ImageLayerKaraokeUi
 	k.world.AddEntity(k.ui)
 
+	k.hitRect = image.Rect(karaLeftBound, 0, karaRightBound, windowHeight)
+
+	img := ebiten.NewImage(karaRightBound-karaLeftBound, int(k.ui.TransformComponent.Size.Y-8))
+	img.Fill(parseHex("#f32f42"))
+	subRect := img.SubImage(image.Rect(20, 0, 30, img.Bounds().Dy())).(*ebiten.Image)
+	subRect.Fill(parseHex("#2ff3e0"))
+	k.targetMarker = &entity.BasicImage{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Postion: math.Vector2{
+				Y: k.ui.Postion.Y + 4,
+				X: karaLeftBound,
+			},
+			Size: math.Vector2{
+				X: float64(img.Bounds().Dx()),
+				Y: float64(img.Bounds().Dy()),
+			},
+		},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+			Layer:  ImageLayerKaraokeText,
+			Options: components.DrawOptions{
+				Scale: math.Vector2{X: 1, Y: 1},
+			},
+			Image: img,
+		},
+	}
+	k.world.AddEntity(k.targetMarker)
+
 	k.karaokePlayer = entity.CreateKaraokePlayer()
 	k.karaokePlayer.ImageComponent.Layer = ImageLayerKaraokeObjects
-	k.karaokePlayer.Postion.Y = windowHeight / 2
+	k.karaokePlayer.Postion.Y = windowHeight/2 + (k.karaokePlayer.TransformComponent.Size.Y * 0.3)
 	k.karaokePlayer.ImageComponent.Options.Opacity = 1
 	k.world.AddEntity(k.karaokePlayer)
 
@@ -473,25 +503,29 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 			var selectedInput *common.KaraokeInput
 			bestScore := KaraokeScore(0)
 
-			for i, input := range k.Session.Inputs {
+			rect := image.Rect(0, 1, 0, 2)
 
+			for _, input := range k.Session.Inputs {
+
+				if !k.musicEnt.Player.IsPlaying() {
+					complete = true
+				}
 				if k.timeElapsed+4*time.Second < input.HitTime {
-					if input.XPostion-100 > windowWidth && i == len(k.Session.Inputs)-1 {
-						complete = true
-					}
 					continue
 				}
 
 				if input.XSpeed == 0 {
-					input.XSpeed = 1650 / (float64(input.HitTime-k.timeElapsed) / float64(time.Second))
+					input.XSpeed = karaCenter / (float64(input.HitTime-k.timeElapsed) / float64(time.Second))
 				}
 
 				input.XPostion += input.XSpeed * (float64(dt) / float64(time.Second))
 
+				// A: 371 451 B: 359 409
 				inputKind := k.soundInfo[components.KaraokeSound(input.Sound)].input
-				x := windowWidth - input.XPostion + 50
-				if input.HitPostion <= 0 && x > karaLeftBound && x < karaRightBound && k.inputEnt.InputJustPressed(inputKind) {
-					if score := Score(input.XPostion); score > bestScore {
+				rect.Min.X = int(windowWidth - input.XPostion)
+				rect.Max.X = int(rect.Min.X + 80)
+				if k.inputEnt.InputJustPressed(inputKind) {
+					if score := Score(input.XPostion); input.HitPostion <= 0 && k.hitRect.Overlaps(rect) && score > bestScore {
 						selectedInput = input
 						bestScore = score
 					}
@@ -512,10 +546,10 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 					X: windowWidth + 500,
 					Y: windowHeight + 500,
 				}
-				textEnt.ConstantSpeedComponent.Speed.X = 1000
+				textEnt.ConstantSpeedComponent.Speed.X = 800
 				textEnt.Image = k.textImages[bestScore]
 				textEnt.Postion.X = k.karaokePlayer.Postion.X + k.karaokePlayer.TransformComponent.Size.X
-				textEnt.Postion.Y = 1150
+				textEnt.Postion.Y = k.karaokePlayer.Postion.Y + (k.karaokePlayer.TransformComponent.Size.Y * 0.3)
 				textEnt.Layer = ImageLayerKaraokeText
 				defer k.world.AddEntity(textEnt)
 			}
@@ -530,11 +564,13 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 	case KaraokeStateComplete:
 		const uiFadeOutTime = 1 * time.Second
 		const scoreFadeInTime = 1*time.Second + 250*time.Millisecond
-		const centerPlayerTime = float64(200*time.Millisecond) / float64(time.Second)
+		const centerPlayerTime = float64(500*time.Millisecond) / float64(time.Second)
 
 		k.ui.Options.Opacity = utility.ClampFloat64(float64(uiFadeOutTime-k.timeElapsed)/float64(uiFadeOutTime), 0, 1)
+		k.targetMarker.Options.Opacity = utility.ClampFloat64(float64(uiFadeOutTime-k.timeElapsed)/float64(uiFadeOutTime), 0, 1)
 		if k.ui.Options.Opacity <= 0 {
 			defer k.world.RemoveEntity(k.ui.BasicEntity)
+			defer k.world.RemoveEntity(k.targetMarker.BasicEntity)
 		}
 
 		maxX := (windowWidth/2 - k.karaokePlayer.TransformComponent.Size.X/2)
@@ -566,15 +602,17 @@ func (k *KaraokeScene) Update(dt time.Duration, _ *Game) {
 }
 
 func karaokeInputY(k *common.KaraokeInput) float64 {
+	const buffer = 12
+	const size = 80
 	switch k.Sound {
 	case components.KaraokeSoundA:
-		return 550
+		return uiY + (size * 3) + buffer
 	case components.KaraokeSoundB:
-		return 450
+		return uiY + (size * 2) + buffer
 	case components.KaraokeSoundX:
-		return 350
+		return uiY + (size * 1) + buffer
 	case components.KaraokeSoundY:
-		return 250
+		return uiY + (size * 0) + buffer
 	}
 
 	return 400

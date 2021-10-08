@@ -147,7 +147,7 @@ func TestSoundSystem(t *testing.T) {
 	w.Update(0)
 	assert.True(t, ent.Player.IsPlaying())
 
-	w.RemoveEntity(ent.BasicEntity)
+	// w.RemoveEntity(ent.BasicEntity)
 	assert.NotZero(t, soundSystem.Priority())
 }
 
