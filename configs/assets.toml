@@ -5,28 +5,28 @@
 name="whaleAir"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="whale/whaleAir.psd"
 
 [[Images]]
 name="whaleIdle"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="whale/whaleIdle.psd"
 
 [[Images]]
 name="whaleWalk"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="whale/whaleWalk.psd"
 
 [[Images]]
 name="whaleJump"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="whale/whaleJump.psd"
 
 # 
@@ -37,28 +37,28 @@ file="whale/whaleJump.psd"
 name="biscuitEnemyIdle"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 file="enemies/biscuitEnemyIdle.psd"
 
 [[Images]]
 name="biscuitEnemyDeath"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 file="enemies/biscuitEnemyDeath.psd"
 
 [[Images]]
 name="biscutUFOIdle"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="enemies/biscutUFOIdle.psd"
 
 [[Images]]
 name="biscutUfoDeath"
 type="tileSet"
 frameWidth=16
-scaleMultiplier=10
+scaleMultiplier=7
 file="enemies/biscutUfoDeath.psd"
 
 # 
@@ -94,7 +94,7 @@ file="token/speedUp.psd"
 [[Images]]
 name="uiLifeAmount"
 type="tileSet"
-scaleMultiplier=10
+scaleMultiplier=7
 frameWidth=16
 parts=["Amount1", "Amount2", "Amount3"]
 file="ui/lifeAmount.psd"
@@ -102,7 +102,7 @@ file="ui/lifeAmount.psd"
 [[Images]]
 name="uiJumpAmount"
 type="tileSet"
-scaleMultiplier=10
+scaleMultiplier=7
 frameWidth=16
 parts=["Amount1", "Amount2", "Amount3", "Amount4"]
 file="ui/jumpAmount.psd"
@@ -110,7 +110,7 @@ file="ui/jumpAmount.psd"
 [[Images]]
 name="uiSpeedAmount"
 type="tileSet"
-scaleMultiplier=10
+scaleMultiplier=7
 frameWidth=16
 parts=["Amount1", "Amount2", "Amount3", "Amount4", "Amount5"]
 file="ui/speedAmount.psd"
@@ -122,19 +122,19 @@ file="ui/speedAmount.psd"
 [[Images]]
 name="backgroundCity"
 type="single"
-scaleMultiplier=10
+scaleMultiplier=7
 file="city/backgroundCity.psd"
 
 [[Images]]
 name="cityFog"
 type="single"
-scaleMultiplier=10
+scaleMultiplier=7
 file="city/cityFog.psd"
 
 [[Images]]
 name="skyCity"
 type="single"
-scaleMultiplier=10
+scaleMultiplier=7
 file="city/skyCity.psd"
 
 # 
@@ -144,7 +144,7 @@ file="city/skyCity.psd"
 [[Images]]
 name="bulletSmallGreen"
 type="single"
-scaleMultiplier=10
+scaleMultiplier=7
 file="bullet/bulletSmallGreen.psd"
 
 [[Images]]
@@ -159,7 +159,7 @@ file="building/building0TileSet.psd"
 name="building1"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 parts=["roofLeft", "roofMiddle", "roofRight", "botMiddle", "middleLeft", "middleRight"]
 file="building/building1TileSet.psd"
 
@@ -167,7 +167,7 @@ file="building/building1TileSet.psd"
 name="building2"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 parts=["window", "roofHanging", "roofClean", "middleWhite", "middleWhiteClean", "leftMiddle", "rightMiddle", "leftRoof", "rightRoof", "middleBlue"]
 file="building/building2TileSet.psd"
 
@@ -175,7 +175,7 @@ file="building/building2TileSet.psd"
 name="building3"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 parts=["leftMiddle", "roofTop", "roofLeft", "roofMiddle", "roofRight", "rightMiddle", "whiteMiddle", "windowMiddle"]
 file="building/building3TileSet.psd"
 
@@ -183,7 +183,7 @@ file="building/building3TileSet.psd"
 name="building4"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 parts=["leftMiddle", "rightMiddle", "middlePlain", "middleWindow", "signYellowTop", "signYellowBot", "signOrangeTop", "signOrangeBot", "signGreenTop", "signGreenBot", "signBlue", "signRed", "roofLeft", "roofMiddle", "roofRight"]
 file="building/building4TileSet.psd"
 
@@ -191,7 +191,7 @@ file="building/building4TileSet.psd"
 name="building5"
 type="tileSet"
 frameWidth=8
-scaleMultiplier=10
+scaleMultiplier=7
 parts=["roofLeft", "roofRight", "roofMiddle", "middleLeft", "middleRight", "middleWindow"]
 file="building/building5TileSet.psd"
 
@@ -288,13 +288,13 @@ file="titleScene/titleText.psd"
 [[Images]]
 name="titleSceneBeach"
 type="single"
-scaleMultiplier=10
+scaleMultiplier=7
 file="titleScene/titleSceneBeach.psd"
 
 [[Images]]
 name="titleSceneBeachWater"
 type="tileSet"
-scaleMultiplier=10
+scaleMultiplier=7
 frameWidth=256
 file="titleScene/titleSceneBeachWater.psd"
 

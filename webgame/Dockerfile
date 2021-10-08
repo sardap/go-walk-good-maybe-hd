@@ -13,12 +13,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go run ./gen . http://localhost:8080/assets/
+RUN go run ./cmd/gen ./pkg http://localhost:8080/assets/
 
 ENV GOOS js
 ENV GOARCH wasm
 
-RUN go build -o wgmhd.wasm .
+RUN go build -o wgmhd.wasm ./cmd/wgmhd
 
 FROM nginx:alpine
 

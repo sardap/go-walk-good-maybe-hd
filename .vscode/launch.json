@@ -5,12 +5,13 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch Package",
+			"name": "Launch game",
 			"type": "go",
 			"request": "launch",
 			"preLaunchTask": "gennerate assets",
 			"mode": "debug",
-			"program": "${workspaceFolder}"
+			"program": "${workspaceFolder}/cmd/wgmhd",
+			"cwd": "${workspaceFolder}"
 		},
 		{
 			"name": "Launch gen Package",
@@ -18,9 +19,9 @@
 			"request": "launch",
 			"mode": "debug",
 			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/gen",
+			"program": "${workspaceFolder}/cmd/gen",
 			"args": [
-				"${workspaceFolder}",
+				"${workspaceFolder}/pkg",
 				"dev"
 			]
 		},

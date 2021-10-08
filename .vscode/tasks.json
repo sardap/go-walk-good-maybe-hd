@@ -8,13 +8,13 @@
 			"type": "process",
 			"runOptions": {},
 			"options": {
-				"cwd": "${workspaceFolder}/gen"
+				"cwd": "${workspaceFolder}/cmd/gen"
 			},
 			"command": "go",
 			"args": [
 				"run",
 				".",
-				"${workspaceFolder}"
+				"${workspaceFolder}/pkg"
 			],
 			"group": {
 				"kind": "build",

@@ -1,4 +1,4 @@
-module github.com/sardap/walk-good-maybe-hd/assetweb
+module github.com/sardap/walk-good-maybe-hd/pkg/assetweb
 
 go 1.17
 

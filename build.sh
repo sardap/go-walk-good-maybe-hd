@@ -21,7 +21,7 @@ cd /app
 
 go mod download
 
-go run ./gen . https://backend.sarda.dev/assets/wgmhd/assets/latest
+go run ./cmd/gen ./pkg https://backend.sarda.dev/assets/wgmhd/assets/latest
 
 echo "running tests"
 xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./...
@@ -38,24 +38,24 @@ export GOARCH=amd64
 export GOOS=linux
 
 echo "building linux version"
-go build -ldflags "-w" -o bin/walk-good-maybe-hd-linux-amd64 .
+go build -ldflags "-w" -o bin/walk-good-maybe-hd-linux-amd64 ./cmd/wgmhd
 
 export GOARCH=amd64
 export GOOS=windows
 
 echo "building windows version"
-go build -ldflags "-w" -o bin/walk-good-maybe-hd-windows-amd64.exe .
+go build -ldflags "-w" -o bin/walk-good-maybe-hd-windows-amd64.exe ./cmd/wgmhd
 
 export GOOS=js
 export GOARCH=wasm
 
 echo "building wasm version"
-go build -o bin/walk-good-maybe-hd.wasm .
+go build -o bin/walk-good-maybe-hd.wasm ./cmd/wgmhd
 
 cd bin
 
-zip walk-good-maybe-hd-linux-amd64 walk-good-maybe-hd-linux-amd64
-zip walk-good-maybe-hd-windows-amd64.zip walk-good-maybe-hd-windows-amd64.exe
+zip walk-good-maybe-hd-linux-amd64.zip walk-good-maybe-hd-linux-amd64 ./out
+zip walk-good-maybe-hd-windows-amd64.zip walk-good-maybe-hd-windows-amd64.exe ./out
 zip walk-good-maybe-hd-wasm.zip walk-good-maybe-hd.wasm
 
 ls

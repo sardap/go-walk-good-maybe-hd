@@ -4,7 +4,7 @@
 			{
 				"match": "(components..*?\\.go)|(gen.codegen.main.go)$",
 				"notMatch": "gen\\.go$",
-				"cmd": "cd ${workspaceFolder}/gen && go run . ${workspaceFolder}",
+				"cmd": "cd ${workspaceFolder}/gen && go run . ${workspaceFolder}/pkg",
 			},
 		],
 		"autoClearConsole": true,

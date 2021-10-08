@@ -1,0 +1,250 @@
+{
+  "title_screen_file": "images/testScreen.psd",
+  "music_file": "music/pdRockBackground.mp3",
+  "sounds_files": {
+    "A": "sounds/aYSound.wav",
+    "B": "sounds/bSound.wav",
+    "X": "sounds/xSound.wav",
+    "Y": "sounds/aYSound.wav"
+  },
+  "text_image_files": {
+    "okay": "images/okayText.psd",
+    "good": "images/goodText.psd",
+    "great": "images/greatText.psd",
+    "perfect": "images/perfectText.psd"
+  },
+  "inputs": [
+    {
+      "sound": "Y",
+      "hit_time": 10045
+    },
+    {
+      "sound": "B",
+      "hit_time": 5557
+    },
+    {
+      "sound": "X",
+      "hit_time": 6208
+    },
+    {
+      "sound": "Y",
+      "hit_time": 7330
+    },
+    {
+      "sound": "B",
+      "hit_time": 8036
+    },
+    {
+      "sound": "X",
+      "hit_time": 11042
+    },
+    {
+      "sound": "Y",
+      "hit_time": 11689
+    },
+    {
+      "sound": "X",
+      "hit_time": 8786
+    },
+    {
+      "sound": "X",
+      "hit_time": 9442
+    },
+    {
+      "sound": "B",
+      "hit_time": 13455
+    },
+    {
+      "sound": "A",
+      "hit_time": 13927
+    },
+    {
+      "sound": "X",
+      "hit_time": 14137
+    },
+    {
+      "sound": "X",
+      "hit_time": 14607
+    },
+    {
+      "sound": "X",
+      "hit_time": 12326
+    },
+    {
+      "sound": "X",
+      "hit_time": 12562
+    },
+    {
+      "sound": "X",
+      "hit_time": 12761
+    },
+    {
+      "sound": "B",
+      "hit_time": 13032
+    },
+    {
+      "sound": "B",
+      "hit_time": 15476
+    },
+    {
+      "sound": "Y",
+      "hit_time": 15929
+    },
+    {
+      "sound": "X",
+      "hit_time": 16417
+    },
+    {
+      "sound": "A",
+      "hit_time": 16671
+    },
+    {
+      "sound": "X",
+      "hit_time": 16888
+    },
+    {
+      "sound": "B",
+      "hit_time": 17322
+    },
+    {
+      "sound": "X",
+      "hit_time": 17558
+    },
+    {
+      "sound": "X",
+      "hit_time": 17775
+    },
+    {
+      "sound": "Y",
+      "hit_time": 18246
+    },
+    {
+      "sound": "B",
+      "hit_time": 18897
+    },
+    {
+      "sound": "X",
+      "hit_time": 19350
+    },
+    {
+      "sound": "X",
+      "hit_time": 19820
+    },
+    {
+      "sound": "Y",
+      "hit_time": 20056
+    },
+    {
+      "sound": "Y",
+      "hit_time": 20273
+    },
+    {
+      "sound": "A",
+      "hit_time": 20725
+    },
+    {
+      "sound": "X",
+      "hit_time": 20925
+    },
+    {
+      "sound": "X",
+      "hit_time": 21196
+    },
+    {
+      "sound": "A",
+      "hit_time": 21902
+    },
+    {
+      "sound": "B",
+      "hit_time": 22554
+    },
+    {
+      "sound": "A",
+      "hit_time": 22861
+    },
+    {
+      "sound": "X",
+      "hit_time": 23241
+    },
+    {
+      "sound": "X",
+      "hit_time": 23694
+    },
+    {
+      "sound": "X",
+      "hit_time": 24364
+    },
+    {
+      "sound": "X",
+      "hit_time": 25052
+    },
+    {
+      "sound": "X",
+      "hit_time": 25522
+    },
+    {
+      "sound": "X",
+      "hit_time": 25993
+    },
+    {
+      "sound": "X",
+      "hit_time": 26409
+    },
+    {
+      "sound": "X",
+      "hit_time": 26862
+    },
+    {
+      "sound": "X",
+      "hit_time": 27296
+    },
+    {
+      "sound": "X",
+      "hit_time": 27604
+    },
+    {
+      "sound": "X",
+      "hit_time": 27803
+    },
+    {
+      "sound": "X",
+      "hit_time": 28002
+    },
+    {
+      "sound": "X",
+      "hit_time": 28237
+    },
+    {
+      "sound": "X",
+      "hit_time": 28491
+    },
+    {
+      "sound": "X",
+      "hit_time": 28690
+    },
+    {
+      "sound": "B",
+      "hit_time": 29052
+    },
+    {
+      "sound": "Y",
+      "hit_time": 30319
+    }
+  ],
+  "backgrounds": [
+    {
+      "duration": 10000,
+      "image": "images/souelTreesHillCityFog.psd"
+    },
+    {
+      "duration": 10000,
+      "fade_in": 3000,
+      "image": "images/souelTreesCity.psd"
+    },
+    {
+      "duration": 10000,
+      "fade_in": 3000,
+      "image": "images/souelCityAlley.psd"
+    }
+  ]
+}

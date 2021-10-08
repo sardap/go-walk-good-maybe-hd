@@ -25,16 +25,18 @@ RUN go mod download
 
 COPY . .
 
+RUN xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./...
+
 FROM builder as linux
 
-RUN xvfb-run go test -race -coverprofile=coverage.out -covermode=atomic ./... && go build .
+RUN go build ./cmd/wghmd
 
 FROM builder as windows
 
 ENV GOARCH amd64
 ENV GOOS windows
 
-RUN go build .
+RUN go build ./cmd/wghmd
 
 FROM alpine:latest
 
