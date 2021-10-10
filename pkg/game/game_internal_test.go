@@ -2,7 +2,6 @@ package game
 
 import (
 	"encoding/base64"
-	"image/color"
 	gomath "math"
 	"math/rand"
 	"testing"
@@ -17,18 +16,6 @@ import (
 	"github.com/sardap/walk-good-maybe-hd/pkg/math"
 	"github.com/stretchr/testify/assert"
 )
-
-func emptyImage(img *ebiten.Image) bool {
-	for y := 0; y < img.Bounds().Dy(); y++ {
-		for x := 0; x < img.Bounds().Dx(); x++ {
-			if img.At(x, y) != color.White {
-				return false
-			}
-		}
-	}
-
-	return true
-}
 
 type fakeRand struct {
 	seq []int64

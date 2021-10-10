@@ -181,6 +181,18 @@ type BasicImage struct {
 	*components.ImageComponent
 }
 
+func CreateBasicImageEmpty() *BasicImage {
+	return &BasicImage{
+		BasicEntity: ecs.NewBasic(),
+		TransformComponent: &components.TransformComponent{
+			Size: math.Vector2{},
+		},
+		ImageComponent: &components.ImageComponent{
+			Active: true,
+		},
+	}
+}
+
 func CreateBasicImage(imageAsset interface{}) *BasicImage {
 	img, _ := assets.LoadEbitenImageAsset(imageAsset)
 

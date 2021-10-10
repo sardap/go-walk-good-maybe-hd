@@ -7,8 +7,6 @@ import (
 type KaraokeInput struct {
 	TargetHitTime time.Duration
 	Sound         string
-	XPostion      float64
-	XSpeed        float64
 	HitTime       time.Duration
 }
 

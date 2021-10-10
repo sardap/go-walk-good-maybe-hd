@@ -201,10 +201,27 @@ func (k *KaraokeScene) addEnts() {
 	}
 	k.world.AddEntity(k.backgroundBack)
 
-	k.ui = entity.CreateBasicImage(assets.ImageKaraokeBackground)
-	k.ui.Postion.Y = uiY
-	k.ui.Layer = ImageLayerKaraokeUi
-	k.world.AddEntity(k.ui)
+	{
+		k.ui = entity.CreateBasicImageEmpty()
+		k.ui.Postion.Y = uiY
+		k.ui.Layer = ImageLayerKaraokeUi
+
+		img := ebiten.NewImage(windowWidth, 336)
+		clr := parseHex("#545454")
+		clr.A = 255 * 0.6
+		img.Fill(clr)
+		k.ui.Image = img
+		k.ui.TransformComponent.Size.X = float64(img.Bounds().Dx())
+		k.ui.TransformComponent.Size.Y = float64(img.Bounds().Dy())
+
+		subRect := img.SubImage(image.Rect(0, 0, windowWidth, 5)).(*ebiten.Image)
+		subRect.Fill(ClrBlack)
+
+		subRect = img.SubImage(image.Rect(0, img.Bounds().Dy()-5, windowWidth, img.Bounds().Dy())).(*ebiten.Image)
+		subRect.Fill(ClrBlack)
+
+		k.world.AddEntity(k.ui)
+	}
 
 	img := ebiten.NewImage(karaRightBound-karaLeftBound, int(k.ui.TransformComponent.Size.Y-8))
 	lightRed := parseHex("#f32f42")

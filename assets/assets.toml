@@ -235,12 +235,6 @@ file="pdCity0.mp3"
 #
 
 [[Images]]
-name="karaokeBackground"
-type="single"
-scaleMultiplier=1
-file="karaoke/karaokeBackground.psd"
-
-[[Images]]
 name="whaleSinging"
 type="single"
 scaleMultiplier=4
