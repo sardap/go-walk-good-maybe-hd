@@ -1,0 +1,50 @@
+{
+  "title_screen_file": "images/titleScene.psd",
+  "music_file": "music/pdRockBackground.mp3",
+  "sounds_files": {
+    "A": "sounds/aYSound.wav",
+    "B": "sounds/bSound.wav",
+    "X": "sounds/xSound.wav",
+    "Y": "sounds/aYSound.wav"
+  },
+  "text_image_files": {
+    "okay": "images/okayText.psd",
+    "good": "images/goodText.psd",
+    "great": "images/greatText.psd",
+    "perfect": "images/perfectText.psd"
+  },
+  "inputs": [
+    {
+      "sound": "Y",
+      "hit_time": 5000
+    },
+    {
+      "sound": "Y",
+      "hit_time": 10000
+    },
+    {
+      "sound": "Y",
+      "hit_time": 15000
+    },
+    {
+      "sound": "Y",
+      "hit_time": 20000
+    }
+  ],
+  "backgrounds": [
+    {
+      "duration": 10000,
+      "image": "images/souelTreesHillCityFog.psd"
+    },
+    {
+      "duration": 10000,
+      "fade_in": 3000,
+      "image": "images/souelTreesCity.psd"
+    },
+    {
+      "duration": 10000,
+      "fade_in": 3000,
+      "image": "images/souelCityAlley.psd"
+    }
+  ]
+}

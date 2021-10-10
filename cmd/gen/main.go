@@ -209,7 +209,24 @@ type MusicOutput struct {
 	File string
 }
 
-func getMp3SampleRate(path string) int {
+func getMp3Duration(path string) (result time.Duration) {
+	mp3F, _ := os.Open(path)
+	defer mp3F.Close()
+
+	d := mp3.NewDecoder(mp3F)
+
+	for {
+		var f mp3.Frame
+		skipped := 0
+		if err := d.Decode(&f, &skipped); err != nil {
+			return
+		}
+		result += f.Duration()
+	}
+
+}
+
+func getMp3Info(path string) mp3.Frame {
 	mp3F, _ := os.Open(path)
 	defer mp3F.Close()
 	d := mp3.NewDecoder(mp3F)
@@ -219,13 +236,7 @@ func getMp3SampleRate(path string) int {
 		panic(err)
 	}
 
-	sampleRate := f.Header().SampleRate()
-	if sampleRate == mp3.ErrInvalidSampleRate {
-		panic("Invalid sample rate")
-	}
-
-	return int(sampleRate)
-
+	return f
 }
 
 func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
@@ -236,6 +247,7 @@ func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
 	outPath := filepath.Join("music", name) + ".mp3"
 
 	genWg.Add(1)
+	// Copy song
 	go func() {
 		defer genWg.Done()
 
@@ -249,7 +261,8 @@ func (s *MusicOutput) genMusicAssetFromFile(jf *jen.File, path string) {
 		io.Copy(fOut, fIn)
 	}()
 
-	sampleRate := getMp3SampleRate(path)
+	mp3Frame := getMp3Info(path)
+	sampleRate := int(mp3Frame.Header().SampleRate())
 
 	fields := []jen.Code{
 		jen.Id("Path").String(),
@@ -435,13 +448,13 @@ func (k *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 
 		for _, input := range karaokeIn.Inputs {
 			karaokeOut.Inputs = append(karaokeOut.Inputs, &common.KaraokeInput{
-				HitTime: time.Duration(input.HitTime) * time.Millisecond,
-				Sound:   input.Sound,
+				TargetHitTime: time.Duration(input.HitTime) * time.Millisecond,
+				Sound:         input.Sound,
 			})
 		}
 
 		sort.SliceStable(karaokeOut.Inputs, func(i, j int) bool {
-			return karaokeOut.Inputs[i].HitTime < karaokeOut.Inputs[j].HitTime
+			return karaokeOut.Inputs[i].TargetHitTime < karaokeOut.Inputs[j].TargetHitTime
 		})
 
 		for key, textImageFile := range karaokeIn.TextImageFiles {
@@ -470,7 +483,10 @@ func (k *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 			karaokeOut.Sounds[key] = base64.RawStdEncoding.EncodeToString(soundRaw)
 		}
 
-		karaokeOut.SampleRate = getMp3SampleRate(filepath.Join(karaokePath, karaokeIn.MusicFile))
+		mp3Frame := getMp3Info(filepath.Join(karaokePath, karaokeIn.MusicFile))
+
+		karaokeOut.MusicDuration = getMp3Duration(filepath.Join(karaokePath, karaokeIn.MusicFile))
+		karaokeOut.SampleRate = int(mp3Frame.Header().SampleRate())
 		rawMusic, _ := ioutil.ReadFile(filepath.Join(karaokePath, karaokeIn.MusicFile))
 		karaokeOut.Music = base64.RawStdEncoding.EncodeToString(rawMusic)
 
@@ -493,11 +509,32 @@ func (k *KaraokeOutput) genKaraokeAssetFromFile(jf *jen.File, path string) {
 	})
 }
 
-func genKarokeAssets(jf *jen.File, karaoke []KaraokeOutput, assetsPath string) {
+func genKarokeAssets(jf *jen.File, assetsPath string) {
 	fmt.Printf("\nGenerating Karaoke\n")
 
 	if err := os.Mkdir(filepath.Join(assetOutPath, "karaoke"), 0777); err != nil {
 		panic(err)
+	}
+
+	var karaoke []KaraokeOutput
+
+	err := filepath.Walk(assetsPath,
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil || !info.IsDir() {
+				return err
+			}
+
+			targetFilePath := filepath.Join(path, fmt.Sprintf("%s.json", filepath.Base(path)))
+			if _, err := os.Stat(targetFilePath); err != nil {
+				return nil
+			}
+
+			karaoke = append(karaoke, KaraokeOutput{File: strings.TrimPrefix(targetFilePath, assetsPath)})
+
+			return nil
+		})
+	if err != nil {
+		log.Println(err)
 	}
 
 	karaIdx := common.KaraokeIndex{}
@@ -711,7 +748,7 @@ func genAssets(remote string) {
 
 	genMusicAssets(jf, config.Music, filepath.Join(assetsPath, "music"))
 	genSoundAssets(jf, config.Sounds, filepath.Join(assetsPath, "sounds"))
-	genKarokeAssets(jf, config.Karaoke, filepath.Join(assetsPath, "karaoke"))
+	genKarokeAssets(jf, filepath.Join(assetsPath, "karaoke"))
 	genIconAssets(jf, config.Icons, filepath.Join(assetsPath, "inputIcons"))
 	genFonts(jf, filepath.Join(assetsPath, "fonts"))
 

@@ -85,7 +85,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	img := ebiten.NewImage(50, 50)
 	ebitenutil.DebugPrint(img, fmt.Sprintf("%2.f", ebiten.CurrentFPS()))
 	op := &ebiten.DrawImageOptions{}
-	op.GeoM.Scale(10, 10)
+	op.GeoM.Scale(5, 5)
 	op.GeoM.Translate(0, 0)
 	screen.DrawImage(img, op)
 }

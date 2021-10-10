@@ -5,11 +5,11 @@ import (
 )
 
 type KaraokeInput struct {
-	HitTime    time.Duration
-	Sound      string
-	XPostion   float64
-	XSpeed     float64
-	HitPostion float64
+	TargetHitTime time.Duration
+	Sound         string
+	XPostion      float64
+	XSpeed        float64
+	HitTime       time.Duration
 }
 
 type KaraokeBackground struct {
@@ -25,6 +25,7 @@ type KaraokeSession struct {
 	Sounds           map[string]string
 	TextImages       map[string]string
 	Music            string
+	MusicDuration    time.Duration
 	SampleRate       int
 	BackgroundIdx    int
 }
